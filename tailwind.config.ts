@@ -9,45 +9,39 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Board colors - fluo style flat
-        cef: "#00E5FF", // Cyan
-        agr: "#FF00E5", // Magenta
-
-        // Fluorescent palette (vivid but solid)
-        fluo: {
-          cyan: "#00E5FF",
-          magenta: "#FF00E5",
-          lime: "#39FF14",
-          yellow: "#FFFF00",
-          orange: "#FF5F00",
-          pink: "#FF007F",
-          purple: "#9D00FF",
-          blue: "#0055FF",
-          green: "#00FE00",
-          red: "#FF003F",
-        },
-
-        // Background colors - Super clean & white
-        bg: {
-          primary: "#FFFFFF",
-          secondary: "#F7F7F7",
-          tertiary: "#EFEFEF",
-          card: "#FFFFFF",
-        },
-
-        // Text colors - High contrast for white bg
-        text: {
-          primary: "#000000",
-          secondary: "#444444",
-          muted: "#888888",
+        linear: {
+          bg: "#0A0A0A",
+          surface: "#121212",
+          surfaceHover: "#1A1A1A",
+          surfaceActive: "#242424",
+          border: "#202020",
+          borderHover: "#2A2A2A",
+          text: "#EEEEEE",
+          textMuted: "#888888",
+          textDim: "#555555",
+          accent: "#5E6AD2",
+          accentHover: "#6B77DF",
+          success: "#1F7A4C",
+          warning: "#B07D1C",
+          danger: "#C1343A",
+          info: "#2F65CB",
+          todo: "#4A4D53",
+          inProgress: "#B07D1C",
+          done: "#1F7A4C",
         },
       },
       boxShadow: {
-        // Flat design means no shadows or sharp solid shadows
-        hard: "4px 4px 0px 0px rgba(0,0,0,1)",
-        "hard-sm": "2px 2px 0px 0px rgba(0,0,0,1)",
-        none: "none",
+        'linear': '0 1px 2px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        'linear-sm': '0 1px 1px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        'linear-hover': '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+        'popover': '0 8px 16px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
       },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      backgroundImage: {
+        'linear-gradient': 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
+      }
     },
   },
   plugins: [],

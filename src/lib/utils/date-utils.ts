@@ -1,4 +1,4 @@
-import { differenceInDays, parseISO, startOfDay, isValid } from 'date-fns';
+import { differenceInDays, parseISO, startOfDay, isValid } from "date-fns";
 
 export function parseDate(dateString: string | null): Date | null {
   if (!dateString) return null;
@@ -13,51 +13,53 @@ export function parseDate(dateString: string | null): Date | null {
 export function dateToPixels(
   date: Date | null,
   timelineStart: Date,
-  pixelsPerDay: number
+  pixelsPerDay: number,
 ): number | null {
   if (!date) return null;
   const days = differenceInDays(startOfDay(date), startOfDay(timelineStart));
   return Math.max(0, days * pixelsPerDay);
 }
 
-export function calculateTimelineRange(
-  epics: Array<{ startDate: string | null; dueDate: string | null }>,
-  paddingDays: number = 30
-) {
-  const allDates = epics
-    .flatMap((epic) => [epic.startDate, epic.dueDate])
-    .map((d) => parseDate(d))
-    .filter((d) => d !== null) as Date[];
+export function calculateTimelineRange(pixelsPerDay: number = 18) {
+  // Timeline is always centered on today's date
+  const today = startOfDay(new Date());
 
-  if (allDates.length === 0) {
-    const today = new Date();
-    return {
-      start: new Date(today.getFullYear(), today.getMonth() - 1, 1),
-      end: new Date(today.getFullYear(), today.getMonth() + 3, 1),
-    };
-  }
+  // Calculate total days to show based on zoom level
+  // Default: show 90 days (3 months) at default zoom
+  const totalDays = Math.ceil(90 * (18 / pixelsPerDay));
 
-  const minDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
-  const maxDate = new Date(Math.max(...allDates.map((d) => d.getTime())));
+  // Calculate start and end dates centered on today
+  // Today should be at 20% of the visible timeline
+  const startDate = new Date(
+    today.getTime() - totalDays * 0.2 * 24 * 60 * 60 * 1000,
+  );
+  const endDate = new Date(
+    today.getTime() + totalDays * 0.8 * 24 * 60 * 60 * 1000,
+  );
 
   return {
-    start: new Date(minDate.getTime() - paddingDays * 24 * 60 * 60 * 1000),
-    end: new Date(maxDate.getTime() + paddingDays * 24 * 60 * 60 * 1000),
+    start: startDate,
+    end: endDate,
+    totalDays,
   };
 }
 
-export function getMonthLabels(start: Date, end: Date): Array<{ month: string; left: number }> {
+export function getMonthLabels(
+  start: Date,
+  end: Date,
+): Array<{ month: string; left: number }> {
   const labels = [];
   const current = new Date(start.getFullYear(), start.getMonth(), 1);
 
   const pixelsPerDay = 2; // Default, should be passed from config
 
   while (current <= end) {
-    const monthLabel = current.toLocaleDateString('it-IT', {
-      month: 'short',
-      year: '2-digit',
+    const monthLabel = current.toLocaleDateString("it-IT", {
+      month: "short",
+      year: "2-digit",
     });
-    const left = differenceInDays(startOfDay(current), startOfDay(start)) * pixelsPerDay;
+    const left =
+      differenceInDays(startOfDay(current), startOfDay(start)) * pixelsPerDay;
 
     labels.push({ month: monthLabel, left });
 

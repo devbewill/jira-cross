@@ -1,26 +1,21 @@
-import { getCategoryBadgeColor } from "@/lib/utils/color-utils";
+import { getBadgeColor } from '@/lib/utils/color-utils';
 
 interface BadgeProps {
   label: string;
-  variant?: "status" | "default";
-  statusCategory?: "todo" | "in-progress" | "done";
+  variant?: 'status' | 'board';
+  statusCategory?: string;
 }
 
-export function Badge({
-  label,
-  variant = "default",
-  statusCategory,
-}: BadgeProps) {
-  let colorClass = "bg-white text-black border-2 border-black";
-
-  if (variant === "status" && statusCategory) {
-    colorClass = getCategoryBadgeColor(statusCategory);
-  }
+export function Badge({ label, variant = 'status', statusCategory = 'todo' }: BadgeProps) {
+  const colorClasses = getBadgeColor(statusCategory, variant);
 
   return (
     <span
-      className={`inline-block px-3 py-1 text-xs font-black uppercase tracking-widest leading-none ${colorClass}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${colorClasses}`}
     >
+      {variant === 'status' && (
+        <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-70" />
+      )}
       {label}
     </span>
   );

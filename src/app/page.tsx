@@ -28,28 +28,33 @@ export default function Page() {
 
   if (isConfigMissing) {
     return (
-      <div className="h-screen flex flex-col bg-white">
+      <div className="h-screen flex flex-col bg-linear-bg text-linear-text font-sans selection:bg-linear-accent selection:text-white">
         <Header
           onRefresh={async () => {}}
           isRefreshing={false}
           cacheHit={false}
         />
-        <div className="flex-1 flex items-center justify-center bg-timeline-grid">
-          <div className="text-center bg-white p-12 border-4 border-black max-w-md shadow-hard relative">
-            <div className="absolute -top-4 -left-4 w-8 h-8 bg-fluo-red border-2 border-black rotate-12" />
-            <h2 className="text-3xl font-black text-black mb-4 uppercase tracking-widest drop-shadow-[2px_2px_0px_rgba(0,195,255,1)]">
+        <div className="flex-1 flex items-center justify-center bg-timeline-grid p-6">
+          <div className="bg-linear-surface border border-linear-border rounded-[12px] p-8 max-w-md shadow-popover relative w-full">
+            <h2 className="text-xl font-semibold mb-3">
               Configuration Missing
             </h2>
-            <p className="text-black font-medium mb-6">
+            <p className="text-linear-textMuted text-sm mb-6 leading-relaxed">
               Jira credentials are not configured. Please ensure the following
-              environment variables are set in .env.local:
+              environment variables are set in <code className="bg-linear-surfaceActive px-1 py-0.5 rounded">.env.local</code>:
             </p>
-            <ul className="text-left bg-fluo-yellow p-4 border-2 border-black mb-6 font-mono text-sm font-bold text-black shadow-hard-sm">
-              <li className="mb-2">👉 JIRA_BASE_URL</li>
-              <li className="mb-2">👉 JIRA_EMAIL</li>
-              <li>👉 JIRA_API_TOKEN</li>
+            <ul className="text-left bg-linear-surfaceHover p-4 rounded-[6px] border border-linear-border mb-6 font-mono text-xs text-linear-textMuted space-y-2">
+              <li className="flex items-center gap-2">
+                <span className="text-linear-accent">→</span> JIRA_BASE_URL
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-linear-accent">→</span> JIRA_EMAIL
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-linear-accent">→</span> JIRA_API_TOKEN
+              </li>
             </ul>
-            <p className="text-text-secondary text-sm font-bold border-t-2 border-black pt-4">
+            <p className="text-linear-textDim text-xs pt-4 border-t border-linear-border">
               After updating .env.local, restart the dev server.
             </p>
           </div>
@@ -59,7 +64,7 @@ export default function Page() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white font-sans text-black overflow-hidden">
+    <div className="h-screen flex flex-col bg-linear-bg font-sans text-linear-text overflow-hidden selection:bg-linear-accent selection:text-white">
       {/* Header */}
       <Header
         onRefresh={handleRefresh}
@@ -76,15 +81,15 @@ export default function Page() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden relative p-4 sm:p-6 lg:p-8 bg-[#f5f5f5] gap-4 sm:gap-6 lg:gap-8">
+      <div className="flex-1 flex overflow-hidden relative">
         {loading && data === null ? (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
-            <LoadingSpinner message="Loading epics from Jira..." />
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-linear-bg/80 backdrop-blur-sm">
+            <LoadingSpinner message="Syncing timeline..." />
           </div>
         ) : data?.boards ? (
           <>
             {/* Timeline */}
-            <div className="flex-1 overflow-hidden border-2 border-black shadow-hard flex flex-col relative bg-white">
+            <div className="flex-1 overflow-hidden relative bg-linear-bg">
               <TimelineContainer
                 boards={data.boards}
                 selectedEpic={selectedEpic}
@@ -93,17 +98,19 @@ export default function Page() {
             </div>
 
             {/* Sidebar */}
-            <Sidebar epic={selectedEpic} onClose={deselect} />
+            <div className={`transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden h-full shrink-0 border-l border-linear-border z-30 ${selectedEpic ? 'w-80 opacity-100' : 'w-0 opacity-0 border-none'}`}>
+              <Sidebar epic={selectedEpic} onClose={deselect} />
+            </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-timeline-grid border-2 border-black shadow-hard bg-white">
-            <div className="text-center bg-white border-2 border-black p-8 shadow-hard">
-              <p className="text-black font-bold mb-6 text-lg">No epics found</p>
+          <div className="flex-1 flex items-center justify-center bg-timeline-grid bg-linear-bg">
+            <div className="text-center bg-linear-surface border border-linear-border rounded-[12px] p-8 shadow-popover max-w-sm">
+              <p className="text-linear-text font-medium mb-6">No epics found in this project view.</p>
               <button
                 onClick={handleRefresh}
-                className="btn-fluo px-8 py-4 bg-fluo-cyan text-black font-black uppercase tracking-widest text-lg hover:bg-fluo-lime"
+                className="px-6 py-2 bg-linear-accent text-white font-medium rounded-[6px] text-sm hover:bg-linear-accentHover transition-colors shadow-linear-sm"
               >
-                Try Again
+                Refresh Data
               </button>
             </div>
           </div>

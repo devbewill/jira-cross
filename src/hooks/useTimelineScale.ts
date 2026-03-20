@@ -1,16 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { calculateTimelineRange, dateToPixels, parseDate } from '@/lib/utils/date-utils';
-import { Epic, TimelineConfig } from '@/types';
+import { useState, useMemo } from "react";
+import {
+  calculateTimelineRange,
+  dateToPixels,
+  parseDate,
+} from "@/lib/utils/date-utils";
+import { Epic, TimelineConfig } from "@/types";
 
-const DEFAULT_PIXELS_PER_DAY = 10;
+const DEFAULT_PIXELS_PER_DAY = 18;
 
 export function useTimelineScale(epics: Epic[], containerWidth: number = 1200) {
   const [pixelsPerDay, setPixelsPerDay] = useState(DEFAULT_PIXELS_PER_DAY);
 
   const config = useMemo<TimelineConfig>(() => {
-    const { start, end } = calculateTimelineRange(epics);
+    const { start, end } = calculateTimelineRange(pixelsPerDay);
 
     return {
       startDate: start,
@@ -18,7 +22,7 @@ export function useTimelineScale(epics: Epic[], containerWidth: number = 1200) {
       pixelsPerDay,
       containerWidth,
     };
-  }, [epics, pixelsPerDay, containerWidth]);
+  }, [pixelsPerDay, containerWidth]);
 
   const dateToPosition = (date: string | null): number | null => {
     if (!date) return null;
@@ -26,23 +30,20 @@ export function useTimelineScale(epics: Epic[], containerWidth: number = 1200) {
     return dateToPixels(parsed, config.startDate, config.pixelsPerDay);
   };
 
-  const zoom = (direction: 'in' | 'out') => {
-    setPixelsPerDay((prev) => {
-      if (direction === 'in') {
-        return Math.min(prev * 1.2, 10);
-      } else {
-        return Math.max(prev / 1.2, 0.5);
-      }
-    });
+  // Preset zoom levels
+  const setZoomLevel = (level: "weeks" | "months" | "quarters") => {
+    const zoomLevels = {
+      weeks: 30,
+      months: 18,
+      quarters: 6,
+    };
+    setPixelsPerDay(zoomLevels[level]);
   };
-
-  const resetZoom = () => setPixelsPerDay(DEFAULT_PIXELS_PER_DAY);
 
   return {
     config,
     dateToPosition,
-    zoom,
-    resetZoom,
+    setZoomLevel,
     pixelsPerDay,
   };
 }
