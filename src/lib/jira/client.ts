@@ -114,21 +114,38 @@ export class JiraClient {
     try {
       const issues = await this.searchIssues(jql, ['status', 'parent']);
 
+      console.log(`[storyStats] JQL returned ${issues.length} child issues for ${epicKeys.length} epics`);
+
+      // Log distribution of statusCategory.key values across all returned issues
+      const catKeyDist: Record<string, number> = {};
+      issues.forEach((issue) => {
+        const k = issue.fields?.status?.statusCategory?.key ?? '(undefined)';
+        catKeyDist[k] = (catKeyDist[k] ?? 0) + 1;
+      });
+      console.log('[storyStats] statusCategory.key distribution:', catKeyDist);
+
+      // Log how many issues have a parent key that matches an epic vs not
+      let matched = 0; let unmatched = 0;
       issues.forEach((issue) => {
         const parentKey: string | undefined = issue.fields?.parent?.key;
-        if (!parentKey) return;
-
+        if (!parentKey) { unmatched++; return; }
         const stats = statsMap.get(parentKey);
-        if (!stats) return;
+        if (!stats) { unmatched++; console.log(`[storyStats] unmatched parentKey: "${parentKey}"`); return; }
+        matched++;
 
-        // Jira statusCategory.key values: "new" | "indeterminate" | "done"
         const catKey: string = issue.fields?.status?.statusCategory?.key ?? 'new';
-
         stats.total++;
         if (catKey === 'done') stats.done++;
         else if (catKey === 'indeterminate' || catKey === 'in-progress') stats.inProgress++;
         else stats.todo++;
       });
+      console.log(`[storyStats] matched: ${matched}, unmatched: ${unmatched}`);
+
+      // Log final stats per epic
+      const summary: Record<string, object> = {};
+      statsMap.forEach((v, k) => { summary[k] = v; });
+      console.log('[storyStats] final per-epic stats:', JSON.stringify(summary));
+
     } catch (err) {
       // Non-fatal: story stats are optional — log and return empty-initialised map
       console.warn('getStoryStatsByEpic: could not fetch child issues:', err);
