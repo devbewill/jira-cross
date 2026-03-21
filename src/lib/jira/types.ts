@@ -36,6 +36,9 @@ export interface JiraSearchResponse {
   total: number;
   maxResults: number;
   startAt: number;
+  // /search/jql cursor-based pagination
+  isLast?: boolean;
+  nextPageToken?: string;
 }
 
 export interface JiraBoardResponse {

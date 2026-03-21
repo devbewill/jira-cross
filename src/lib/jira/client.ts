@@ -61,21 +61,20 @@ export class JiraClient {
     let startAt = 0;
     let hasMore = true;
 
-    while (hasMore && startAt < MAX_RESULTS) {
-      // Use /search (not /search/jql) — it supports startAt offset pagination correctly.
-      // /search/jql uses cursor-based nextPageToken and silently ignores ?startAt.
+    // /search/jql uses cursor-based pagination: nextPageToken instead of startAt
+    let nextPageToken: string | undefined = undefined;
+
+    while (hasMore && allIssues.length < MAX_RESULTS) {
       const payload: Record<string, unknown> = {
         jql,
         maxResults: DEFAULT_PAGE_SIZE,
-        startAt,
       };
 
-      if (fields.length > 0) {
-        payload.fields = fields;
-      }
+      if (nextPageToken) payload.nextPageToken = nextPageToken;
+      if (fields.length > 0) payload.fields = fields;
 
       const response = await this.request<JiraSearchResponse>(
-        '/search',
+        '/search/jql',
         {
           method: 'POST',
           body: JSON.stringify(payload),
@@ -84,8 +83,12 @@ export class JiraClient {
 
       allIssues.push(...response.issues);
 
-      hasMore = startAt + response.issues.length < response.total;
-      startAt += response.issues.length;
+      // isLast=true or no nextPageToken means we're done
+      if (response.isLast || !response.nextPageToken) {
+        hasMore = false;
+      } else {
+        nextPageToken = response.nextPageToken;
+      }
     }
 
     return allIssues;
