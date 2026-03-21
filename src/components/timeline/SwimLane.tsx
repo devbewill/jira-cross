@@ -83,9 +83,10 @@ export function SwimLane({
         </span>
       </div>
 
-      {/* Timeline Container */}
+      {/* Timeline Container — isolate creates a stacking context so epics/tooltips
+          inside never composite above the sticky board label regardless of z-index */}
       <div
-        className="relative flex-1 bg-transparent group-hover:bg-linear-surfaceHover/5 transition-colors duration-200"
+        className="relative isolate flex-1 bg-transparent group-hover:bg-linear-surfaceHover/5 transition-colors duration-200"
         style={{ minHeight: `${swimlaneHeight}px` }}
       >
         {board.epics.map((epic) => {
