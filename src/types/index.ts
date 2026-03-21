@@ -26,16 +26,39 @@ export interface EpicsApiResponse {
   cacheHit: boolean;
 }
 
+// Timeline Scale & Config
+export type TimeScale = 'today' | 'weeks' | 'months' | 'quarters';
+
+export interface ScaleConfig {
+  /** Pixels per day at this scale */
+  pxPerDay: number;
+  /** Number of units before today to show */
+  unitsBefore: number;
+  /** Number of units after today to show (including current) */
+  unitsAfter: number;
+  /** Total visible days (computed from the range rule) */
+  visibleDays: number;
+  /** Tick unit displayed in the header */
+  tickUnit: 'day' | 'month' | 'quarter';
+}
+
+export interface TimelineConfig {
+  scale: TimeScale;
+  /** First visible date (left edge of viewport) */
+  visibleStart: Date;
+  /** Last visible date (right edge of viewport) */
+  visibleEnd: Date;
+  /** Pixels per day for current scale */
+  pxPerDay: number;
+  /** Total scrollable width in pixels */
+  totalWidth: number;
+  /** Tick unit for the header */
+  tickUnit: 'day' | 'month' | 'quarter';
+}
+
 // Timeline Positioning
 export interface TimelinePosition {
   left: number;
   width: number;
   laneIndex: number;
-}
-
-export interface TimelineConfig {
-  startDate: Date;
-  endDate: Date;
-  pixelsPerDay: number;
-  containerWidth: number;
 }

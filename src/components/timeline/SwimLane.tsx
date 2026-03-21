@@ -73,8 +73,8 @@ export function SwimLane({
 
   return (
     <div className="flex gap-0 h-full border-b border-linear-border/30 group">
-      {/* Board Label */}
-      <div className="w-56 flex-shrink-0 bg-transparent border-r border-linear-border/50 flex flex-col justify-center px-4 py-4 relative group-hover:bg-linear-surfaceHover/10 transition-colors">
+      {/* Board Label — sticky so it stays visible on horizontal scroll */}
+      <div className="w-56 flex-shrink-0 bg-linear-bg border-r border-linear-border/50 flex flex-col justify-center px-4 py-4 sticky left-0 z-10 group-hover:bg-linear-surfaceHover/10 transition-colors">
         <span className="text-linear-text text-sm font-medium tracking-tight break-words mb-1">
           {board.name || board.key}
         </span>
