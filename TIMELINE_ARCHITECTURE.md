@@ -53,23 +53,23 @@ src/
   lib/utils/date-utils.ts            — All date/position math (pure functions)
   hooks/useTimelineScale.ts          — React hook: manages scale state + scroll snap
   components/timeline/
-    TimelineContainer.tsx            — Root component: layout, scroll sync, scale buttons
+    TimelineContainer.tsx            — Root component: layout, scroll sync, scale buttons + legend
     TimelineHeader.tsx               — Date ruler (ticks)
     SwimLane.tsx                     — One row per board, renders EpicBlocks
-    EpicBlock.tsx                    — Epic bar: per-story segments + tooltip trigger
+    EpicBlock.tsx                    — Epic bar: per-story segments + tooltip trigger + DOT_* color exports
     EpicTooltip.tsx                  — Floating tooltip (portal, light theme, viewport-aware)
-    TodayMarker.tsx                  — Red vertical line at today
+    TodayMarker.tsx                  — Vertical line at today
     StoryPanel.tsx                   — Slide-in right panel listing user stories for an epic
   components/layout/
     Header.tsx                       — App header: title, cache badge, Sync Jira + Status Rilasci buttons
     ReleasesOverlay.tsx              — Fullscreen releases overlay with search, project filter, status pills
   lib/jira/
-    client.ts                        — JiraClient: searchIssues, getStoryStatsByEpic
-    queries.ts                       — JQL constants
+    client.ts                        — JiraClient: searchIssues (cursor pagination), getStoryStatsByEpic
+    queries.ts                       — JQL constants, DEFAULT_PAGE_SIZE, MAX_RESULTS
     mapper.ts                        — Maps raw Jira issues → Epic / BoardData
-    types.ts                         — Raw Jira API response types
+    types.ts                         — Raw Jira API response types (incl. isLast, nextPageToken)
   lib/cache/
-    memory-cache.ts                  — In-memory TTL cache (epicsCache + releasesCache)
+    memory-cache.ts                  — In-memory TTL cache anchored to globalThis (epicsCache + releasesCache)
   app/api/jira/
     epics/route.ts                   — GET /api/jira/epics
     stories/route.ts                 — GET /api/jira/stories?epicKey=XXX
@@ -108,17 +108,18 @@ const { scale, config, scrollOrigin, scrollContainerRef,
 The layout uses two separate DOM columns to avoid z-index / stacking-context conflicts:
 
 ```
-┌────────────────────────────────────────────────────────┐
-│  Scale buttons (Today / Weeks / Months / Quarters)     │
-│  [Go to Today] (shown only when marker is off-screen)  │
-├──────────────┬─────────────────────────────────────────┤
-│              │  [Fixed date header — synced scrollLeft] │
-│  Fixed label │─────────────────────────────────────────│
-│  column      │  [Scrollable timeline content]          │
-│  (w-56)      │    TodayMarker                          │
-│              │    SwimLane × N boards                  │
-└──────────────┴─────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  [Today] [Weeks] [Months] [Quarters]   ● Done ● In Progress ○ Todo  [→ Today] │
+├──────────────┬───────────────────────────────────────────────────┤
+│              │  [Fixed date header — synced scrollLeft]          │
+│  Fixed label │───────────────────────────────────────────────────│
+│  column      │  [Scrollable timeline content]                    │
+│  (w-56)      │    TodayMarker                                    │
+│              │    SwimLane × N boards                            │
+└──────────────┴───────────────────────────────────────────────────┘
 ```
+
+**Scale controls bar** (top): scale buttons on the left, status legend + optional "→ Today" button on the right. The legend renders three 10×10px dots (Done / In Progress / Todo) using `DOT_*` constants imported from `EpicBlock.tsx`, so legend colors are always in sync with the epic bar segments. The "→ Today" button appears only when the today marker is scrolled off-screen.
 
 **Why a separate label column?**
 Keeping board labels inside the scrollable area (as `position: sticky`) causes z-index bugs in Chrome: `transition-all` on epic blocks promotes them to compositor layers that paint above sticky elements regardless of z-index. Placing the labels in a completely separate DOM tree sidesteps the problem — no stacking context comparison is needed.
@@ -172,11 +173,11 @@ function buildSegments(stats: StoryStats): string[] {
 
 A `0.5px` gap with a black container background creates a hairline black divider between every segment.
 
-When `storyStats` is absent the bar falls back to the solid status colour from `getStatusColor()`.
+When `storyStats` is absent or `total === 0` the bar falls back to the solid status colour from `getStatusColor()`.
 
 ### Status Color Constants
 
-Defined and exported from `EpicBlock.tsx` so they are shared automatically with `EpicTooltip` and `StoryPanel`:
+Defined and exported from `EpicBlock.tsx` so they are shared automatically with `EpicTooltip`, `StoryPanel`, and the scale controls legend in `TimelineContainer`:
 
 ```typescript
 export const DOT_DONE        = "#57e51e";           // bright green
@@ -184,7 +185,7 @@ export const DOT_IN_PROGRESS = "rgb(255, 157, 225)"; // light pink
 export const DOT_TODO        = "#f0f0f0";            // near-white light gray
 ```
 
-All dots in the UI (timeline info row, tooltip, story panel) are `10×10px` circles with `border: 1px solid #111`.
+All dots in the UI (timeline info row, legend, tooltip, story panel) are `10×10px` circles with `border: 1px solid #111`.
 
 ### Epic Lane Assignment
 
@@ -301,7 +302,7 @@ Works for both **team-managed** (next-gen) and **company-managed** (classic) Jir
 
 #### Stories — `GET /api/jira/stories?epicKey=PROJ-42`
 
-Fetches individual story titles for the StoryPanel:
+Fetches individual story details for the StoryPanel:
 
 ```typescript
 const jql = `parent = ${epicKey} ORDER BY status ASC, created ASC`;
@@ -314,12 +315,13 @@ Returns `Story[]` with `key`, `summary`, `status`, `statusCategory`, `assignee`.
 
 Fetches all non-archived versions across every accessible Jira project:
 
-1. **Paginates through all projects** via `GET /rest/api/3/project/search` (100 per page, loops until `isLast: true`). Projects that don't appear in the search but are still accessible (e.g. due to Jira permission model differences) are fetched directly by key as a fallback.
+1. **Paginates through all projects** via `GET /rest/api/3/project/search` (100 per page, loops until `isLast: true`).
 2. For each project, calls `GET /rest/api/3/project/{key}/versions` in **parallel** via `Promise.all`.
 3. Filters out archived versions (`archived: true`).
-4. Computes `overdue` locally: `!released && releaseDate < today` (uses Jira's `overdue` flag if present, falls back to local computation).
-5. Skips projects with no active versions.
-6. Returns `{ projects: ProjectReleases[], fetchedAt, cacheHit }`.
+4. **Filters by date**: keeps only versions where `releaseDate >= 2025-01-01` OR `startDate >= 2025-01-01`. Versions with no dates at all are kept (likely undated future releases).
+5. Computes `overdue` locally: `!released && releaseDate < today` (uses Jira's `overdue` flag if present, falls back to local computation).
+6. Skips projects with no remaining active versions after filtering.
+7. Returns `{ projects: ProjectReleases[], fetchedAt, cacheHit }`.
 
 Release status classification:
 - `released` → `r.released === true`
@@ -411,9 +413,9 @@ while (hasMore && allIssues.length < MAX_RESULTS) {
 }
 ```
 
-> **Important**: using `?startAt=N` on `/search/jql` is silently ignored — the API always returns the first page. This caused a subtle bug where story stats were truncated to the first 50 results when a large epic (e.g. 34+ stories) was included, making `done` counts appear as 0 for all epics.
+> **Important**: using `?startAt=N` as a query param on `/search/jql` is silently ignored — the API always returns the first page. This caused a subtle bug where story stats were truncated to the first 50 results when a large epic was included, making `done` counts appear as 0 for all epics.
 
-The releases route paginates project discovery via `GET /rest/api/3/project/search` (100 per page) until `isLast: true`.
+The releases route paginates project discovery via `GET /rest/api/3/project/search` (100 per page, offset-based with `startAt`) until `isLast: true`.
 
 ### In-Memory Cache
 
@@ -432,7 +434,7 @@ TTL is configured via `JIRA_CACHE_TTL` (default 300 s, recommended 86400 for 24 
 
 #### `globalThis` singleton pattern (dev mode)
 
-In Next.js development mode, hot module reloading can create multiple instances of a module, meaning `epicsCache` in `refresh/route.ts` and `epics/route.ts` could be different objects — so clearing one would not affect the other. To prevent this, the cache instances are anchored to `globalThis`:
+In Next.js development mode, hot module reloading can create multiple instances of a module, meaning `epicsCache` in `refresh/route.ts` and `epics/route.ts` could be different objects — so clearing one would not affect the other. To prevent this, cache instances are anchored to `globalThis`:
 
 ```typescript
 const g = globalThis as typeof globalThis & {
@@ -450,7 +452,7 @@ This ensures a single cache instance survives hot reloads across all route handl
 
 ### Overview
 
-Clicking **"◈ Status Rilasci"** in the header opens a fullscreen overlay (`ReleasesOverlay`) showing all Jira releases grouped by project.
+Clicking **"◈ Status Rilasci"** in the header opens a fullscreen overlay (`ReleasesOverlay`) showing all Jira releases grouped by project. Only releases with at least one date on or after **2025-01-01** are shown (undated releases are also included).
 
 ### UI
 
@@ -512,5 +514,7 @@ To reuse this in a new project:
 - [ ] Set up the three env vars for Jira; set `JIRA_CACHE_TTL=86400` for 24h caching
 - [ ] Verify your Jira instance's custom field IDs with `GET /rest/api/3/field`
 - [ ] Adjust the JQL in `src/lib/jira/queries.ts` to match your epic labeling strategy
+- [ ] Use `/rest/api/3/search/jql` with `nextPageToken` cursor pagination — `startAt` is not supported and silently returns the first page only
 - [ ] If you use `parent in (...)` for story stats and your Jira is classic (not next-gen), you may need `"Epic Link" in (...)` instead
 - [ ] If you have more than 100 Jira projects, ensure the releases route pagination loop is intact
+- [ ] Adjust the `CUTOFF` date in `releases/route.ts` if you need a different date filter window
