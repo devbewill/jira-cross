@@ -3,28 +3,28 @@
 export const GLOBAL_EPIC_JQL = `issuetype = Epic AND labels = P0 ORDER BY created DESC`;
 
 export const JIRA_API_FIELDS = [
-  'summary',
-  'status',
-  'assignee',
-  'created',
-  'updated',
+  "summary",
+  "status",
+  "assignee",
+  "created",
+  "updated",
 ];
 
 export const getEpicFieldsList = (
   startDateFieldId: string,
   storyPointsFieldId: string,
-  dueDateFieldId: string
+  dueDateFieldId: string,
 ): string => {
   return [
-    'summary',
-    'status',
-    'assignee',
-    'created',
-    'updated',
+    "summary",
+    "status",
+    "assignee",
+    "created",
+    "updated",
     startDateFieldId,
     storyPointsFieldId,
     dueDateFieldId,
-  ].join(',');
+  ].join(",");
 };
 
 // Default pagination
