@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { ProjectReleases, JiraRelease } from "@/types";
 
 interface ReleasesOverlayProps {
@@ -100,10 +100,12 @@ function ReleaseCard({ release }: { release: JiraRelease }) {
 // ─── Overlay ──────────────────────────────────────────────────────────────────
 
 export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
-  const [projects, setProjects] = useState<ProjectReleases[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState<string | null>(null);
-  const [filter,   setFilter]   = useState<"all" | "released" | "overdue" | "upcoming">("all");
+  const [projects,        setProjects]        = useState<ProjectReleases[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState<string | null>(null);
+  const [statusFilter,    setStatusFilter]    = useState<"all" | "released" | "overdue" | "upcoming">("all");
+  const [search,          setSearch]          = useState("");
+  const [projectFilter,   setProjectFilter]   = useState<string>("all");
 
   useEffect(() => {
     fetch("/api/jira/releases")
@@ -122,26 +124,42 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey]);
 
-  // Filtered counts
-  const filtered = projects.map((p) => ({
-    ...p,
-    releases: p.releases.filter((r) => filter === "all" || releaseStatus(r) === filter),
-  })).filter((p) => p.releases.length > 0);
+  // Counts (on raw data, unaffected by search/project filter)
+  const total    = projects.reduce((s, p) => s + p.releases.length, 0);
+  const released = projects.reduce((s, p) => s + p.releases.filter((r) =>  r.released).length, 0);
+  const overdue  = projects.reduce((s, p) => s + p.releases.filter((r) =>  r.overdue && !r.released).length, 0);
+  const upcoming = total - released - overdue;
 
-  const total     = projects.reduce((s, p) => s + p.releases.length, 0);
-  const released  = projects.reduce((s, p) => s + p.releases.filter((r) =>  r.released).length, 0);
-  const overdue   = projects.reduce((s, p) => s + p.releases.filter((r) =>  r.overdue && !r.released).length, 0);
-  const upcoming  = total - released - overdue;
+  // Sorted project list for the dropdown
+  const projectOptions = useMemo(() =>
+    [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
+  [projects]);
+
+  // Apply all three filters: status + search + project
+  const filtered = useMemo(() =>
+    projects
+      .filter((p) => projectFilter === "all" || p.projectKey === projectFilter)
+      .map((p) => ({
+        ...p,
+        releases: p.releases.filter((r) => {
+          const matchStatus  = statusFilter === "all" || releaseStatus(r) === statusFilter;
+          const matchSearch  = search.trim() === "" || r.name.toLowerCase().includes(search.trim().toLowerCase());
+          return matchStatus && matchSearch;
+        }),
+      }))
+      .filter((p) => p.releases.length > 0),
+  [projects, statusFilter, search, projectFilter]);
 
   return (
     <div className="fixed inset-0 z-[300] flex flex-col" style={{ backgroundColor: "#FAFAFA" }}>
 
       {/* Header bar */}
       <div
-        className="flex-shrink-0 flex items-center justify-between px-8 py-5"
+        className="flex-shrink-0 flex items-center justify-between px-8 py-5 gap-6"
         style={{ borderBottom: "3px solid #111", backgroundColor: "#fff" }}
       >
-        <div>
+        {/* Title */}
+        <div className="flex-shrink-0">
           <h2 className="text-xl font-black uppercase tracking-tight text-[#111]">
             Release Status
           </h2>
@@ -150,16 +168,46 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
           </p>
         </div>
 
-        {/* Summary pills */}
+        {/* Controls */}
         {!loading && !error && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 flex-1 justify-center flex-wrap">
+
+            {/* Search input */}
+            <input
+              type="text"
+              placeholder="Search releases…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="text-[11px] font-bold placeholder:text-[#bbb] placeholder:font-medium outline-none px-3 py-1.5 rounded-[3px] w-48"
+              style={{ border: "2px solid #111", color: "#111", backgroundColor: "#fff" }}
+            />
+
+            {/* Project dropdown */}
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="text-[11px] font-black uppercase tracking-widest outline-none px-3 py-1.5 rounded-[3px] cursor-pointer"
+              style={{ border: "2px solid #111", color: "#111", backgroundColor: "#fff" }}
+            >
+              <option value="all">All projects</option>
+              {projectOptions.map((p) => (
+                <option key={p.projectKey} value={p.projectKey}>
+                  {p.projectKey} — {p.projectName}
+                </option>
+              ))}
+            </select>
+
+            {/* Divider */}
+            <div className="w-px h-6 bg-[#e0e0e0]" />
+
+            {/* Status pills */}
             {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
-              const count = f === "all" ? total : f === "released" ? released : f === "overdue" ? overdue : upcoming;
-              const active = filter === f;
+              const count  = f === "all" ? total : f === "released" ? released : f === "overdue" ? overdue : upcoming;
+              const active = statusFilter === f;
               return (
                 <button
                   key={f}
-                  onClick={() => setFilter(f)}
+                  onClick={() => setStatusFilter(f)}
                   className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-[3px] transition-all"
                   style={{
                     border:          "2px solid #111",
@@ -175,9 +223,10 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
           </div>
         )}
 
+        {/* Close */}
         <button
           onClick={onClose}
-          className="w-9 h-9 flex items-center justify-center rounded-[3px] font-black text-sm transition-colors ml-6"
+          className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-[3px] font-black text-sm transition-colors"
           style={{ border: "2px solid #111", color: "#111", backgroundColor: "#fff" }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#111"; e.currentTarget.style.color = "#fff"; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff"; e.currentTarget.style.color = "#111"; }}
