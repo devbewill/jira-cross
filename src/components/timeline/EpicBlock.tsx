@@ -40,7 +40,6 @@ export function EpicBlock({
           absolute px-2 py-1.5 rounded-[6px]
           transition-all duration-200 ease-out
           cursor-pointer
-          backdrop-blur-sm
           group
           ${statusClasses}
           ${selected ? "z-20 ring-1 ring-linear-accent ring-offset-2 ring-offset-linear-bg scale-[1.01]" : "z-10 hover:border-linear-textMuted hover:shadow-linear-hover shadow-linear-sm"}
