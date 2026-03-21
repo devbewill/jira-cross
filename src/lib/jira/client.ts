@@ -103,23 +103,23 @@ export class JiraClient {
     const statsMap = new Map<string, StoryStats>();
     if (epicKeys.length === 0) return statsMap;
 
-    // Initialise every epic with zero stats so callers always get a value
-    epicKeys.forEach((key) => {
-      statsMap.set(key, { done: 0, inProgress: 0, todo: 0, total: 0 });
-    });
-
     const keyList = epicKeys.join(', ');
     const jql = `parent in (${keyList}) ORDER BY status`;
 
     try {
       const issues = await this.searchIssues(jql, ['status', 'parent']);
+      console.log(`[storyStats] JQL returned ${issues.length} child issues for ${epicKeys.length} epics`);
 
       issues.forEach((issue) => {
         const parentKey: string | undefined = issue.fields?.parent?.key;
         if (!parentKey) return;
 
-        const stats = statsMap.get(parentKey);
-        if (!stats) return;
+        // Initialise on first encounter so only epics that actually have stories get stats
+        if (!statsMap.has(parentKey)) {
+          statsMap.set(parentKey, { done: 0, inProgress: 0, todo: 0, total: 0 });
+        }
+
+        const stats = statsMap.get(parentKey)!;
 
         // Jira statusCategory.key values: "new" | "indeterminate" | "done"
         const catKey: string = issue.fields?.status?.statusCategory?.key ?? 'new';
@@ -130,8 +130,10 @@ export class JiraClient {
         else stats.todo++;
       });
     } catch (err) {
-      // Non-fatal: story stats are optional — log and return empty-initialised map
-      console.warn('getStoryStatsByEpic: could not fetch child issues:', err);
+      // Non-fatal: return whatever we managed to populate (may be empty)
+      // Returning an empty map means storyStats will be undefined on epics,
+      // which correctly triggers the status-colour fallback in EpicBlock.
+      console.error('[storyStats] bulk JQL failed — epics will show status-colour fallback:', err);
     }
 
     return statsMap;
