@@ -1,4 +1,12 @@
 // Application Domain Types
+
+export interface StoryStats {
+  done: number;
+  inProgress: number;
+  todo: number;
+  total: number;
+}
+
 export interface Epic {
   key: string;
   boardKey: string;
@@ -12,6 +20,7 @@ export interface Epic {
   childIssueCount: number;
   completedChildCount: number;
   url: string;
+  storyStats?: StoryStats;
 }
 
 export interface BoardData {

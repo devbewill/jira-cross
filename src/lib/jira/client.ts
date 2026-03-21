@@ -1,5 +1,6 @@
 import { JiraSearchResponse, JiraIssueRaw } from './types';
 import { DEFAULT_PAGE_SIZE, MAX_RESULTS } from './queries';
+import { StoryStats } from '@/types';
 
 export class JiraClient {
   private baseUrl: string;
@@ -88,6 +89,52 @@ export class JiraClient {
     }
 
     return allIssues;
+  }
+
+  /**
+   * Fetches all child issues (stories/tasks/bugs) belonging to a list of epic keys
+   * in a SINGLE JQL query, then aggregates status counts per epic.
+   *
+   * Uses `parent in (KEY-1, KEY-2, ...)` which works for both next-gen and classic
+   * Jira projects (classic projects may also need `"Epic Link" in (...)` — both
+   * syntaxes are equivalent for team-managed and company-managed next-gen projects).
+   */
+  async getStoryStatsByEpic(epicKeys: string[]): Promise<Map<string, StoryStats>> {
+    const statsMap = new Map<string, StoryStats>();
+    if (epicKeys.length === 0) return statsMap;
+
+    // Initialise every epic with zero stats so callers always get a value
+    epicKeys.forEach((key) => {
+      statsMap.set(key, { done: 0, inProgress: 0, todo: 0, total: 0 });
+    });
+
+    const keyList = epicKeys.join(', ');
+    const jql = `parent in (${keyList}) ORDER BY status`;
+
+    try {
+      const issues = await this.searchIssues(jql, ['status', 'parent']);
+
+      issues.forEach((issue) => {
+        const parentKey: string | undefined = issue.fields?.parent?.key;
+        if (!parentKey) return;
+
+        const stats = statsMap.get(parentKey);
+        if (!stats) return;
+
+        // Jira statusCategory.key values: "new" | "indeterminate" | "done"
+        const catKey: string = issue.fields?.status?.statusCategory?.key ?? 'new';
+
+        stats.total++;
+        if (catKey === 'done') stats.done++;
+        else if (catKey === 'indeterminate' || catKey === 'in-progress') stats.inProgress++;
+        else stats.todo++;
+      });
+    } catch (err) {
+      // Non-fatal: story stats are optional — log and return empty-initialised map
+      console.warn('getStoryStatsByEpic: could not fetch child issues:', err);
+    }
+
+    return statsMap;
   }
 
   async getFields() {

@@ -72,6 +72,39 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
             <span className="font-black" style={{ color: "#DDFF00" }}>{epic.storyPoints} pts</span>
           </div>
         )}
+
+        {/* Story stats breakdown */}
+        {epic.storyStats && epic.storyStats.total > 0 && (
+          <div
+            style={{ borderTop: "1px solid rgba(242,242,234,0.12)", paddingTop: "10px", marginTop: "6px" }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span style={{ color: "rgba(242,242,234,0.5)" }}>Stories</span>
+              <span className="font-black" style={{ color: "#F2F2EA" }}>
+                {epic.storyStats.total} total
+              </span>
+            </div>
+            {/* Mini segmented bar */}
+            <div className="flex w-full h-[10px] rounded-[2px] overflow-hidden gap-px mb-2" style={{ backgroundColor: "rgba(255,255,255,0.08)" }}>
+              {epic.storyStats.done > 0 && (
+                <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: "#16A34A" }} />
+              )}
+              {epic.storyStats.inProgress > 0 && (
+                <div style={{ width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`, backgroundColor: "#D97706" }} />
+              )}
+              {epic.storyStats.todo > 0 && (
+                <div style={{ width: `${(epic.storyStats.todo / epic.storyStats.total) * 100}%`, backgroundColor: "rgba(255,255,255,0.15)" }} />
+              )}
+            </div>
+            {/* Counts row */}
+            <div className="flex justify-between text-[10px] font-bold">
+              <span style={{ color: "#16A34A" }}>✓ {epic.storyStats.done} done</span>
+              <span style={{ color: "#D97706" }}>◐ {epic.storyStats.inProgress} in progress</span>
+              <span style={{ color: "rgba(242,242,234,0.35)" }}>○ {epic.storyStats.todo} todo</span>
+            </div>
+          </div>
+        )}
+
         {epic.assignee && (
           <div
             className="flex justify-between items-center"

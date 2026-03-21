@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Epic } from "@/types";
+import { Epic, StoryStats } from "@/types";
 import { getStatusColor } from "@/lib/utils/color-utils";
 import { EpicTooltip } from "./EpicTooltip";
 
@@ -14,6 +14,70 @@ interface EpicBlockProps {
   onClick?: (epic: Epic) => void;
   selected?: boolean;
 }
+
+// ─── Segmented progress bar ───────────────────────────────────────────────────
+
+interface SegmentProps {
+  count: number;
+  percent: number;
+  color: string;
+  textColor: string;
+}
+
+function Segment({ count, percent, color, textColor }: SegmentProps) {
+  if (count === 0 || percent === 0) return null;
+  return (
+    <div
+      className="flex items-center justify-center h-full overflow-hidden"
+      style={{ width: `${percent}%`, backgroundColor: color }}
+    >
+      {/* Only render label when segment is wide enough to fit */}
+      {percent >= 12 && (
+        <span
+          className={`text-[9px] font-black leading-none select-none ${textColor}`}
+        >
+          {count}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function StoryProgressBar({ stats }: { stats: StoryStats }) {
+  if (stats.total === 0) return null;
+
+  const donePct = (stats.done / stats.total) * 100;
+  const inProgressPct = (stats.inProgress / stats.total) * 100;
+  const todoPct = (stats.todo / stats.total) * 100;
+
+  return (
+    <div className="flex w-full h-[13px] rounded-[2px] overflow-hidden gap-px bg-black/[0.08]">
+      {/* Done — green */}
+      <Segment
+        count={stats.done}
+        percent={donePct}
+        color="#16A34A"
+        textColor="text-white"
+      />
+      {/* In progress — amber */}
+      <Segment
+        count={stats.inProgress}
+        percent={inProgressPct}
+        color="#D97706"
+        textColor="text-white"
+      />
+      {/* Todo — subtle dark */}
+      <Segment
+        count={stats.todo}
+        percent={todoPct}
+        color="rgba(0,0,0,0.18)"
+        textColor="text-black/60"
+      />
+    </div>
+  );
+}
+
+// ─── Epic block ───────────────────────────────────────────────────────────────
 
 export function EpicBlock({
   epic,
@@ -28,7 +92,7 @@ export function EpicBlock({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const blockHeight = 58;
+  const blockHeight = 68;
   const blockMargin = 14;
   const top = laneIndex * (blockHeight + blockMargin) + blockMargin;
 
@@ -50,7 +114,7 @@ export function EpicBlock({
       <div
         ref={blockRef}
         className={`
-          absolute px-3 py-2.5 rounded-[3px]
+          absolute px-3 py-2 rounded-[3px]
           transition-all duration-100 ease-out
           cursor-pointer group
           ${statusClasses}
@@ -70,7 +134,7 @@ export function EpicBlock({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="h-full flex flex-col justify-between overflow-hidden">
+        <div className="h-full flex flex-col justify-between overflow-hidden gap-1.5">
           {/* Top row: key tag + due date */}
           <div className="flex items-center justify-between gap-2">
             <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
@@ -90,10 +154,15 @@ export function EpicBlock({
           <div className="text-[13px] font-black leading-tight truncate tracking-tight">
             {epic.summary}
           </div>
+
+          {/* Story progress bar — only when we have story data */}
+          {epic.storyStats && epic.storyStats.total > 0 && (
+            <StoryProgressBar stats={epic.storyStats} />
+          )}
         </div>
       </div>
 
-      {/* Render tooltip via portal so it appears above ALL elements */}
+      {/* Tooltip via portal — above all other elements */}
       {tooltipPos &&
         mounted &&
         createPortal(
