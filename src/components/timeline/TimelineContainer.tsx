@@ -8,6 +8,7 @@ import { TimelineHeader } from "./TimelineHeader";
 import { SwimLane, computeSwimLaneHeight } from "./SwimLane";
 import { TodayMarker } from "./TodayMarker";
 import { StoryPanel } from "./StoryPanel";
+import { DOT_DONE, DOT_IN_PROGRESS, DOT_TODO } from "./EpicBlock";
 import { differenceInDays } from "date-fns";
 
 interface TimelineContainerProps {
@@ -107,14 +108,33 @@ export function TimelineContainer({
           ))}
         </div>
 
-        {!todayVisible && (
-          <button
-            onClick={goToToday}
-            className="px-3 py-1.5 bg-linear-accent text-white text-xs font-black uppercase tracking-widest rounded-[3px] hover:bg-linear-accentHover transition-colors duration-100 shadow-linear-sm hover:shadow-linear-hover"
-          >
-            → Today
-          </button>
-        )}
+        <div className="flex items-center gap-4">
+          {/* Legend */}
+          <div className="flex items-center gap-3 border-l-2 border-linear-border pl-4">
+            {[
+              { color: DOT_DONE,        label: "Done"        },
+              { color: DOT_IN_PROGRESS, label: "In Progress" },
+              { color: DOT_TODO,        label: "Todo"        },
+            ].map(({ color, label }) => (
+              <span key={label} className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-linear-textMuted">
+                <span
+                  className="w-[10px] h-[10px] rounded-full flex-shrink-0"
+                  style={{ backgroundColor: color, border: "1px solid #111" }}
+                />
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {!todayVisible && (
+            <button
+              onClick={goToToday}
+              className="px-3 py-1.5 bg-linear-accent text-white text-xs font-black uppercase tracking-widest rounded-[3px] hover:bg-linear-accentHover transition-colors duration-100 shadow-linear-sm hover:shadow-linear-hover"
+            >
+              → Today
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main layout: fixed label column + scrollable timeline */}
