@@ -6,16 +6,15 @@ import { Epic, StoryStats } from "@/types";
 import { getStatusColor } from "@/lib/utils/color-utils";
 import { EpicTooltip } from "./EpicTooltip";
 
-// ─── Constants (keep in sync with SwimLane.computeSwimLaneHeight) ─────────────
-export const BLOCK_HEIGHT = 68;
-export const BAR_HEIGHT   = 10;
+// ─── Constants (exported — SwimLane uses them for row height) ─────────────────
+export const BLOCK_HEIGHT = 80;   // taller to fit text-lg summary + counts row
+export const BAR_HEIGHT   = 0;    // no bottom bar anymore
 export const BLOCK_MARGIN = 14;
 
-// ─── Gradient background from story stats ────────────────────────────────────
-// Semi-transparent so the colors are soft and text stays readable.
+// ─── Gradient background ──────────────────────────────────────────────────────
 const DONE_COLOR        = "rgba(13,  212, 86,  0.55)";
 const IN_PROGRESS_COLOR = "rgba(255, 92,  220, 0.45)";
-const TODO_COLOR        = "rgba(80,  80,  80,  0.18)";
+const TODO_COLOR        = "rgba(190, 190, 190, 0.40)"; // very light cool gray
 const BLEND             = 10; // % softness at each transition boundary
 
 function buildStatsGradient(stats: StoryStats): string | undefined {
@@ -39,11 +38,9 @@ function buildStatsGradient(stats: StoryStats): string | undefined {
     const segEnd  = pos + seg.pct;
     const mid     = (pos + segEnd) / 2;
 
-    // Entry stop: hard start for first segment, soft blend-in for others
     const entryPct = isFirst ? 0 : Math.min(pos + BLEND / 2, mid);
     stops.push(`${seg.color} ${entryPct.toFixed(1)}%`);
 
-    // Exit stop: hard end for last segment, soft blend-out for others
     const exitPct = isLast ? 100 : Math.max(segEnd - BLEND / 2, mid);
     stops.push(`${seg.color} ${exitPct.toFixed(1)}%`);
 
@@ -53,51 +50,30 @@ function buildStatsGradient(stats: StoryStats): string | undefined {
   return `linear-gradient(to right, ${stops.join(", ")})`;
 }
 
-// ─── Story progress bar (hangs below, numbers for precise data) ───────────────
+// ─── Story counts (replaces the bottom bar) ───────────────────────────────────
 
-interface SegmentProps {
-  count: number;
-  percent: number;
-  color: string;
-}
-
-function Segment({ count, percent, color }: SegmentProps) {
-  if (count === 0 || percent === 0) return null;
+function StoryCounts({ stats }: { stats: StoryStats }) {
+  if (stats.total === 0) return null;
   return (
-    <div
-      className="flex items-center justify-center h-full overflow-hidden"
-      style={{ width: `${percent}%`, backgroundColor: color, flexShrink: 0 }}
-    >
-      {percent >= 12 && (
-        <span className="text-[9px] font-black leading-none select-none text-white">
-          {count}
+    <div className="flex items-center gap-2.5">
+      {stats.done > 0 && (
+        <span className="flex items-center gap-1 text-[10px] font-black leading-none">
+          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: "#0dd456" }} />
+          {stats.done}
         </span>
       )}
-    </div>
-  );
-}
-
-function StoryProgressBar({ stats, width }: { stats: StoryStats; width: number }) {
-  if (stats.total === 0) return null;
-
-  const donePct       = (stats.done       / stats.total) * 100;
-  const inProgressPct = (stats.inProgress / stats.total) * 100;
-  const todoPct       = (stats.todo       / stats.total) * 100;
-
-  return (
-    <div
-      className="flex overflow-hidden rounded-b-[3px]"
-      style={{
-        width:        `${width}px`,
-        height:       `${BAR_HEIGHT}px`,
-        borderLeft:   "3px solid black",
-        borderRight:  "3px solid black",
-        borderBottom: "3px solid black",
-      }}
-    >
-      <Segment count={stats.done}       percent={donePct}       color="#0dd456" />
-      <Segment count={stats.inProgress} percent={inProgressPct} color="#ff5cdc" />
-      <Segment count={stats.todo}       percent={todoPct}       color="#444444" />
+      {stats.inProgress > 0 && (
+        <span className="flex items-center gap-1 text-[10px] font-black leading-none">
+          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: "#ff5cdc" }} />
+          {stats.inProgress}
+        </span>
+      )}
+      {stats.todo > 0 && (
+        <span className="flex items-center gap-1 text-[10px] font-black leading-none opacity-50">
+          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-black/30" />
+          {stats.todo}
+        </span>
+      )}
     </div>
   );
 }
@@ -125,20 +101,16 @@ export function EpicBlock({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const top          = laneIndex * (BLOCK_HEIGHT + BAR_HEIGHT + BLOCK_MARGIN) + BLOCK_MARGIN;
+  const top          = laneIndex * (BLOCK_HEIGHT + BLOCK_MARGIN) + BLOCK_MARGIN;
   const minWidth     = 100;
   const displayWidth = Math.max(width, minWidth);
-  const hasBar       = !!(epic.storyStats && epic.storyStats.total > 0);
+  const hasStats     = !!(epic.storyStats && epic.storyStats.total > 0);
 
-  // Background: soft gradient when stats are available, solid status color otherwise
-  const gradient     = hasBar ? buildStatsGradient(epic.storyStats!) : undefined;
-
-  // statusClasses carries border + text color; background is overridden by inline style when gradient is set
+  const gradient      = hasStats ? buildStatsGradient(epic.storyStats!) : undefined;
   const statusClasses = getStatusColor(epic.statusCategory);
 
   return (
     <>
-      {/* Wrapper — positions the block+bar unit in the lane */}
       <div
         className="absolute cursor-pointer group"
         style={{
@@ -152,13 +124,11 @@ export function EpicBlock({
         onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
         onMouseLeave={() => setTooltipPos(null)}
       >
-        {/* ── Epic block ── */}
         <div
           className={`
-            w-full px-3 py-2
+            w-full px-3 py-2.5 rounded-[3px]
             transition-all duration-100 ease-out
             ${statusClasses}
-            ${hasBar ? "rounded-t-[3px] rounded-b-none" : "rounded-[3px]"}
             ${selected
               ? "shadow-linear-hover -translate-x-px -translate-y-px"
               : "shadow-linear-sm group-hover:shadow-linear-hover group-hover:-translate-x-px group-hover:-translate-y-px"
@@ -166,12 +136,11 @@ export function EpicBlock({
           `}
           style={{
             height:     `${BLOCK_HEIGHT}px`,
-            // Inline style overrides Tailwind bg-* class — gradient takes precedence
             background: gradient ?? undefined,
           }}
         >
-          <div className="h-full flex flex-col justify-between overflow-hidden gap-1">
-            {/* Key tag + due date */}
+          <div className="h-full flex flex-col justify-between overflow-hidden">
+            {/* Row 1 — key tag + due date */}
             <div className="flex items-center justify-between gap-2">
               <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
                 {epic.key}
@@ -183,17 +152,15 @@ export function EpicBlock({
               )}
             </div>
 
-            {/* Summary */}
-            <div className="text-[13px] font-black leading-tight truncate tracking-tight">
+            {/* Row 2 — summary */}
+            <div className="text-lg font-black uppercase leading-tight truncate tracking-tight">
               {epic.summary}
             </div>
+
+            {/* Row 3 — story counts (only when available) */}
+            {hasStats && <StoryCounts stats={epic.storyStats!} />}
           </div>
         </div>
-
-        {/* ── Story bar — hangs below, border continues the block ── */}
-        {hasBar && (
-          <StoryProgressBar stats={epic.storyStats!} width={displayWidth} />
-        )}
       </div>
 
       {/* Tooltip via portal */}
