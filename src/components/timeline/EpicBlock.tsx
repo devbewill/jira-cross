@@ -6,22 +6,20 @@ import { Epic, StoryStats } from "@/types";
 import { getStatusColor } from "@/lib/utils/color-utils";
 import { EpicTooltip } from "./EpicTooltip";
 
-// ─── Constants (exported — SwimLane uses them for row height) ─────────────────
-export const BLOCK_HEIGHT = 80;
-export const BAR_HEIGHT   = 0;
+// ─── Layout constants (exported — SwimLane uses BLOCK_HEIGHT for row height) ──
+const  INFO_HEIGHT   = 20;  // px — summary + counts row above the bar
+const  GAP           = 4;   // px — space between info row and bar
+const  BAR_H         = 32;  // px — the colored segments bar (≈60% reduction from 80)
+export const BLOCK_HEIGHT = INFO_HEIGHT + GAP + BAR_H; // 56px total
+export const BAR_HEIGHT   = 0;   // legacy export — no longer used
 export const BLOCK_MARGIN = 14;
 
 // ─── Solid status colors — shared with tooltip and story panel ────────────────
-export const DOT_DONE        = "#57e51e";  // bright green
-export const DOT_IN_PROGRESS = "#f4d13d";  // golden yellow
-export const DOT_TODO        = "#f0f0f0";  // very light gray
+export const DOT_DONE        = "#57e51e";          // bright green
+export const DOT_IN_PROGRESS = "rgb(255, 157, 225)"; // light pink
+export const DOT_TODO        = "#f0f0f0";           // very light gray
 
-/**
- * Expands StoryStats into a flat array of per-story colors.
- * Done stories come first, then in-progress, then todo.
- * Each entry maps 1:1 to a story — used to render individual
- * equal-width segments in the block background.
- */
+/** Expands StoryStats into one color entry per story (done → inProgress → todo). */
 function buildSegments(stats: StoryStats): string[] {
   const segs: string[] = [];
   for (let i = 0; i < stats.done;       i++) segs.push(DOT_DONE);
@@ -35,22 +33,22 @@ function buildSegments(stats: StoryStats): string[] {
 function StoryCounts({ stats }: { stats: StoryStats }) {
   if (stats.total === 0) return null;
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2 flex-shrink-0">
       {stats.done > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-black leading-none">
-          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_DONE }} />
+        <span className="flex items-center gap-0.5 text-[10px] font-black leading-none">
+          <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_DONE }} />
           {stats.done}
         </span>
       )}
       {stats.inProgress > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-black leading-none">
-          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_IN_PROGRESS }} />
+        <span className="flex items-center gap-0.5 text-[10px] font-black leading-none">
+          <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_IN_PROGRESS }} />
           {stats.inProgress}
         </span>
       )}
       {stats.todo > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-black leading-none opacity-60">
-          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0 border border-gray-300" style={{ backgroundColor: DOT_TODO }} />
+        <span className="flex items-center gap-0.5 text-[10px] font-black leading-none opacity-50">
+          <span className="w-[6px] h-[6px] rounded-full border border-gray-300" style={{ backgroundColor: DOT_TODO }} />
           {stats.todo}
         </span>
       )}
@@ -86,9 +84,6 @@ export function EpicBlock({
   const displayWidth = Math.max(width, minWidth);
   const hasStats     = !!(epic.storyStats && epic.storyStats.total > 0);
   const segments     = hasStats ? buildSegments(epic.storyStats!) : [];
-
-  // Keep border + text from statusClasses; background is handled by segments or
-  // overridden with white when segments are present.
   const statusClasses = getStatusColor(epic.statusCategory);
 
   return (
@@ -106,9 +101,21 @@ export function EpicBlock({
         onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
         onMouseLeave={() => setTooltipPos(null)}
       >
+        {/* ── Info row above the bar — summary + counts ── */}
+        <div
+          className="flex items-center justify-between gap-2 overflow-hidden"
+          style={{ height: `${INFO_HEIGHT}px`, marginBottom: `${GAP}px` }}
+        >
+          <div className="text-[11px] font-black uppercase leading-none tracking-tight truncate flex-1 min-w-0 text-linear-text">
+            {epic.summary}
+          </div>
+          {hasStats && <StoryCounts stats={epic.storyStats!} />}
+        </div>
+
+        {/* ── Colored segments bar — only key inside ── */}
         <div
           className={`
-            relative w-full px-3 py-2.5 rounded-[3px] overflow-hidden
+            relative w-full rounded-[3px] overflow-hidden
             transition-all duration-100 ease-out
             ${statusClasses}
             ${selected
@@ -117,45 +124,29 @@ export function EpicBlock({
             }
           `}
           style={{
-            height:          `${BLOCK_HEIGHT}px`,
-            // When segments are present, white bg fills the 1px gaps between them
+            height:          `${BAR_H}px`,
             backgroundColor: hasStats ? "#ffffff" : undefined,
           }}
         >
-          {/* ── Per-story segments — absolutely fill the block behind content ── */}
+          {/* Per-story segments */}
           {hasStats && (
-            <div className="absolute inset-0 flex" style={{ gap: "1.5px", padding: "0" }}>
+            <div className="absolute inset-0 flex" style={{ gap: "1.5px" }}>
               {segments.map((color, i) => (
-                <div
-                  key={i}
-                  className="h-full flex-1"
-                  style={{ backgroundColor: color, minWidth: 0 }}
-                />
+                <div key={i} className="h-full flex-1" style={{ backgroundColor: color, minWidth: 0 }} />
               ))}
             </div>
           )}
 
-          {/* ── Content — sits above segments ── */}
-          <div className="relative z-10 h-full flex flex-col justify-between overflow-hidden">
-            {/* Row 1 — key tag + due date */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
-                {epic.key}
+          {/* Key + due date */}
+          <div className="relative z-10 h-full flex items-center justify-between px-2.5">
+            <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
+              {epic.key}
+            </span>
+            {epic.dueDate && (
+              <span className="text-[9px] font-bold opacity-40 shrink-0">
+                {new Date(epic.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               </span>
-              {epic.dueDate && (
-                <span className="text-[10px] font-bold opacity-50 shrink-0">
-                  {new Date(epic.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                </span>
-              )}
-            </div>
-
-            {/* Row 2 — summary */}
-            <div className="text-lg font-black uppercase leading-tight truncate tracking-tight">
-              {epic.summary}
-            </div>
-
-            {/* Row 3 — story counts */}
-            {hasStats && <StoryCounts stats={epic.storyStats!} />}
+            )}
           </div>
         </div>
       </div>
