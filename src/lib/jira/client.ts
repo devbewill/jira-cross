@@ -65,6 +65,7 @@ export class JiraClient {
       const payload: Record<string, unknown> = {
         jql,
         maxResults: DEFAULT_PAGE_SIZE,
+        startAt,
       };
 
       // Only include fields if provided, as an array
@@ -72,7 +73,7 @@ export class JiraClient {
         payload.fields = fields;
       }
 
-      const endpoint = `/search/jql?startAt=${startAt}`;
+      const endpoint = `/search/jql`;
 
       const response = await this.request<JiraSearchResponse>(
         endpoint,
