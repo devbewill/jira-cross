@@ -15,10 +15,10 @@ export const BLOCK_MARGIN = 14;
 const BLOCK_GRADIENT =
   "linear-gradient(to right, rgb(26 255 90) 0%, rgb(9 235 80 / 62%) 5.5%, rgb(244 209 61 / 67%) 15.5%, rgb(255 245 92 / 45%) 73.9%, rgb(255 255 255 / 40%) 83.9%, rgb(255 255 255) 100%)";
 
-// Dot colors matched to gradient landmarks
-export const DOT_DONE        = "rgb(32, 255, 149)";   // gradient start — bright green
-export const DOT_IN_PROGRESS = "rgb(255, 92, 160)";   // gradient 73.9% — pink
-export const DOT_TODO        = "rgb(201, 196, 196)";  // gradient 83.9% — light gray
+// Solid colors matched to gradient landmarks (verde / giallo / bianco)
+export const DOT_DONE        = "rgb(26, 255, 90)";    // gradient start  — bright green
+export const DOT_IN_PROGRESS = "rgb(244, 209, 61)";   // gradient 15.5%  — golden yellow
+export const DOT_TODO        = "rgb(220, 220, 220)";  // off-white / light gray
 
 // ─── Story counts (replaces the bottom bar) ───────────────────────────────────
 

@@ -10,15 +10,20 @@ interface StoryPanelProps {
 }
 
 function statusDotColor(cat: string): string {
-  if (cat === "done")                                       return DOT_DONE;
-  if (cat === "indeterminate" || cat === "in-progress")     return DOT_IN_PROGRESS;
+  if (cat === "done")                                     return DOT_DONE;
+  if (cat === "indeterminate" || cat === "in-progress")   return DOT_IN_PROGRESS;
   return DOT_TODO;
 }
 
+function statusDotBorder(cat: string): string {
+  // todo dot is near-white — add a border so it's visible on white bg
+  return cat === "todo" || cat === "new" ? "1px solid #d0d0d0" : "none";
+}
+
 export function StoryPanel({ epic, onClose }: StoryPanelProps) {
-  const [stories, setStories]   = useState<Story[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [error,   setError]     = useState<string | null>(null);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -38,68 +43,96 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-[200]"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 z-[200]" onClick={onClose} aria-hidden="true" />
 
       {/* Panel */}
       <div
-        className="fixed right-0 top-0 h-full z-[201] flex flex-col overflow-hidden"
+        className="fixed right-0 top-0 h-full z-[201] flex flex-col"
         style={{
-          width: "380px",
-          backgroundColor: "#111111",
-          borderLeft: "3px solid black",
-          boxShadow: "-6px 0 0 rgba(0,0,0,0.18)",
-          animation: "slideInRight 0.15s ease-out",
+          width:           "380px",
+          backgroundColor: "#ffffff",
+          borderLeft:      "3px solid #111111",
+          boxShadow:       "-6px 0 0 rgba(0,0,0,0.08)",
+          animation:       "slideInRight 0.15s ease-out",
+          overflow:        "hidden",
         }}
       >
         {/* Header */}
         <div
           className="flex-shrink-0 px-5 pt-5 pb-4"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}
+          style={{ borderBottom: "2px solid #111111" }}
         >
           <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
+            <div className="flex-1 min-w-0">
               <span
                 className="inline-block text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none mb-2"
-                style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)" }}
+                style={{ backgroundColor: "#111111", color: "#ffffff" }}
               >
                 {epic.key}
               </span>
-              <h2
-                className="text-sm font-black uppercase leading-snug tracking-tight"
-                style={{ color: "#ffffff" }}
-              >
+              <h2 className="text-sm font-black uppercase leading-snug tracking-tight text-[#111111] truncate">
                 {epic.summary}
               </h2>
             </div>
+
             <button
               onClick={onClose}
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[3px] text-sm font-black transition-colors"
-              style={{ color: "rgba(255,255,255,0.4)", backgroundColor: "rgba(255,255,255,0.06)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.12)")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)")}
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[3px] text-xs font-black transition-colors border-2 border-black"
+              style={{ color: "#111111", backgroundColor: "#ffffff" }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#111111"; e.currentTarget.style.color = "#ffffff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.color = "#111111"; }}
               aria-label="Close panel"
             >
               ✕
             </button>
           </div>
 
-          {/* Story count */}
+          {/* Stats bar + counts */}
+          {epic.storyStats && epic.storyStats.total > 0 && (
+            <div>
+              {/* Solid segmented bar */}
+              <div className="flex w-full h-[6px] rounded-[2px] overflow-hidden mb-2" style={{ border: "1.5px solid #e0e0e0" }}>
+                {epic.storyStats.done > 0 && (
+                  <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: DOT_DONE }} />
+                )}
+                {epic.storyStats.inProgress > 0 && (
+                  <div style={{ width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`, backgroundColor: DOT_IN_PROGRESS }} />
+                )}
+                {epic.storyStats.todo > 0 && (
+                  <div style={{ width: `${(epic.storyStats.todo / epic.storyStats.total) * 100}%`, backgroundColor: DOT_TODO }} />
+                )}
+              </div>
+
+              {/* Counts */}
+              <div className="flex gap-3 text-[10px] font-bold">
+                <span className="flex items-center gap-1">
+                  <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_DONE }} />
+                  <span className="text-[#111]">{epic.storyStats.done} done</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_IN_PROGRESS }} />
+                  <span className="text-[#111]">{epic.storyStats.inProgress} in progress</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-[6px] h-[6px] rounded-full border border-gray-300" style={{ backgroundColor: DOT_TODO }} />
+                  <span className="text-[#888]">{epic.storyStats.todo} todo</span>
+                </span>
+              </div>
+            </div>
+          )}
+
           {!loading && !error && (
-            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#aaa] mt-3">
               {stories.length} {stories.length === 1 ? "story" : "stories"}
             </p>
           )}
         </div>
 
         {/* Story list */}
-        <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.15) transparent" }}>
+        <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#e0e0e0 transparent" }}>
           {loading && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-bold uppercase tracking-widest animate-pulse" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <span className="text-xs font-bold uppercase tracking-widest animate-pulse text-[#aaa]">
                 Loading…
               </span>
             </div>
@@ -107,69 +140,58 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
 
           {error && (
             <div className="px-5 py-4">
-              <p className="text-xs font-bold" style={{ color: "rgba(255,92,160,0.9)" }}>
-                {error}
-              </p>
+              <p className="text-xs font-bold text-red-500">{error}</p>
             </div>
           )}
 
           {!loading && !error && stories.length === 0 && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.2)" }}>
+              <span className="text-xs font-bold uppercase tracking-widest text-[#ccc]">
                 No stories found
               </span>
             </div>
           )}
 
           {!loading && !error && stories.length > 0 && (
-            <ul className="py-2">
+            <ul>
               {stories.map((story, i) => (
                 <li
                   key={story.key}
-                  className="flex items-start gap-3 px-5 py-3 transition-colors"
+                  className="flex items-start gap-3 px-5 py-3.5 transition-colors cursor-default"
                   style={{
-                    borderBottom: i < stories.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                    borderBottom: i < stories.length - 1 ? "1px solid #f0f0f0" : "none",
+                    backgroundColor: "transparent",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fafafa")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   {/* Status dot */}
                   <span
-                    className="w-[8px] h-[8px] rounded-full flex-shrink-0 mt-[4px]"
-                    style={{ backgroundColor: statusDotColor(story.statusCategory) }}
+                    className="w-[8px] h-[8px] rounded-full flex-shrink-0 mt-[3px]"
+                    style={{
+                      backgroundColor: statusDotColor(story.statusCategory),
+                      border: statusDotBorder(story.statusCategory),
+                    }}
                   />
 
                   <div className="flex-1 min-w-0">
-                    {/* Story key */}
-                    <span
-                      className="block text-[9px] font-black uppercase tracking-widest mb-0.5"
-                      style={{ color: "rgba(255,255,255,0.3)" }}
-                    >
+                    <span className="block text-[9px] font-black uppercase tracking-widest text-[#aaa] mb-0.5">
                       {story.key}
                     </span>
-                    {/* Summary */}
-                    <span
-                      className="block text-xs font-bold leading-snug"
-                      style={{ color: "rgba(255,255,255,0.85)" }}
-                    >
+                    <span className="block text-xs font-bold leading-snug text-[#111]">
                       {story.summary}
                     </span>
-                    {/* Status label */}
-                    <span
-                      className="block text-[9px] font-bold mt-1 uppercase tracking-wider"
-                      style={{ color: "rgba(255,255,255,0.3)" }}
-                    >
+                    <span className="block text-[9px] font-bold mt-0.5 uppercase tracking-wider text-[#bbb]">
                       {story.status}
                     </span>
                   </div>
 
-                  {/* Assignee avatar */}
                   {story.assignee?.avatarUrl && (
                     <img
                       src={story.assignee.avatarUrl}
                       alt={story.assignee.displayName}
                       title={story.assignee.displayName}
-                      className="w-5 h-5 rounded-full flex-shrink-0 opacity-60"
+                      className="w-5 h-5 rounded-full flex-shrink-0 opacity-70"
                     />
                   )}
                 </li>
@@ -181,8 +203,8 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
 
       <style>{`
         @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0; }
-          to   { transform: translateX(0);    opacity: 1; }
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
         }
       `}</style>
     </>
