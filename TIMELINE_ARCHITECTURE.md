@@ -1,6 +1,6 @@
 # Timeline Architecture & Jira Integration
 
-This document explains the design and implementation logic of the horizontal swimlane timeline (Gantt-style view) and the Jira API integration layer, so either can be ported to a new project.
+This document explains the design and implementation logic of the horizontal swimlane timeline (Gantt-style view), the Jira API integration layer, and the Releases overlay — so any part can be ported to a new project.
 
 ---
 
@@ -49,7 +49,7 @@ This means `pxPerDay` changes whenever the viewport is resized. All components r
 
 ```
 src/
-  types/index.ts                     — Epic, StoryStats, Story, TimeScale, TimelineConfig …
+  types/index.ts                     — Epic, StoryStats, Story, JiraRelease, ProjectReleases, TimeScale, TimelineConfig …
   lib/utils/date-utils.ts            — All date/position math (pure functions)
   hooks/useTimelineScale.ts          — React hook: manages scale state + scroll snap
   components/timeline/
@@ -57,20 +57,24 @@ src/
     TimelineHeader.tsx               — Date ruler (ticks)
     SwimLane.tsx                     — One row per board, renders EpicBlocks
     EpicBlock.tsx                    — Epic bar: per-story segments + tooltip trigger
-    EpicTooltip.tsx                  — Floating tooltip (portal, light theme)
+    EpicTooltip.tsx                  — Floating tooltip (portal, light theme, viewport-aware)
     TodayMarker.tsx                  — Red vertical line at today
     StoryPanel.tsx                   — Slide-in right panel listing user stories for an epic
+  components/layout/
+    Header.tsx                       — App header: title, cache badge, Sync Jira + Status Rilasci buttons
+    ReleasesOverlay.tsx              — Fullscreen releases overlay with search, project filter, status pills
   lib/jira/
     client.ts                        — JiraClient: searchIssues, getStoryStatsByEpic
     queries.ts                       — JQL constants
     mapper.ts                        — Maps raw Jira issues → Epic / BoardData
     types.ts                         — Raw Jira API response types
   lib/cache/
-    memory-cache.ts                  — In-memory TTL cache
+    memory-cache.ts                  — In-memory TTL cache (epicsCache + releasesCache)
   app/api/jira/
     epics/route.ts                   — GET /api/jira/epics
     stories/route.ts                 — GET /api/jira/stories?epicKey=XXX
-    refresh/route.ts                 — POST /api/jira/refresh (cache bust)
+    releases/route.ts                — GET /api/jira/releases
+    refresh/route.ts                 — POST /api/jira/refresh (busts both caches)
 ```
 
 ### `date-utils.ts` — Pure Functions
@@ -202,6 +206,8 @@ useEffect(() => setMounted(true), []);
 
 The tooltip follows the cursor via `onMouseMove` (using `e.clientX / e.clientY`) rather than anchoring to the block center. This keeps the tooltip on-screen even when the epic is wider than the viewport.
 
+**Viewport-aware positioning** (`EpicTooltip.tsx`): after the first render, `useLayoutEffect` measures the actual rendered size with `getBoundingClientRect()` and computes the final position — flipping below the cursor when `y - height - 16 < 8px` (not enough space above), and clamping horizontally within 8px of the viewport edges. The tooltip starts as `visibility: hidden` to prevent a flash of wrong position.
+
 The tooltip is **light-themed**: white background, `3px solid #111` border, `6px 6px 0 #111` flat offset shadow. It includes a story stats mini bar (solid segments, same colors as DOT_*) and counts row.
 
 ### Story Panel
@@ -241,7 +247,7 @@ Create a `.env.local` file (never commit this file) with:
 JIRA_BASE_URL=https://your-company.atlassian.net
 JIRA_EMAIL=your-email@example.com
 JIRA_API_TOKEN=your-api-token-here
-JIRA_CACHE_TTL=300   # optional, seconds — defaults to 300
+JIRA_CACHE_TTL=86400   # optional, seconds — defaults to 300 (5 min); set to 86400 for 24h
 ```
 
 ### How to Get a Jira API Token
@@ -304,6 +310,22 @@ const jql = `parent = ${epicKey} ORDER BY status ASC, created ASC`;
 
 Returns `Story[]` with `key`, `summary`, `status`, `statusCategory`, `assignee`.
 
+#### Releases — `GET /api/jira/releases`
+
+Fetches all non-archived versions across every accessible Jira project:
+
+1. **Paginates through all projects** via `GET /rest/api/3/project/search` (100 per page, loops until `isLast: true`). Projects that don't appear in the search but are still accessible (e.g. due to Jira permission model differences) are fetched directly by key as a fallback.
+2. For each project, calls `GET /rest/api/3/project/{key}/versions` in **parallel** via `Promise.all`.
+3. Filters out archived versions (`archived: true`).
+4. Computes `overdue` locally: `!released && releaseDate < today` (uses Jira's `overdue` flag if present, falls back to local computation).
+5. Skips projects with no active versions.
+6. Returns `{ projects: ProjectReleases[], fetchedAt, cacheHit }`.
+
+Release status classification:
+- `released` → `r.released === true`
+- `overdue` → `r.overdue === true && !r.released`
+- `upcoming` → everything else
+
 ### Custom Fields
 
 | Field ID            | Meaning               | Notes                                    |
@@ -346,6 +368,25 @@ interface Story {
   statusCategory: 'todo' | 'in-progress' | 'done';
   assignee: { displayName: string; avatarUrl: string } | null;
 }
+
+interface JiraRelease {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string | null;
+  releaseDate: string | null;
+  released: boolean;
+  archived: boolean;
+  overdue: boolean;
+  projectKey: string;
+  projectName: string;
+}
+
+interface ProjectReleases {
+  projectKey: string;
+  projectName: string;
+  releases: JiraRelease[];
+}
 ```
 
 ### Pagination
@@ -360,11 +401,77 @@ while (hasMore && startAt < MAX_RESULTS) {
 }
 ```
 
+The releases route also paginates project discovery (100 projects per page) until `isLast: true`.
+
 ### In-Memory Cache
 
-`MemoryCache<T>` (`src/lib/cache/memory-cache.ts`) caches API results with a TTL defaulting to 300 s (configurable via `JIRA_CACHE_TTL`). Cache key: `epics:global-p0`. Lives in the Node.js process — resets on server restart.
+`MemoryCache<T>` (`src/lib/cache/memory-cache.ts`) is a simple TTL cache backed by a `Map` in the Node.js process. It resets on server restart.
 
-Responses include `cacheHit: boolean`. A manual cache-bust endpoint is available at `POST /api/jira/refresh`.
+Two global instances are exported:
+
+| Instance        | Cache key            | Populated by              |
+|-----------------|----------------------|---------------------------|
+| `epicsCache`    | `epics:global-p0`    | `GET /api/jira/epics`     |
+| `releasesCache` | `releases:all-projects` | `GET /api/jira/releases` |
+
+TTL is configured via `JIRA_CACHE_TTL` (default 300 s, recommended 86400 for 24 h).
+
+`POST /api/jira/refresh` clears **both** caches simultaneously. Responses include `cacheHit: boolean` to indicate whether data came from cache or a live Jira fetch.
+
+---
+
+## Part 3 — Releases Overlay
+
+### Overview
+
+Clicking **"◈ Status Rilasci"** in the header opens a fullscreen overlay (`ReleasesOverlay`) showing all Jira releases grouped by project.
+
+### UI
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Release Status   [search…] [All projects ▼] | All Upcoming …  ✕ │  ← header bar
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ■ PROJ  Project Name  N releases                               │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+│  │ v1.0     │ │ v1.1     │ │ v2.0     │ …                      │
+│  │ RELEASED │ │ OVERDUE  │ │ UPCOMING │                         │
+│  └──────────┘ └──────────┘ └──────────┘                         │
+│                                                                  │
+│  ■ OTHER  Other Project  …                                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Filters (combinable)
+
+| Control          | Behaviour                                                        |
+|------------------|------------------------------------------------------------------|
+| Search input     | Case-insensitive match on release name, updates in real time     |
+| Project dropdown | Shows all projects sorted A–Z; selecting one hides all others   |
+| Status pills     | All / Upcoming / Overdue / Released — counts reflect raw totals |
+
+All three filters are applied together via `useMemo` on the `filtered` array.
+
+### Release Card
+
+Each release shows: name, status badge, description (if any), start/release dates grid, and a countdown chip:
+- **Upcoming**: `Xd to release` / `Due today`
+- **Overdue**: `Xd overdue` (red chip)
+- **Released**: no chip
+
+### Status Colors
+
+| Status   | Background          | Border     |
+|----------|---------------------|------------|
+| Released | `#57e51e`           | `#3aad14`  |
+| Overdue  | `#FF2D55`           | `#cc0033`  |
+| Upcoming | `rgb(255,157,225)`  | `#e060a0`  |
+
+### Closing
+
+- Click the **✕** button
+- Press **Escape**
 
 ---
 
@@ -374,9 +481,10 @@ To reuse this in a new project:
 
 - [ ] Copy `src/lib/utils/date-utils.ts` and `src/hooks/useTimelineScale.ts` — zero Jira dependency, pure timeline logic
 - [ ] Copy the `src/components/timeline/` folder
-- [ ] Adapt `Epic`, `StoryStats`, `Story`, `BoardData` types in `src/types/index.ts` to your data model
+- [ ] Adapt `Epic`, `StoryStats`, `Story`, `BoardData`, `JiraRelease`, `ProjectReleases` types in `src/types/index.ts` to your data model
 - [ ] Replace `src/lib/jira/` with your own data-fetching layer that produces `BoardData[]` with optional `storyStats` on each epic
-- [ ] Set up the three env vars for Jira if needed
+- [ ] Set up the three env vars for Jira; set `JIRA_CACHE_TTL=86400` for 24h caching
 - [ ] Verify your Jira instance's custom field IDs with `GET /rest/api/3/field`
 - [ ] Adjust the JQL in `src/lib/jira/queries.ts` to match your epic labeling strategy
 - [ ] If you use `parent in (...)` for story stats and your Jira is classic (not next-gen), you may need `"Epic Link" in (...)` instead
+- [ ] If you have more than 100 Jira projects, ensure the releases route pagination loop is intact
