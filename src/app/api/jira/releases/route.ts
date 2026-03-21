@@ -59,7 +59,7 @@ export async function GET(): Promise<NextResponse> {
     let isLast  = false;
 
     while (!isLast) {
-      const url = `${base}/rest/api/3/project/search?maxResults=50&startAt=${startAt}&orderBy=key`;
+      const url = `${base}/rest/api/3/project/search?maxResults=100&startAt=${startAt}&orderBy=key`;
       const res = await jiraFetch<{ values: JiraProject[]; isLast: boolean; total: number }>(url, auth);
       projects.push(...(res.values ?? []));
       isLast  = res.isLast ?? true;
