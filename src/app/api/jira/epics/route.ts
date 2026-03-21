@@ -58,6 +58,9 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       baseUrl: jiraBaseUrl,
     };
 
+    console.log(`[epics] total issues from Jira: ${issues.length}`);
+    console.log(`[epics] keys:`, issues.map((i) => i.key).join(', '));
+
     const allEpics = issues.map((issue) => {
       const boardKey = issue.fields?.project?.key || issue.key.split('-')[0];
       return mapJiraIssueToEpic(issue, boardKey, mapperConfig);

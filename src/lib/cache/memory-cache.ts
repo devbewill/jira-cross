@@ -41,12 +41,22 @@ export class MemoryCache<T> {
   }
 }
 
-// Global cache instance for epics data
-export const epicsCache = new MemoryCache<any>(
-  parseInt(process.env.JIRA_CACHE_TTL || '300', 10)
-);
+// ─── Singleton instances via globalThis ───────────────────────────────────────
+// Next.js dev mode hot-reloads individual route modules, which would create a
+// fresh MemoryCache instance per route — meaning refresh/route.ts would clear a
+// different object than epics/route.ts reads from.
+// Anchoring the instances on globalThis ensures every module always gets the
+// exact same object, surviving hot reloads.
 
-// Global cache instance for releases data
-export const releasesCache = new MemoryCache<any>(
-  parseInt(process.env.JIRA_CACHE_TTL || '300', 10)
-);
+const g = globalThis as typeof globalThis & {
+  __epicsCache?: MemoryCache<any>;
+  __releasesCache?: MemoryCache<any>;
+};
+
+const TTL = parseInt(process.env.JIRA_CACHE_TTL || '300', 10);
+
+if (!g.__epicsCache)    g.__epicsCache    = new MemoryCache<any>(TTL);
+if (!g.__releasesCache) g.__releasesCache = new MemoryCache<any>(TTL);
+
+export const epicsCache    = g.__epicsCache;
+export const releasesCache = g.__releasesCache;
