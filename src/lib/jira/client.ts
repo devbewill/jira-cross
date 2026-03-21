@@ -73,7 +73,7 @@ export class JiraClient {
         payload.fields = fields;
       }
 
-      const endpoint = `/search/jql`;
+      const endpoint = `/search`;
 
       const response = await this.request<JiraSearchResponse>(
         endpoint,
