@@ -391,17 +391,29 @@ interface ProjectReleases {
 
 ### Pagination
 
-The client paginates automatically up to 1000 results (`MAX_RESULTS` in `src/lib/jira/queries.ts`), fetching 50 issues per page:
+#### Issue search — `/search/jql` cursor-based pagination
+
+`/rest/api/3/search` was removed by Atlassian (410 Gone). The only supported endpoint is `/rest/api/3/search/jql`, which uses **cursor-based pagination** via `nextPageToken` — `startAt` is silently ignored and always returns the first page.
+
+The client paginates automatically up to 1000 results (`MAX_RESULTS`), fetching 50 issues per page:
 
 ```typescript
-while (hasMore && startAt < MAX_RESULTS) {
-  // POST /rest/api/3/search/jql?startAt=<n>
-  startAt += response.maxResults;
-  hasMore = startAt < response.total;
+let nextPageToken: string | undefined = undefined;
+while (hasMore && allIssues.length < MAX_RESULTS) {
+  const payload = { jql, maxResults: 50, ...(nextPageToken && { nextPageToken }) };
+  const response = await POST('/search/jql', payload);
+  allIssues.push(...response.issues);
+  if (response.isLast || !response.nextPageToken) {
+    hasMore = false;
+  } else {
+    nextPageToken = response.nextPageToken;
+  }
 }
 ```
 
-The releases route also paginates project discovery (100 projects per page) until `isLast: true`.
+> **Important**: using `?startAt=N` on `/search/jql` is silently ignored — the API always returns the first page. This caused a subtle bug where story stats were truncated to the first 50 results when a large epic (e.g. 34+ stories) was included, making `done` counts appear as 0 for all epics.
+
+The releases route paginates project discovery via `GET /rest/api/3/project/search` (100 per page) until `isLast: true`.
 
 ### In-Memory Cache
 
@@ -409,14 +421,28 @@ The releases route also paginates project discovery (100 projects per page) unti
 
 Two global instances are exported:
 
-| Instance        | Cache key            | Populated by              |
-|-----------------|----------------------|---------------------------|
-| `epicsCache`    | `epics:global-p0`    | `GET /api/jira/epics`     |
-| `releasesCache` | `releases:all-projects` | `GET /api/jira/releases` |
+| Instance        | Cache key               | Populated by                 |
+|-----------------|-------------------------|------------------------------|
+| `epicsCache`    | `epics:global-p0`       | `GET /api/jira/epics`        |
+| `releasesCache` | `releases:all-projects` | `GET /api/jira/releases`     |
 
 TTL is configured via `JIRA_CACHE_TTL` (default 300 s, recommended 86400 for 24 h).
 
 `POST /api/jira/refresh` clears **both** caches simultaneously. Responses include `cacheHit: boolean` to indicate whether data came from cache or a live Jira fetch.
+
+#### `globalThis` singleton pattern (dev mode)
+
+In Next.js development mode, hot module reloading can create multiple instances of a module, meaning `epicsCache` in `refresh/route.ts` and `epics/route.ts` could be different objects — so clearing one would not affect the other. To prevent this, the cache instances are anchored to `globalThis`:
+
+```typescript
+const g = globalThis as typeof globalThis & {
+  __epicsCache?: MemoryCache<EpicsApiResponse>;
+};
+if (!g.__epicsCache) g.__epicsCache = new MemoryCache(TTL_MS);
+export const epicsCache = g.__epicsCache;
+```
+
+This ensures a single cache instance survives hot reloads across all route handlers.
 
 ---
 
