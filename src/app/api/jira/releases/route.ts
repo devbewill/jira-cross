@@ -53,10 +53,20 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
-    // 1. Fetch all accessible projects (paginated, up to 200)
-    const projectsUrl = `${base}/rest/api/3/project/search?maxResults=200&orderBy=key`;
-    const projectsRes = await jiraFetch<{ values: JiraProject[] }>(projectsUrl, auth);
-    const projects    = projectsRes.values ?? [];
+    // 1. Fetch ALL projects with pagination (50 per page until isLast)
+    const projects: JiraProject[] = [];
+    let startAt = 0;
+    let isLast  = false;
+
+    while (!isLast) {
+      const url = `${base}/rest/api/3/project/search?maxResults=50&startAt=${startAt}&orderBy=key`;
+      const res = await jiraFetch<{ values: JiraProject[]; isLast: boolean; total: number }>(url, auth);
+      projects.push(...(res.values ?? []));
+      isLast  = res.isLast ?? true;
+      startAt += res.values?.length ?? 0;
+    }
+
+    console.log(`[releases] fetched ${projects.length} projects:`, projects.map(p => p.key).join(', '));
 
     // 2. Fetch versions for every project in parallel
     const today = new Date();
@@ -93,6 +103,7 @@ export async function GET(): Promise<NextResponse> {
               });
 
             // Skip projects with no active versions
+            console.log(`[releases] ${project.key}: ${versions.length} total versions, ${releases.length} active (non-archived)`);
             if (releases.length === 0) return null;
 
             return {
@@ -100,8 +111,9 @@ export async function GET(): Promise<NextResponse> {
               projectName: project.name,
               releases,
             };
-          } catch {
+          } catch (err) {
             // Non-fatal: some projects may deny version access
+            console.log(`[releases] ${project.key}: skipped — ${err instanceof Error ? err.message : err}`);
             return null;
           }
         }),
