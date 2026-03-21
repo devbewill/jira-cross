@@ -14,12 +14,12 @@ The timeline is a horizontal Gantt-style view that renders Jira Epics as colored
 
 Four named scales are available, each with a fixed visible window:
 
-| Scale      | Visible window         | Tick unit  |
-|------------|------------------------|------------|
-| `today`    | prev week → next week  | Days       |
-| `weeks`    | −2 weeks → +3 weeks    | Days       |
-| `months`   | −2 months → +3 months  | Months     |
-| `quarters` | −1 quarter → +3 quarters | Quarters |
+| Scale      | Visible window              | Tick unit  |
+|------------|-----------------------------|------------|
+| `today`    | prev week → next week       | Days       |
+| `weeks`    | −2 weeks → +3 weeks         | Days       |
+| `months`   | −2 months → +3 months       | Months     |
+| `quarters` | −1 quarter → +3 quarters    | Quarters   |
 
 Scroll bounds are wider than the visible window so the user can pan. They are computed in `src/lib/utils/date-utils.ts → getScrollBounds(scale, today)`.
 
@@ -43,22 +43,34 @@ pxPerDay = viewportWidth / visibleDays
 
 where `viewportWidth` is the width of the **timeline-only area** (excluding the fixed label column on the left), and `visibleDays` is the number of days in the visible window for the current scale.
 
-This means the same `pxPerDay` value changes whenever the viewport is resized. All components receive `pxPerDay` and `scrollOrigin` as props so they all share the same coordinate space.
+This means `pxPerDay` changes whenever the viewport is resized. All components receive `pxPerDay` and `scrollOrigin` as props so they all share the same coordinate space.
 
 ### Key Files
 
 ```
 src/
-  types/index.ts                     — TimeScale, ScaleConfig, TimelineConfig types
+  types/index.ts                     — Epic, StoryStats, Story, TimeScale, TimelineConfig …
   lib/utils/date-utils.ts            — All date/position math (pure functions)
   hooks/useTimelineScale.ts          — React hook: manages scale state + scroll snap
   components/timeline/
     TimelineContainer.tsx            — Root component: layout, scroll sync, scale buttons
     TimelineHeader.tsx               — Date ruler (ticks)
     SwimLane.tsx                     — One row per board, renders EpicBlocks
-    EpicBlock.tsx                    — Individual epic bar + tooltip trigger
-    EpicTooltip.tsx                  — Floating tooltip (portal)
+    EpicBlock.tsx                    — Epic bar: per-story segments + tooltip trigger
+    EpicTooltip.tsx                  — Floating tooltip (portal, light theme)
     TodayMarker.tsx                  — Red vertical line at today
+    StoryPanel.tsx                   — Slide-in right panel listing user stories for an epic
+  lib/jira/
+    client.ts                        — JiraClient: searchIssues, getStoryStatsByEpic
+    queries.ts                       — JQL constants
+    mapper.ts                        — Maps raw Jira issues → Epic / BoardData
+    types.ts                         — Raw Jira API response types
+  lib/cache/
+    memory-cache.ts                  — In-memory TTL cache
+  app/api/jira/
+    epics/route.ts                   — GET /api/jira/epics
+    stories/route.ts                 — GET /api/jira/stories?epicKey=XXX
+    refresh/route.ts                 — POST /api/jira/refresh (cache bust)
 ```
 
 ### `date-utils.ts` — Pure Functions
@@ -68,10 +80,10 @@ src/
 - `getPxPerDay(scale, viewportWidth, today)` → `number`
 - `buildTimelineConfig(scale, viewportWidth, today)` → `TimelineConfig`
 - `dateToPixels(date, scrollOrigin, pxPerDay)` → `number`
-- `getScrollLeftForToday(scale, viewportWidth, scrollOrigin, today)` → `number` — scroll offset so the visible window starts at the right date
+- `getScrollLeftForToday(scale, viewportWidth, scrollOrigin, today)` → `number`
 - `clampScrollLeft(scrollLeft, ...)` → clamped value within scroll bounds
 - `isTodayVisible(scrollLeft, viewportWidth, scrollOrigin, pxPerDay, today)` → `boolean`
-- `generateTicks(scale, scrollOrigin, pxPerDay, rangeStart, rangeEnd)` → `TickLabel[]` — drives the date ruler
+- `generateTicks(scale, scrollOrigin, pxPerDay, rangeStart, rangeEnd)` → `TickLabel[]`
 
 ### `useTimelineScale` Hook
 
@@ -84,7 +96,7 @@ const { scale, config, scrollOrigin, scrollContainerRef,
 - `today` is stabilized with `useMemo(() => startOfDay(new Date()), [])` to avoid millisecond drift breaking `differenceInDays`.
 - `scrollOrigin` is `useMemo`-computed from `getScrollBounds(scale, today).min`.
 - A snap effect fires on mount and on every `scale` or `viewportWidth` change, using a `snapKey = \`${scale}-${viewportWidth}\`` guard so it only fires once per unique combination.
-- The snap is deferred with `requestAnimationFrame` to ensure the DOM has finished measuring before setting `scrollLeft`.
+- The snap is deferred with `requestAnimationFrame` so the DOM has finished measuring before setting `scrollLeft`.
 - `viewportWidth` must be passed in as the **effective timeline width** (just the scrollable panel, not the full page).
 
 ### Layout Structure
@@ -105,7 +117,7 @@ The layout uses two separate DOM columns to avoid z-index / stacking-context con
 ```
 
 **Why a separate label column?**
-Keeping board labels inside the scrollable area (as `position: sticky`) causes z-index bugs in Chrome: `transition-all` on epic blocks promotes them to compositor layers that paint above sticky elements regardless of z-index. Placing the labels in a completely separate DOM tree sidesteps the problem entirely — no stacking context comparison is needed.
+Keeping board labels inside the scrollable area (as `position: sticky`) causes z-index bugs in Chrome: `transition-all` on epic blocks promotes them to compositor layers that paint above sticky elements regardless of z-index. Placing the labels in a completely separate DOM tree sidesteps the problem — no stacking context comparison is needed.
 
 **Scroll sync** uses three refs:
 - `scrollContainerRef` — the main scrollable content panel
@@ -114,7 +126,61 @@ Keeping board labels inside the scrollable area (as `position: sticky`) causes z
 
 ### Row Height Sync
 
-`computeSwimLaneHeight(epics, dateToPosition): number` (exported from `SwimLane.tsx`) is a pure function that calculates how tall a swimlane row needs to be based on how many parallel lanes its epics occupy. It is called once in `TimelineContainer` via `useMemo`, and the result is passed to both the label column row and the `SwimLane` timeline row so they stay the same height.
+`computeSwimLaneHeight(epics, dateToPosition): number` (exported from `SwimLane.tsx`) is a pure function that calculates how tall a swimlane row needs to be based on how many parallel lanes its epics occupy. It is called once in `TimelineContainer` via `useMemo` and the result is passed to both the label column row and the SwimLane timeline row so they always match.
+
+The formula uses constants exported from `EpicBlock.tsx`:
+```typescript
+// EpicBlock.tsx
+export const BLOCK_HEIGHT = 56;  // INFO_HEIGHT(22) + GAP(4) + BAR_H(32)
+export const BLOCK_MARGIN = 14;
+
+// SwimLane.tsx
+return (maxLaneIndex + 1) * (BLOCK_HEIGHT + BLOCK_MARGIN) + BLOCK_MARGIN;
+```
+
+Changing `BLOCK_HEIGHT` in one place automatically updates both the rendering and the row height calculation.
+
+### Epic Block Visual Structure
+
+Each epic renders as a two-part unit:
+
+```
+EPIC SUMMARY IN UPPERCASE          ● 3  ● 4  ○ 5   ← info row (22px, no border)
+┌──────────────────────────────────────────────────┐
+│ KEY-123                              Mar 21       │ ← bar (32px, segments + border)
+└──────────────────────────────────────────────────┘
+```
+
+**Info row** (above the bar, no border): summary text + story status counters (dots + numbers), both left-aligned. The summary truncates before the counters overflow.
+
+**Bar** (the bordered block): contains only the epic key badge and due date. The background is divided into **N equal segments**, one per user story, colored by status. This is implemented as absolutely-positioned flex children (`flex: 1`) behind the content (`z-index: 10`):
+
+```typescript
+// buildSegments expands StoryStats into a flat color array
+function buildSegments(stats: StoryStats): string[] {
+  const segs: string[] = [];
+  for (let i = 0; i < stats.done;       i++) segs.push(DOT_DONE);        // #57e51e
+  for (let i = 0; i < stats.inProgress; i++) segs.push(DOT_IN_PROGRESS); // rgb(255,157,225)
+  for (let i = 0; i < stats.todo;       i++) segs.push(DOT_TODO);        // #f0f0f0
+  return segs;
+}
+```
+
+A `0.5px` gap with a black container background creates a hairline black divider between every segment.
+
+When `storyStats` is absent the bar falls back to the solid status colour from `getStatusColor()`.
+
+### Status Color Constants
+
+Defined and exported from `EpicBlock.tsx` so they are shared automatically with `EpicTooltip` and `StoryPanel`:
+
+```typescript
+export const DOT_DONE        = "#57e51e";           // bright green
+export const DOT_IN_PROGRESS = "rgb(255, 157, 225)"; // light pink
+export const DOT_TODO        = "#f0f0f0";            // near-white light gray
+```
+
+All dots in the UI (timeline info row, tooltip, story panel) are `10×10px` circles with `border: 1px solid #111`.
 
 ### Epic Lane Assignment
 
@@ -122,26 +188,41 @@ Epics are sorted by start date. A greedy algorithm assigns each epic to the firs
 
 ### Tooltip
 
-Tooltips use `createPortal(tooltip, document.body)` so they escape all stacking contexts and always render on top of everything (including the date header):
+Tooltips use `createPortal(tooltip, document.body)` so they escape all stacking contexts and always render on top of everything (including the date header). A `mounted` state flag (set in `useEffect`) is used instead of `typeof document !== 'undefined'` to avoid SSR hydration mismatches:
 
 ```typescript
-// EpicBlock.tsx
-const [tooltipPos, setTooltipPos] = useState<{x: number; y: number} | null>(null);
+const [mounted, setMounted] = useState(false);
+useEffect(() => setMounted(true), []);
 
-onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
-onMouseLeave={() => setTooltipPos(null)}
-
-{tooltipPos && createPortal(
+{tooltipPos && mounted && createPortal(
   <EpicTooltip epic={epic} x={tooltipPos.x} y={tooltipPos.y} />,
   document.body
 )}
 ```
 
-The tooltip uses `position: fixed` with `transform: translate(-50%, -100%)` to appear centered above the cursor. Following the cursor via `onMouseMove` instead of anchoring to the block center ensures the tooltip stays on-screen even when the epic block is wider than the viewport.
+The tooltip follows the cursor via `onMouseMove` (using `e.clientX / e.clientY`) rather than anchoring to the block center. This keeps the tooltip on-screen even when the epic is wider than the viewport.
+
+The tooltip is **light-themed**: white background, `3px solid #111` border, `6px 6px 0 #111` flat offset shadow. It includes a story stats mini bar (solid segments, same colors as DOT_*) and counts row.
+
+### Story Panel
+
+Clicking an epic opens a fixed right-side drawer (`StoryPanel`) that fetches and lists all user stories for that epic:
+
+```
+GET /api/jira/stories?epicKey=PROJ-42
+→ JQL: parent = PROJ-42 ORDER BY status ASC, created ASC
+```
+
+The panel is **light-themed** (white bg, 3px solid black left border) and includes:
+- Epic key badge + summary in the header
+- Story stats mini bar + counts
+- Scrollable list: status dot + key + summary + status label + assignee avatar per story
+
+Clicking the same epic again, the backdrop, or the ✕ button closes the panel. The toggle logic lives in `TimelineContainer.handleSelectEpic`.
 
 ### Today Marker
 
-`TodayMarker` renders a red vertical line at:
+`TodayMarker` renders a vertical line at:
 ```
 left = differenceInDays(startOfDay(today), startOfDay(scrollOrigin)) * pxPerDay
 ```
@@ -165,7 +246,7 @@ JIRA_CACHE_TTL=300   # optional, seconds — defaults to 300
 
 ### How to Get a Jira API Token
 
-1. Log in to [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+1. Go to [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
 2. Click **Create API token**
 3. Give it a label (e.g. `jira-cross-dev`)
 4. Copy the token immediately — it is shown only once
@@ -177,43 +258,99 @@ Buffer.from(`${email}:${apiToken}`).toString('base64')
 // → Authorization: Basic <base64>
 ```
 
-### API Endpoint Used
+### API Endpoints Used
 
-All queries go through **Jira REST API v3**:
+All queries go through **Jira REST API v3**.
+
+#### Epics — `GET /api/jira/epics`
+
+1. Validates env vars, returns cached data if available.
+2. Calls `POST /rest/api/3/search/jql` with:
+   ```json
+   {
+     "jql": "issuetype = Epic AND labels = P0 ORDER BY created DESC",
+     "fields": ["summary","status","assignee","customfield_10015","customfield_10016","duedate","parent","project"]
+   }
+   ```
+3. Maps issues → `Epic[]` via `mapJiraIssueToEpic()`.
+4. Calls `getStoryStatsByEpic(epicKeys)` — **a single extra JQL query** — to get story counts per epic.
+5. Attaches `storyStats` to each epic.
+6. Groups by board with `groupEpicsByBoard()`, caches, returns `{ boards, fetchedAt, cacheHit }`.
+
+#### Story Stats — `getStoryStatsByEpic(epicKeys)`
+
+Fetches all child issues for all epics **in one query** to avoid N+1:
+
+```typescript
+const jql = `parent in (KEY-1, KEY-2, ...) ORDER BY status`;
+// fields: ["status", "parent"]
 ```
-POST https://<JIRA_BASE_URL>/rest/api/3/search/jql?startAt=<offset>
+
+Results are aggregated into a `Map<epicKey, StoryStats>` by reading `fields.status.statusCategory.key`:
+- `"done"` → `stats.done++`
+- `"indeterminate"` → `stats.inProgress++`
+- anything else → `stats.todo++`
+
+Works for both **team-managed** (next-gen) and **company-managed** (classic) Jira projects.
+
+#### Stories — `GET /api/jira/stories?epicKey=PROJ-42`
+
+Fetches individual story titles for the StoryPanel:
+
+```typescript
+const jql = `parent = ${epicKey} ORDER BY status ASC, created ASC`;
+// fields: ["summary", "status", "assignee", "parent"]
 ```
 
-Body:
-```json
-{
-  "jql": "issuetype = Epic AND labels = P0 ORDER BY created DESC",
-  "maxResults": 50,
-  "fields": ["summary", "status", "assignee", "customfield_10015", "customfield_10016", "duedate", ...]
-}
-```
-
-### JQL Query
-
-```sql
-issuetype = Epic AND labels = P0 ORDER BY created DESC
-```
-
-This fetches all Epics labeled `P0` across all projects the authenticated user has access to. The `P0` label is used as a cross-project filter — adjust it to match your labeling conventions.
+Returns `Story[]` with `key`, `summary`, `status`, `statusCategory`, `assignee`.
 
 ### Custom Fields
 
 | Field ID            | Meaning               | Notes                                    |
 |---------------------|-----------------------|------------------------------------------|
 | `customfield_10015` | Start date            | Jira's built-in "Epic Start Date" field  |
-| `customfield_10016` | Story points / estimate | May vary by Jira instance               |
+| `customfield_10016` | Story points          | May vary by Jira instance                |
 | `duedate`           | Due date              | Standard Jira field                      |
 
-> **Note:** Custom field IDs (`customfield_XXXXX`) can differ between Jira instances. To discover your field IDs, call `GET /rest/api/3/field` with your credentials — the `JiraClient.getFields()` method does this.
+> To discover your field IDs call `GET /rest/api/3/field` — `JiraClient.getFields()` does this.
+
+### Data Types
+
+```typescript
+interface StoryStats {
+  done: number;
+  inProgress: number;
+  todo: number;
+  total: number;
+}
+
+interface Epic {
+  key: string;           // "PROJ-42"
+  boardKey: string;      // "PROJ"
+  summary: string;
+  startDate: string | null;
+  dueDate: string | null;
+  status: string;
+  statusCategory: 'todo' | 'in-progress' | 'done';
+  assignee: { displayName: string; avatarUrl: string } | null;
+  storyPoints: number | null;
+  url: string;
+  storyStats?: StoryStats;  // attached after the child-issues query
+}
+
+interface Story {
+  key: string;
+  epicKey: string;
+  summary: string;
+  status: string;
+  statusCategory: 'todo' | 'in-progress' | 'done';
+  assignee: { displayName: string; avatarUrl: string } | null;
+}
+```
 
 ### Pagination
 
-The client paginates automatically up to 1000 results (configurable via `MAX_RESULTS` in `src/lib/jira/queries.ts`), fetching 50 issues per page:
+The client paginates automatically up to 1000 results (`MAX_RESULTS` in `src/lib/jira/queries.ts`), fetching 50 issues per page:
 
 ```typescript
 while (hasMore && startAt < MAX_RESULTS) {
@@ -225,44 +362,9 @@ while (hasMore && startAt < MAX_RESULTS) {
 
 ### In-Memory Cache
 
-API results are cached in memory by `MemoryCache<T>` (`src/lib/cache/memory-cache.ts`) with a TTL defaulting to 300 seconds (configurable via `JIRA_CACHE_TTL`). The cache key is `epics:global-p0`. The cache lives in the Node.js server process — it resets on server restart.
+`MemoryCache<T>` (`src/lib/cache/memory-cache.ts`) caches API results with a TTL defaulting to 300 s (configurable via `JIRA_CACHE_TTL`). Cache key: `epics:global-p0`. Lives in the Node.js process — resets on server restart.
 
-Responses include a `cacheHit: boolean` field so the UI (or logs) can tell whether data came from Jira or the cache.
-
-A manual cache-bust endpoint is available at `POST /api/jira/refresh`.
-
-### Data Mapping
-
-`mapJiraIssueToEpic(issue, boardKey, config)` converts a raw Jira issue into the app's `Epic` type:
-
-```typescript
-interface Epic {
-  key: string;           // e.g. "PROJ-42"
-  boardKey: string;      // project key, e.g. "PROJ"
-  summary: string;
-  startDate: string | null;   // ISO date from customfield_10015
-  dueDate: string | null;     // ISO date from duedate field
-  status: string;             // e.g. "In Progress"
-  statusCategory: string;     // "todo" | "inprogress" | "done"
-  assignee: { displayName: string; avatarUrl: string } | null;
-  storyPoints: number | null;
-  url: string;                // self link from Jira API
-}
-```
-
-`groupEpicsByBoard(epics, boardKeys)` then groups them into `BoardData[]` by project key, which maps to a swimlane row.
-
-### Next.js API Route
-
-`GET /api/jira/epics` is the single entrypoint:
-
-1. Validates that all three env vars are present
-2. Returns cached data if available
-3. Creates a `JiraClient` instance
-4. Calls `searchIssues` with the JQL and field list
-5. Maps issues → epics → boards via mapper functions
-6. Stores result in cache
-7. Returns `{ boards, fetchedAt, cacheHit }` as JSON
+Responses include `cacheHit: boolean`. A manual cache-bust endpoint is available at `POST /api/jira/refresh`.
 
 ---
 
@@ -272,8 +374,9 @@ To reuse this in a new project:
 
 - [ ] Copy `src/lib/utils/date-utils.ts` and `src/hooks/useTimelineScale.ts` — zero Jira dependency, pure timeline logic
 - [ ] Copy the `src/components/timeline/` folder
-- [ ] Adapt `Epic` and `BoardData` types in `src/types/index.ts` to your data model
-- [ ] Replace `src/lib/jira/` with your own data-fetching layer that produces `BoardData[]`
+- [ ] Adapt `Epic`, `StoryStats`, `Story`, `BoardData` types in `src/types/index.ts` to your data model
+- [ ] Replace `src/lib/jira/` with your own data-fetching layer that produces `BoardData[]` with optional `storyStats` on each epic
 - [ ] Set up the three env vars for Jira if needed
 - [ ] Verify your Jira instance's custom field IDs with `GET /rest/api/3/field`
 - [ ] Adjust the JQL in `src/lib/jira/queries.ts` to match your epic labeling strategy
+- [ ] If you use `parent in (...)` for story stats and your Jira is classic (not next-gen), you may need `"Epic Link" in (...)` instead
