@@ -4,9 +4,9 @@ import { Epic } from "@/types";
 
 interface EpicTooltipProps {
   epic: Epic;
-  /** Screen X of the epic block center (from getBoundingClientRect) */
+  /** Cursor clientX */
   x: number;
-  /** Screen Y of the epic block top (from getBoundingClientRect) */
+  /** Cursor clientY */
   y: number;
 }
 
@@ -15,9 +15,9 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
     <div
       className="fixed bg-linear-surface border border-linear-border text-linear-text p-4 text-sm z-[9999] pointer-events-none shadow-popover rounded-[8px]"
       style={{
-        top: `${y - 8}px`,
+        top: `${y - 16}px`,          // 16px sopra il cursore
         left: `${x}px`,
-        transform: "translate(-50%, -100%)",
+        transform: "translate(-50%, -100%)",  // centrato sul cursore
         minWidth: "260px",
       }}
     >

@@ -35,11 +35,10 @@ export function EpicBlock({
 
   const statusClasses = getStatusColor(epic.statusCategory);
 
-  const handleMouseEnter = () => {
-    if (blockRef.current) {
-      const rect = blockRef.current.getBoundingClientRect();
-      setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top });
-    }
+  // Track the actual cursor position so the tooltip stays inside the
+  // viewport even when the epic block is wider than the screen (today/weeks).
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setTooltipPos({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseLeave = () => {
@@ -69,7 +68,7 @@ export function EpicBlock({
           minWidth: `${minWidth}px`,
         }}
         onClick={() => onClick?.(epic)}
-        onMouseEnter={handleMouseEnter}
+        onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
         <div className="h-full flex flex-col justify-center gap-[2px] overflow-hidden">
