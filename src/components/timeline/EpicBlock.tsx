@@ -11,16 +11,57 @@ export const BLOCK_HEIGHT = 68;
 export const BAR_HEIGHT   = 10;
 export const BLOCK_MARGIN = 14;
 
-// ─── Story progress bar (hangs below the block) ───────────────────────────────
+// ─── Gradient background from story stats ────────────────────────────────────
+// Semi-transparent so the colors are soft and text stays readable.
+const DONE_COLOR        = "rgba(13,  212, 86,  0.55)";
+const IN_PROGRESS_COLOR = "rgba(255, 92,  220, 0.45)";
+const TODO_COLOR        = "rgba(80,  80,  80,  0.18)";
+const BLEND             = 10; // % softness at each transition boundary
+
+function buildStatsGradient(stats: StoryStats): string | undefined {
+  if (stats.total === 0) return undefined;
+
+  type Seg = { color: string; pct: number };
+  const segs: Seg[] = [];
+  if (stats.done       > 0) segs.push({ color: DONE_COLOR,        pct: (stats.done       / stats.total) * 100 });
+  if (stats.inProgress > 0) segs.push({ color: IN_PROGRESS_COLOR, pct: (stats.inProgress / stats.total) * 100 });
+  if (stats.todo       > 0) segs.push({ color: TODO_COLOR,        pct: (stats.todo       / stats.total) * 100 });
+
+  if (segs.length === 0) return undefined;
+  if (segs.length === 1) return segs[0].color;
+
+  const stops: string[] = [];
+  let pos = 0;
+
+  segs.forEach((seg, i) => {
+    const isFirst = i === 0;
+    const isLast  = i === segs.length - 1;
+    const segEnd  = pos + seg.pct;
+    const mid     = (pos + segEnd) / 2;
+
+    // Entry stop: hard start for first segment, soft blend-in for others
+    const entryPct = isFirst ? 0 : Math.min(pos + BLEND / 2, mid);
+    stops.push(`${seg.color} ${entryPct.toFixed(1)}%`);
+
+    // Exit stop: hard end for last segment, soft blend-out for others
+    const exitPct = isLast ? 100 : Math.max(segEnd - BLEND / 2, mid);
+    stops.push(`${seg.color} ${exitPct.toFixed(1)}%`);
+
+    pos = segEnd;
+  });
+
+  return `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+// ─── Story progress bar (hangs below, numbers for precise data) ───────────────
 
 interface SegmentProps {
   count: number;
   percent: number;
   color: string;
-  textColor: string;
 }
 
-function Segment({ count, percent, color, textColor }: SegmentProps) {
+function Segment({ count, percent, color }: SegmentProps) {
   if (count === 0 || percent === 0) return null;
   return (
     <div
@@ -28,7 +69,7 @@ function Segment({ count, percent, color, textColor }: SegmentProps) {
       style={{ width: `${percent}%`, backgroundColor: color, flexShrink: 0 }}
     >
       {percent >= 12 && (
-        <span className={`text-[9px] font-black leading-none select-none ${textColor}`}>
+        <span className="text-[9px] font-black leading-none select-none text-white">
           {count}
         </span>
       )}
@@ -44,21 +85,19 @@ function StoryProgressBar({ stats, width }: { stats: StoryStats; width: number }
   const todoPct       = (stats.todo       / stats.total) * 100;
 
   return (
-    // Border on l/r/b only — top side is flush with the block bottom border
     <div
-      className="flex w-full overflow-hidden rounded-b-[3px]"
+      className="flex overflow-hidden rounded-b-[3px]"
       style={{
-        height: `${BAR_HEIGHT}px`,
+        width:        `${width}px`,
+        height:       `${BAR_HEIGHT}px`,
         borderLeft:   "3px solid black",
         borderRight:  "3px solid black",
         borderBottom: "3px solid black",
-        // compensate so outer width matches block outer width
-        width: `${width}px`,
       }}
     >
-      <Segment count={stats.done}       percent={donePct}       color="#0dd456" textColor="text-white" />
-      <Segment count={stats.inProgress} percent={inProgressPct} color="#ff5cdc" textColor="text-white" />
-      <Segment count={stats.todo}       percent={todoPct}       color="#444444" textColor="text-white/80" />
+      <Segment count={stats.done}       percent={donePct}       color="#0dd456" />
+      <Segment count={stats.inProgress} percent={inProgressPct} color="#ff5cdc" />
+      <Segment count={stats.todo}       percent={todoPct}       color="#444444" />
     </div>
   );
 }
@@ -91,6 +130,10 @@ export function EpicBlock({
   const displayWidth = Math.max(width, minWidth);
   const hasBar       = !!(epic.storyStats && epic.storyStats.total > 0);
 
+  // Background: soft gradient when stats are available, solid status color otherwise
+  const gradient     = hasBar ? buildStatsGradient(epic.storyStats!) : undefined;
+
+  // statusClasses carries border + text color; background is overridden by inline style when gradient is set
   const statusClasses = getStatusColor(epic.statusCategory);
 
   return (
@@ -98,7 +141,13 @@ export function EpicBlock({
       {/* Wrapper — positions the block+bar unit in the lane */}
       <div
         className="absolute cursor-pointer group"
-        style={{ left: `${left}px`, top: `${top}px`, width: `${displayWidth}px`, minWidth: `${minWidth}px`, zIndex: selected ? 20 : 10 }}
+        style={{
+          left:     `${left}px`,
+          top:      `${top}px`,
+          width:    `${displayWidth}px`,
+          minWidth: `${minWidth}px`,
+          zIndex:   selected ? 20 : 10,
+        }}
         onClick={() => onClick?.(epic)}
         onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
         onMouseLeave={() => setTooltipPos(null)}
@@ -115,7 +164,11 @@ export function EpicBlock({
               : "shadow-linear-sm group-hover:shadow-linear-hover group-hover:-translate-x-px group-hover:-translate-y-px"
             }
           `}
-          style={{ height: `${BLOCK_HEIGHT}px` }}
+          style={{
+            height:     `${BLOCK_HEIGHT}px`,
+            // Inline style overrides Tailwind bg-* class — gradient takes precedence
+            background: gradient ?? undefined,
+          }}
         >
           <div className="h-full flex flex-col justify-between overflow-hidden gap-1">
             {/* Key tag + due date */}
