@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useLayoutEffect, useState } from "react";
 import { Epic } from "@/types";
 import { DOT_DONE, DOT_IN_PROGRESS, DOT_TODO } from "./EpicBlock";
 
@@ -12,21 +13,53 @@ interface EpicTooltipProps {
 const BORDER = "1px solid #e0e0e0";
 const MUTED  = "#888888";
 const TEXT   = "#111111";
+const GAP    = 16; // px between cursor and tooltip edge
 
 export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Start hidden; after first paint measure the box and compute the
+  // correct position so the tooltip never escapes the viewport.
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    translateY: string;
+    below: boolean;     // true → arrow points up (tooltip is below cursor)
+  } | null>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const { width, height } = el.getBoundingClientRect();
+    const vw = window.innerWidth;
+
+    // Vertical: prefer above cursor, flip below if not enough room
+    const below = y - height - GAP < 8;
+    const top   = below ? y + GAP : y - GAP - height;
+
+    // Horizontal: centre on cursor, clamp to viewport edges
+    let left = x - width / 2;
+    left = Math.max(8, Math.min(left, vw - width - 8));
+
+    setPos({ top, left, translateY: "0", below });
+  }, [x, y]);
+
   return (
     <div
+      ref={ref}
       className="fixed z-[9999] pointer-events-none rounded-[3px] text-sm"
       style={{
-        top:       `${y - 16}px`,
-        left:      `${x}px`,
-        transform: "translate(-50%, -100%)",
-        minWidth:  "280px",
+        // Hidden until position is computed to avoid a flash of wrong position
+        visibility:      pos ? "visible" : "hidden",
+        top:             pos ? `${pos.top}px`  : `${y}px`,
+        left:            pos ? `${pos.left}px` : `${x}px`,
+        minWidth:        "280px",
         backgroundColor: "#ffffff",
-        color:     TEXT,
-        padding:   "16px",
-        border:    "3px solid #111111",
-        boxShadow: "6px 6px 0px #111111",
+        color:           TEXT,
+        padding:         "16px",
+        border:          "3px solid #111111",
+        boxShadow:       "6px 6px 0px #111111",
       }}
     >
       {/* Key + Status */}
@@ -79,7 +112,6 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
               <span className="font-black" style={{ color: TEXT }}>{epic.storyStats.total} total</span>
             </div>
 
-            {/* Solid color bar — no gradient, hard segments */}
             <div className="flex w-full h-[8px] rounded-[2px] overflow-hidden mb-2.5" style={{ border: "1.5px solid #e0e0e0" }}>
               {epic.storyStats.done > 0 && (
                 <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: DOT_DONE }} />
@@ -92,7 +124,6 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
               )}
             </div>
 
-            {/* Counts */}
             <div className="flex gap-3 text-[10px] font-bold">
               <span className="flex items-center gap-1">
                 <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_DONE }} />
@@ -121,18 +152,29 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
         )}
       </div>
 
-      {/* Arrow — white fill, black border on the visible sides */}
-      <div
-        className="absolute w-3 h-3"
-        style={{
-          bottom:          "-8px",
-          left:            "50%",
-          transform:       "translateX(-50%) rotate(45deg)",
-          backgroundColor: "#ffffff",
-          borderRight:     "3px solid #111111",
-          borderBottom:    "3px solid #111111",
-        }}
-      />
+      {/* Arrow — flips with the tooltip */}
+      {pos && (
+        <div
+          className="absolute w-3 h-3"
+          style={pos.below ? {
+            // Tooltip is below cursor → arrow points up (top edge)
+            top:             "-8px",
+            left:            `${x - (pos?.left ?? x)}px`,
+            transform:       "rotate(45deg)",
+            backgroundColor: "#ffffff",
+            borderLeft:      "3px solid #111111",
+            borderTop:       "3px solid #111111",
+          } : {
+            // Tooltip is above cursor → arrow points down (bottom edge)
+            bottom:          "-8px",
+            left:            `${x - (pos?.left ?? x)}px`,
+            transform:       "rotate(45deg)",
+            backgroundColor: "#ffffff",
+            borderRight:     "3px solid #111111",
+            borderBottom:    "3px solid #111111",
+          }}
+        />
+      )}
     </div>
   );
 }
