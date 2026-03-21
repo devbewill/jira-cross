@@ -7,42 +7,30 @@ import { getStatusColor } from "@/lib/utils/color-utils";
 import { EpicTooltip } from "./EpicTooltip";
 
 // ─── Constants (exported — SwimLane uses them for row height) ─────────────────
-export const BLOCK_HEIGHT = 80;   // taller to fit text-lg summary + counts row
-export const BAR_HEIGHT   = 0;    // no bottom bar anymore
+export const BLOCK_HEIGHT = 80;
+export const BAR_HEIGHT   = 0;
 export const BLOCK_MARGIN = 14;
 
 // ─── Solid status colors — shared with tooltip and story panel ────────────────
-export const DOT_DONE        = "#57e51e";             // bright green
-export const DOT_IN_PROGRESS = "rgb(244, 209, 61)";   // golden yellow
-export const DOT_TODO        = "rgb(220, 220, 220)";  // light gray
+export const DOT_DONE        = "#57e51e";  // bright green
+export const DOT_IN_PROGRESS = "#f4d13d";  // golden yellow
+export const DOT_TODO        = "#f0f0f0";  // very light gray
 
 /**
- * Builds a hard-segmented background: the block is divided into `total` equal
- * slices, coloured by status in order (done → inProgress → todo).
- * Uses a linear-gradient with repeated stops to produce crisp colour cuts.
+ * Expands StoryStats into a flat array of per-story colors.
+ * Done stories come first, then in-progress, then todo.
+ * Each entry maps 1:1 to a story — used to render individual
+ * equal-width segments in the block background.
  */
-function buildSegmentedBg(stats: StoryStats): string | undefined {
-  if (stats.total === 0) return undefined;
-
-  const doneEnd       = (stats.done                          / stats.total) * 100;
-  const inProgressEnd = ((stats.done + stats.inProgress)     / stats.total) * 100;
-
-  const stops: string[] = [];
-
-  if (stats.done > 0) {
-    stops.push(`${DOT_DONE} 0%`, `${DOT_DONE} ${doneEnd}%`);
-  }
-  if (stats.inProgress > 0) {
-    stops.push(`${DOT_IN_PROGRESS} ${doneEnd}%`, `${DOT_IN_PROGRESS} ${inProgressEnd}%`);
-  }
-  if (stats.todo > 0) {
-    stops.push(`${DOT_TODO} ${inProgressEnd}%`, `${DOT_TODO} 100%`);
-  }
-
-  return `linear-gradient(to right, ${stops.join(", ")})`;
+function buildSegments(stats: StoryStats): string[] {
+  const segs: string[] = [];
+  for (let i = 0; i < stats.done;       i++) segs.push(DOT_DONE);
+  for (let i = 0; i < stats.inProgress; i++) segs.push(DOT_IN_PROGRESS);
+  for (let i = 0; i < stats.todo;       i++) segs.push(DOT_TODO);
+  return segs;
 }
 
-// ─── Story counts (replaces the bottom bar) ───────────────────────────────────
+// ─── Story counts row ─────────────────────────────────────────────────────────
 
 function StoryCounts({ stats }: { stats: StoryStats }) {
   if (stats.total === 0) return null;
@@ -62,7 +50,7 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
       )}
       {stats.todo > 0 && (
         <span className="flex items-center gap-1 text-[10px] font-black leading-none opacity-60">
-          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_TODO }} />
+          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0 border border-gray-300" style={{ backgroundColor: DOT_TODO }} />
           {stats.todo}
         </span>
       )}
@@ -96,8 +84,11 @@ export function EpicBlock({
   const top          = laneIndex * (BLOCK_HEIGHT + BLOCK_MARGIN) + BLOCK_MARGIN;
   const minWidth     = 100;
   const displayWidth = Math.max(width, minWidth);
-  const hasStats      = !!(epic.storyStats && epic.storyStats.total > 0);
-  const segmentedBg   = hasStats ? buildSegmentedBg(epic.storyStats!) : undefined;
+  const hasStats     = !!(epic.storyStats && epic.storyStats.total > 0);
+  const segments     = hasStats ? buildSegments(epic.storyStats!) : [];
+
+  // Keep border + text from statusClasses; background is handled by segments or
+  // overridden with white when segments are present.
   const statusClasses = getStatusColor(epic.statusCategory);
 
   return (
@@ -117,7 +108,7 @@ export function EpicBlock({
       >
         <div
           className={`
-            w-full px-3 py-2.5 rounded-[3px]
+            relative w-full px-3 py-2.5 rounded-[3px] overflow-hidden
             transition-all duration-100 ease-out
             ${statusClasses}
             ${selected
@@ -126,11 +117,26 @@ export function EpicBlock({
             }
           `}
           style={{
-            height:     `${BLOCK_HEIGHT}px`,
-            background: segmentedBg ?? undefined,
+            height:          `${BLOCK_HEIGHT}px`,
+            // When segments are present, white bg fills the 1px gaps between them
+            backgroundColor: hasStats ? "#ffffff" : undefined,
           }}
         >
-          <div className="h-full flex flex-col justify-between overflow-hidden">
+          {/* ── Per-story segments — absolutely fill the block behind content ── */}
+          {hasStats && (
+            <div className="absolute inset-0 flex" style={{ gap: "1.5px", padding: "0" }}>
+              {segments.map((color, i) => (
+                <div
+                  key={i}
+                  className="h-full flex-1"
+                  style={{ backgroundColor: color, minWidth: 0 }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* ── Content — sits above segments ── */}
+          <div className="relative z-10 h-full flex flex-col justify-between overflow-hidden">
             {/* Row 1 — key tag + due date */}
             <div className="flex items-center justify-between gap-2">
               <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
@@ -148,7 +154,7 @@ export function EpicBlock({
               {epic.summary}
             </div>
 
-            {/* Row 3 — story counts (only when available) */}
+            {/* Row 3 — story counts */}
             {hasStats && <StoryCounts stats={epic.storyStats!} />}
           </div>
         </div>
