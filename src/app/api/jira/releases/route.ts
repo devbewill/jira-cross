@@ -58,15 +58,27 @@ export async function GET(): Promise<NextResponse> {
     let startAt = 0;
     let isLast  = false;
 
+    let totalDeclared = 0;
     while (!isLast) {
       const url = `${base}/rest/api/3/project/search?maxResults=100&startAt=${startAt}&orderBy=key`;
       const res = await jiraFetch<{ values: JiraProject[]; isLast: boolean; total: number }>(url, auth);
+      if (startAt === 0) totalDeclared = res.total ?? 0;
       projects.push(...(res.values ?? []));
       isLast  = res.isLast ?? true;
       startAt += res.values?.length ?? 0;
     }
 
-    console.log(`[releases] fetched ${projects.length} projects:`, projects.map(p => p.key).join(', '));
+    console.log(`[releases] Jira declares ${totalDeclared} total projects, fetched ${projects.length}`);
+    console.log(`[releases] project keys:`, projects.map(p => p.key).join(', '));
+
+    // Debug: try to fetch PILLARS directly regardless of project search
+    try {
+      const pillars = await jiraFetch<JiraProject>(`${base}/rest/api/3/project/PILLARS`, auth);
+      const inList  = projects.some(p => p.key === 'PILLARS');
+      console.log(`[releases] PILLARS direct fetch OK: id=${pillars.id}, in project list: ${inList}`);
+    } catch (e) {
+      console.log(`[releases] PILLARS direct fetch failed:`, e instanceof Error ? e.message : e);
+    }
 
     // 2. Fetch versions for every project in parallel
     const today = new Date();
