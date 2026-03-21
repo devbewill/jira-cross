@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Epic } from "@/types";
 import { getStatusColor } from "@/lib/utils/color-utils";
@@ -25,6 +25,8 @@ export function EpicBlock({
 }: EpicBlockProps) {
   const blockRef = useRef<HTMLDivElement>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const blockHeight = 58;
   const blockMargin = 14;
@@ -93,7 +95,7 @@ export function EpicBlock({
 
       {/* Render tooltip via portal so it appears above ALL elements */}
       {tooltipPos &&
-        typeof document !== "undefined" &&
+        mounted &&
         createPortal(
           <EpicTooltip epic={epic} x={tooltipPos.x} y={tooltipPos.y} />,
           document.body,
