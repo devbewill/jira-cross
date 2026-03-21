@@ -84,6 +84,8 @@ export async function GET(): Promise<NextResponse> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const CUTOFF = new Date('2025-01-01');
+
     const projectReleases: ProjectReleases[] = (
       await Promise.all(
         projects.map(async (project): Promise<ProjectReleases | null> => {
@@ -92,7 +94,17 @@ export async function GET(): Promise<NextResponse> {
             const versions    = await jiraFetch<JiraVersion[]>(versionsUrl, auth);
 
             const releases: JiraRelease[] = versions
-              .filter((v) => !v.archived) // hide archived by default
+              .filter((v) => !v.archived)
+              .filter((v) => {
+                // Keep only releases with at least one date >= 2025-01-01.
+                // Releases with no dates at all are kept (likely undated future releases).
+                const relDate   = v.releaseDate ?? v.userReleaseDate;
+                const startDate = v.startDate   ?? v.userStartDate;
+                if (!relDate && !startDate) return true; // no dates → keep
+                const relD   = relDate   ? new Date(relDate)   : null;
+                const startD = startDate ? new Date(startDate) : null;
+                return (relD && relD >= CUTOFF) || (startD && startD >= CUTOFF);
+              })
               .map((v) => {
                 const relDate = v.releaseDate ?? v.userReleaseDate ?? null;
                 const isOverdue =
