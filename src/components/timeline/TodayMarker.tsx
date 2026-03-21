@@ -3,26 +3,22 @@
 import { differenceInDays, startOfDay } from "date-fns";
 
 interface TodayMarkerProps {
-  timelineStart: Date;
-  pixelsPerDay: number;
+  scrollOrigin: Date;
+  pxPerDay: number;
+  today?: Date;
 }
 
-export function TodayMarker({ timelineStart, pixelsPerDay }: TodayMarkerProps) {
-  const today = new Date();
-  const daysFromStart = differenceInDays(
-    startOfDay(today),
-    startOfDay(timelineStart),
-  );
-  const left = daysFromStart * pixelsPerDay;
+export function TodayMarker({ scrollOrigin, pxPerDay, today: todayProp }: TodayMarkerProps) {
+  const today = todayProp ?? new Date();
+  const left =
+    differenceInDays(startOfDay(today), startOfDay(scrollOrigin)) * pxPerDay;
 
   return (
     <div
-      className="absolute top-0 w-1 h-full bg-black z-10"
-      style={{
-        left: `${left}px`,
-      }}
+      className="absolute top-0 w-0.5 h-full bg-red-500 z-20 pointer-events-none"
+      style={{ left: `${left}px` }}
     >
-      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] font-black text-black bg-fluo-yellow border-2 border-black px-2 py-0.5 uppercase tracking-widest whitespace-nowrap shadow-hard-sm">
+      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] font-black text-white bg-red-500 border-2 border-red-700 px-2 py-0.5 uppercase tracking-widest whitespace-nowrap rounded-sm shadow-md">
         Today
       </div>
     </div>

@@ -4,13 +4,18 @@
 html,
 body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+  padding: 0;
+  margin: 0;
+  background-color: #0a0a0a;
+  color: #eeeeee;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
     sans-serif;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  color: #000000;
 }
 
 #__next {
@@ -19,115 +24,38 @@ body {
   flex-direction: column;
 }
 
-/* Scrollbar Styling - Clean */
+/* Scrollbar Styling - Clean Dark */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f7f7f7;
-  border-left: 1px solid #efefef;
+  background: transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cccccc;
-  border-radius: 0;
+  background-color: #2a2a2a;
+  border-radius: 99px;
+  border: 3px solid #0a0a0a;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #888888;
+  background-color: #555555;
 }
 
-/* Timeline grid lines - Clean and Sharp */
-.timeline-grid {
+/* Timeline grid lines - Dark minimal */
+.bg-timeline-grid {
+  background-color: #0a0a0a;
   background-image: linear-gradient(
     90deg,
-    #efefef 1px,
+    rgba(255, 255, 255, 0.05) 1px,
     transparent 1px
   );
-  background-size: 40px 100%;
+  background-size: var(--grid-size, 40px) 100%;
 }
-
-/* Base flat classes instead of neon */
-.flat-border {
-  border: 1px solid #000000;
-  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
-}
-
-.flat-border-cyan {
-  border: 1px solid #000000;
-  background-color: #00E5FF;
-  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
-}
-
-.flat-border-magenta {
-  border: 1px solid #000000;
-  background-color: #FF00E5;
-  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
-}
-
-.flat-border-lime {
-  border: 1px solid #000000;
-  background-color: #39FF14;
-  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
-}
-
-/* Flat card style */
-.flat-card {
-  background: #ffffff;
-  border: 1px solid #000000;
-  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
-  transition: all 0.2s ease;
-}
-
-.flat-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
-}
-
-/* Remove all shadows for super flat look */
-.no-shadow {
-  box-shadow: none !important;
-}
-
-/* Fluorescent text - Solid and bold for flat design */
-.text-fluo-cyan {
-  color: #00E5FF;
-  /* Dark text outline for readability on light */
-  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-}
-
-.text-fluo-magenta {
-  color: #FF00E5;
-  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-}
-
-.text-fluo-lime {
-  color: #39FF14;
-  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-}
-
-/* Button flat effects */
-.btn-fluo {
-  transition: all 0.1s ease;
-  border: 2px solid #000000;
-  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
-  color: #000000;
-  font-weight: bold;
-}
-
-.btn-fluo:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
-}
-
-.btn-fluo:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
-}
-
-.text-bordered {
-  -webkit-text-stroke: 1px black;
-}
-

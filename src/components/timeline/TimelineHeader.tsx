@@ -1,51 +1,61 @@
 "use client";
 
-import { differenceInDays, startOfDay } from "date-fns";
+import { useMemo } from "react";
+import { generateTicks } from "@/lib/utils/date-utils";
+import { TimeScale } from "@/types";
 
 interface TimelineHeaderProps {
-  timelineStart: Date;
-  timelineEnd: Date;
-  pixelsPerDay: number;
+  scale: TimeScale;
+  scrollOrigin: Date;
+  pxPerDay: number;
+  rangeStart: Date;
+  rangeEnd: Date;
+  totalWidth: number;
 }
 
 export function TimelineHeader({
-  timelineStart,
-  timelineEnd,
-  pixelsPerDay,
+  scale,
+  scrollOrigin,
+  pxPerDay,
+  rangeStart,
+  rangeEnd,
+  totalWidth,
 }: TimelineHeaderProps) {
-  const labels = [];
-  const current = new Date(
-    timelineStart.getFullYear(),
-    timelineStart.getMonth(),
-    1,
+  const ticks = useMemo(
+    () => generateTicks(scale, scrollOrigin, pxPerDay, rangeStart, rangeEnd),
+    [scale, scrollOrigin, pxPerDay, rangeStart, rangeEnd],
   );
 
-  while (current <= timelineEnd) {
-    const left =
-      differenceInDays(startOfDay(current), startOfDay(timelineStart)) *
-      pixelsPerDay;
-    const label = current.toLocaleDateString("it-IT", {
-      month: "short",
-      year: "2-digit",
-    });
-
-    labels.push({ label, left });
-    current.setMonth(current.getMonth() + 1);
-  }
+  const isDayScale = scale === "today" || scale === "weeks";
 
   return (
-    <div className="relative h-12 bg-white border-b-2 border-black">
-      <div className="relative h-full">
-        {labels.map((item, idx) => (
-          <div
-            key={idx}
-            className="absolute top-0 h-full border-l-2 border-black text-xs font-bold text-black uppercase tracking-wider px-2 py-2 bg-fluo-yellow/10"
-            style={{ left: `${item.left}px` }}
+    <div
+      className="relative bg-linear-surface"
+      style={{ width: `${totalWidth}px`, height: "40px" }}
+    >
+      {ticks.map((tick, idx) => (
+        <div
+          key={idx}
+          className="absolute top-0 h-full border-l border-linear-border/30 flex flex-col justify-center px-1.5 overflow-hidden"
+          style={{
+            left: `${tick.leftPx}px`,
+            width: tick.widthPx ? `${tick.widthPx}px` : undefined,
+          }}
+        >
+          {tick.sublabel && (
+            <span className="text-[9px] font-medium text-linear-textDim tracking-wide leading-none">
+              {tick.sublabel}
+            </span>
+          )}
+          <span
+            className={`font-medium tracking-wide leading-none ${
+              isDayScale ? "text-[10px]" : "text-xs"
+            } text-linear-textMuted`}
           >
-            {item.label}
-          </div>
-        ))}
-      </div>
+            {tick.label}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
