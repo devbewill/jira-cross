@@ -15,10 +15,8 @@ function statusDotColor(cat: string): string {
   return DOT_TODO;
 }
 
-function statusDotBorder(cat: string): string {
-  // todo dot is near-white — add a border so it's visible on white bg
-  return cat === "todo" || cat === "new" ? "1px solid #d0d0d0" : "none";
-}
+// All dots get a 1px black border for consistency
+const DOT_BORDER = "1px solid #111111";
 
 export function StoryPanel({ epic, onClose }: StoryPanelProps) {
   const [stories, setStories] = useState<Story[]>([]);
@@ -106,15 +104,15 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
               {/* Counts */}
               <div className="flex gap-3 text-[10px] font-bold">
                 <span className="flex items-center gap-1">
-                  <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_DONE }} />
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_DONE, border: DOT_BORDER }} />
                   <span className="text-[#111]">{epic.storyStats.done} done</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_IN_PROGRESS }} />
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_IN_PROGRESS, border: DOT_BORDER }} />
                   <span className="text-[#111]">{epic.storyStats.inProgress} in progress</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-[6px] h-[6px] rounded-full border border-gray-300" style={{ backgroundColor: DOT_TODO }} />
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_TODO, border: DOT_BORDER }} />
                   <span className="text-[#888]">{epic.storyStats.todo} todo</span>
                 </span>
               </div>
@@ -167,10 +165,10 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
                 >
                   {/* Status dot */}
                   <span
-                    className="w-[8px] h-[8px] rounded-full flex-shrink-0 mt-[3px]"
+                    className="w-[10px] h-[10px] rounded-full flex-shrink-0 mt-[2px]"
                     style={{
                       backgroundColor: statusDotColor(story.statusCategory),
-                      border: statusDotBorder(story.statusCategory),
+                      border: DOT_BORDER,
                     }}
                   />
 
