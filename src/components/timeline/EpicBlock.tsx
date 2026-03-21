@@ -1,21 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Epic, StoryStats } from "@/types";
 import { getStatusColor } from "@/lib/utils/color-utils";
 import { EpicTooltip } from "./EpicTooltip";
 
-interface EpicBlockProps {
-  epic: Epic;
-  left: number;
-  width: number;
-  laneIndex: number;
-  onClick?: (epic: Epic) => void;
-  selected?: boolean;
-}
+// ─── Constants (keep in sync with SwimLane.computeSwimLaneHeight) ─────────────
+export const BLOCK_HEIGHT = 68;
+export const BAR_HEIGHT   = 10;
+export const BLOCK_MARGIN = 14;
 
-// ─── Segmented progress bar ───────────────────────────────────────────────────
+// ─── Story progress bar (hangs below the block) ───────────────────────────────
 
 interface SegmentProps {
   count: number;
@@ -29,13 +25,10 @@ function Segment({ count, percent, color, textColor }: SegmentProps) {
   return (
     <div
       className="flex items-center justify-center h-full overflow-hidden"
-      style={{ width: `${percent}%`, backgroundColor: color }}
+      style={{ width: `${percent}%`, backgroundColor: color, flexShrink: 0 }}
     >
-      {/* Only render label when segment is wide enough to fit */}
       {percent >= 12 && (
-        <span
-          className={`text-[9px] font-black leading-none select-none ${textColor}`}
-        >
+        <span className={`text-[9px] font-black leading-none select-none ${textColor}`}>
           {count}
         </span>
       )}
@@ -43,41 +36,43 @@ function Segment({ count, percent, color, textColor }: SegmentProps) {
   );
 }
 
-function StoryProgressBar({ stats }: { stats: StoryStats }) {
+function StoryProgressBar({ stats, width }: { stats: StoryStats; width: number }) {
   if (stats.total === 0) return null;
 
-  const donePct = (stats.done / stats.total) * 100;
+  const donePct       = (stats.done       / stats.total) * 100;
   const inProgressPct = (stats.inProgress / stats.total) * 100;
-  const todoPct = (stats.todo / stats.total) * 100;
+  const todoPct       = (stats.todo       / stats.total) * 100;
 
   return (
-    <div className="flex w-full h-[13px] rounded-[2px] overflow-hidden gap-px bg-black/[0.08]">
-      {/* Done — green */}
-      <Segment
-        count={stats.done}
-        percent={donePct}
-        color="#16A34A"
-        textColor="text-white"
-      />
-      {/* In progress — amber */}
-      <Segment
-        count={stats.inProgress}
-        percent={inProgressPct}
-        color="#D97706"
-        textColor="text-white"
-      />
-      {/* Todo — subtle dark */}
-      <Segment
-        count={stats.todo}
-        percent={todoPct}
-        color="rgba(0,0,0,0.18)"
-        textColor="text-black/60"
-      />
+    // Border on l/r/b only — top side is flush with the block bottom border
+    <div
+      className="flex w-full overflow-hidden rounded-b-[3px]"
+      style={{
+        height: `${BAR_HEIGHT}px`,
+        borderLeft:   "3px solid black",
+        borderRight:  "3px solid black",
+        borderBottom: "3px solid black",
+        // compensate so outer width matches block outer width
+        width: `${width}px`,
+      }}
+    >
+      <Segment count={stats.done}       percent={donePct}       color="#0dd456" textColor="text-white" />
+      <Segment count={stats.inProgress} percent={inProgressPct} color="#ff5cdc" textColor="text-white" />
+      <Segment count={stats.todo}       percent={todoPct}       color="#444444" textColor="text-white/80" />
     </div>
   );
 }
 
 // ─── Epic block ───────────────────────────────────────────────────────────────
+
+interface EpicBlockProps {
+  epic: Epic;
+  left: number;
+  width: number;
+  laneIndex: number;
+  onClick?: (epic: Epic) => void;
+  selected?: boolean;
+}
 
 export function EpicBlock({
   epic,
@@ -87,88 +82,72 @@ export function EpicBlock({
   onClick,
   selected = false,
 }: EpicBlockProps) {
-  const blockRef = useRef<HTMLDivElement>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const blockHeight = 68;
-  const blockMargin = 14;
-  const top = laneIndex * (blockHeight + blockMargin) + blockMargin;
-
-  const minWidth = 100;
+  const top          = laneIndex * (BLOCK_HEIGHT + BAR_HEIGHT + BLOCK_MARGIN) + BLOCK_MARGIN;
+  const minWidth     = 100;
   const displayWidth = Math.max(width, minWidth);
+  const hasBar       = !!(epic.storyStats && epic.storyStats.total > 0);
 
   const statusClasses = getStatusColor(epic.statusCategory);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    setTooltipPos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseLeave = () => {
-    setTooltipPos(null);
-  };
-
   return (
     <>
+      {/* Wrapper — positions the block+bar unit in the lane */}
       <div
-        ref={blockRef}
-        className={`
-          absolute px-3 py-2 rounded-[3px]
-          transition-all duration-100 ease-out
-          cursor-pointer group
-          ${statusClasses}
-          ${selected
-            ? "z-20 outline outline-2 outline-linear-text outline-offset-2 shadow-linear-hover"
-            : "z-10 shadow-linear-sm hover:shadow-linear-hover hover:-translate-x-px hover:-translate-y-px"
-          }
-        `}
-        style={{
-          left: `${left}px`,
-          top: `${top}px`,
-          width: `${displayWidth}px`,
-          height: `${blockHeight}px`,
-          minWidth: `${minWidth}px`,
-        }}
+        className="absolute cursor-pointer group"
+        style={{ left: `${left}px`, top: `${top}px`, width: `${displayWidth}px`, minWidth: `${minWidth}px`, zIndex: selected ? 20 : 10 }}
         onClick={() => onClick?.(epic)}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
+        onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
+        onMouseLeave={() => setTooltipPos(null)}
       >
-        <div className="h-full flex flex-col justify-between overflow-hidden gap-1.5">
-          {/* Top row: key tag + due date */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
-              {epic.key}
-            </span>
-            {epic.dueDate && (
-              <span className="text-[10px] font-bold opacity-50 shrink-0">
-                {new Date(epic.dueDate).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
+        {/* ── Epic block ── */}
+        <div
+          className={`
+            w-full px-3 py-2
+            transition-all duration-100 ease-out
+            ${statusClasses}
+            ${hasBar ? "rounded-t-[3px] rounded-b-none" : "rounded-[3px]"}
+            ${selected
+              ? "shadow-linear-hover -translate-x-px -translate-y-px"
+              : "shadow-linear-sm group-hover:shadow-linear-hover group-hover:-translate-x-px group-hover:-translate-y-px"
+            }
+          `}
+          style={{ height: `${BLOCK_HEIGHT}px` }}
+        >
+          <div className="h-full flex flex-col justify-between overflow-hidden gap-1">
+            {/* Key tag + due date */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
+                {epic.key}
               </span>
-            )}
-          </div>
+              {epic.dueDate && (
+                <span className="text-[10px] font-bold opacity-50 shrink-0">
+                  {new Date(epic.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+              )}
+            </div>
 
-          {/* Summary */}
-          <div className="text-[13px] font-black leading-tight truncate tracking-tight">
-            {epic.summary}
+            {/* Summary */}
+            <div className="text-[13px] font-black leading-tight truncate tracking-tight">
+              {epic.summary}
+            </div>
           </div>
-
-          {/* Story progress bar — only when we have story data */}
-          {epic.storyStats && epic.storyStats.total > 0 && (
-            <StoryProgressBar stats={epic.storyStats} />
-          )}
         </div>
+
+        {/* ── Story bar — hangs below, border continues the block ── */}
+        {hasBar && (
+          <StoryProgressBar stats={epic.storyStats!} width={displayWidth} />
+        )}
       </div>
 
-      {/* Tooltip via portal — above all other elements */}
-      {tooltipPos &&
-        mounted &&
-        createPortal(
-          <EpicTooltip epic={epic} x={tooltipPos.x} y={tooltipPos.y} />,
-          document.body,
-        )}
+      {/* Tooltip via portal */}
+      {tooltipPos && mounted && createPortal(
+        <EpicTooltip epic={epic} x={tooltipPos.x} y={tooltipPos.y} />,
+        document.body,
+      )}
     </>
   );
 }

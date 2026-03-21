@@ -27,7 +27,7 @@ const config: Config = {
           info: "#0047FF",
           // Epic bar fills
           todo: "#DDFF00",         // acid chartreuse
-          inProgress: "#C4AAFF",   // pastel violet
+          inProgress: "#fafafa",    // white — defined by border
           done: "#00F5A0",         // neon mint
         },
       },

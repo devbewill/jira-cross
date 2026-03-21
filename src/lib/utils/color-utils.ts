@@ -3,21 +3,19 @@ export function getStatusColor(statusCategory: string): string {
     case 'new':
     case 'to do':
     case 'todo':
-      // Solid acid chartreuse — flat, no border
-      return 'bg-linear-todo text-linear-text border-0';
+      return 'bg-linear-todo text-linear-text border-[3px] border-black';
     case 'indeterminate':
     case 'in progress':
     case 'inprogress':
-      // Solid hot magenta — flat, no border
-      return 'bg-linear-inProgress text-linear-text border-0';
+      // White bg — defined entirely by its thick black border
+      return 'bg-linear-inProgress text-linear-text border-[3px] border-black';
     case 'done':
-      // Solid neon mint — flat, no border
-      return 'bg-linear-done text-linear-text border-0';
+      return 'bg-linear-done text-linear-text border-[3px] border-black';
     default:
-      return 'bg-linear-todo text-linear-text border-0';
+      return 'bg-linear-todo text-linear-text border-[3px] border-black';
   }
 }
- 
+
 
 export function getBadgeColor(
   statusCategory: string,
@@ -36,7 +34,7 @@ export function getBadgeColor(
     case 'indeterminate':
     case 'inprogress':
     case 'in progress':
-      return 'bg-linear-inProgress text-linear-text border-0 font-bold';
+      return 'bg-linear-inProgress text-linear-text border border-black font-bold';
     case 'done':
       return 'bg-linear-done text-linear-text border-0 font-bold';
     default:

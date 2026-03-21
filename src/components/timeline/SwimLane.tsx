@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Epic, BoardData, TimelinePosition } from "@/types";
-import { EpicBlock } from "./EpicBlock";
+import { EpicBlock, BLOCK_HEIGHT, BAR_HEIGHT, BLOCK_MARGIN } from "./EpicBlock";
 
 interface SwimLaneProps {
   board: BoardData;
@@ -65,8 +65,8 @@ export function computeSwimLaneHeight(
     0,
     ...Array.from(positions.values()).map((p) => p.laneIndex),
   );
-  // blockHeight(68) + blockMargin(14) per lane + padding top/bottom(14)
-  return (maxLaneIndex + 1) * 82 + 14;
+  // BLOCK_HEIGHT + BAR_HEIGHT + BLOCK_MARGIN per lane + top padding
+  return (maxLaneIndex + 1) * (BLOCK_HEIGHT + BAR_HEIGHT + BLOCK_MARGIN) + BLOCK_MARGIN;
 }
 
 export function SwimLane({
