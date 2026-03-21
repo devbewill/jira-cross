@@ -1,6 +1,7 @@
 "use client";
 
 import { Epic } from "@/types";
+import { DOT_DONE, DOT_IN_PROGRESS, DOT_TODO } from "./EpicBlock";
 
 interface EpicTooltipProps {
   epic: Epic;
@@ -84,23 +85,27 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
                 {epic.storyStats.total} total
               </span>
             </div>
-            {/* Mini segmented bar */}
-            <div className="flex w-full h-[10px] rounded-[2px] overflow-hidden gap-px mb-2" style={{ backgroundColor: "rgba(255,255,255,0.08)" }}>
-              {epic.storyStats.done > 0 && (
-                <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: "#16A34A" }} />
-              )}
-              {epic.storyStats.inProgress > 0 && (
-                <div style={{ width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`, backgroundColor: "#D97706" }} />
-              )}
-              {epic.storyStats.todo > 0 && (
-                <div style={{ width: `${(epic.storyStats.todo / epic.storyStats.total) * 100}%`, backgroundColor: "rgba(255,255,255,0.15)" }} />
-              )}
-            </div>
+            {/* Mini bar — same gradient */}
+            <div
+              className="w-full h-[8px] rounded-[2px] mb-2"
+              style={{
+                background: "linear-gradient(to right, rgb(32 255 149) 0%, rgba(13,212,86,0.55) 5.5%, rgb(255 251 0 / 45%) 15.5%, rgb(255 92 160 / 45%) 73.9%, rgb(201 196 196 / 40%) 83.9%, rgb(255 255 255 / 40%) 100%)",
+              }}
+            />
             {/* Counts row */}
-            <div className="flex justify-between text-[10px] font-bold">
-              <span style={{ color: "#16A34A" }}>✓ {epic.storyStats.done} done</span>
-              <span style={{ color: "#D97706" }}>◐ {epic.storyStats.inProgress} in progress</span>
-              <span style={{ color: "rgba(242,242,234,0.35)" }}>○ {epic.storyStats.todo} todo</span>
+            <div className="flex gap-3 text-[10px] font-bold">
+              <span className="flex items-center gap-1">
+                <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_DONE }} />
+                <span style={{ color: "rgba(255,255,255,0.85)" }}>{epic.storyStats.done} done</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_IN_PROGRESS }} />
+                <span style={{ color: "rgba(255,255,255,0.85)" }}>{epic.storyStats.inProgress} in progress</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: DOT_TODO }} />
+                <span style={{ color: "rgba(255,255,255,0.4)" }}>{epic.storyStats.todo} todo</span>
+              </span>
             </div>
           </div>
         )}

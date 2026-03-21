@@ -11,44 +11,14 @@ export const BLOCK_HEIGHT = 80;   // taller to fit text-lg summary + counts row
 export const BAR_HEIGHT   = 0;    // no bottom bar anymore
 export const BLOCK_MARGIN = 14;
 
-// ─── Gradient background ──────────────────────────────────────────────────────
-const DONE_COLOR        = "rgba(13,  212, 86,  0.55)";
-const IN_PROGRESS_COLOR = "rgba(255, 92,  220, 0.45)";
-const TODO_COLOR        = "rgba(190, 190, 190, 0.40)"; // very light cool gray
-const BLEND             = 10; // % softness at each transition boundary
+// ─── Fixed gradient background (user-defined) ────────────────────────────────
+const BLOCK_GRADIENT =
+  "linear-gradient(to right, rgb(32 255 149) 0%, rgba(13,212,86,0.55) 5.5%, rgb(255 251 0 / 45%) 15.5%, rgb(255 92 160 / 45%) 73.9%, rgb(201 196 196 / 40%) 83.9%, rgb(255 255 255 / 40%) 100%)";
 
-function buildStatsGradient(stats: StoryStats): string | undefined {
-  if (stats.total === 0) return undefined;
-
-  type Seg = { color: string; pct: number };
-  const segs: Seg[] = [];
-  if (stats.done       > 0) segs.push({ color: DONE_COLOR,        pct: (stats.done       / stats.total) * 100 });
-  if (stats.inProgress > 0) segs.push({ color: IN_PROGRESS_COLOR, pct: (stats.inProgress / stats.total) * 100 });
-  if (stats.todo       > 0) segs.push({ color: TODO_COLOR,        pct: (stats.todo       / stats.total) * 100 });
-
-  if (segs.length === 0) return undefined;
-  if (segs.length === 1) return segs[0].color;
-
-  const stops: string[] = [];
-  let pos = 0;
-
-  segs.forEach((seg, i) => {
-    const isFirst = i === 0;
-    const isLast  = i === segs.length - 1;
-    const segEnd  = pos + seg.pct;
-    const mid     = (pos + segEnd) / 2;
-
-    const entryPct = isFirst ? 0 : Math.min(pos + BLEND / 2, mid);
-    stops.push(`${seg.color} ${entryPct.toFixed(1)}%`);
-
-    const exitPct = isLast ? 100 : Math.max(segEnd - BLEND / 2, mid);
-    stops.push(`${seg.color} ${exitPct.toFixed(1)}%`);
-
-    pos = segEnd;
-  });
-
-  return `linear-gradient(to right, ${stops.join(", ")})`;
-}
+// Dot colors matched to gradient landmarks
+export const DOT_DONE        = "rgb(32, 255, 149)";   // gradient start — bright green
+export const DOT_IN_PROGRESS = "rgb(255, 92, 160)";   // gradient 73.9% — pink
+export const DOT_TODO        = "rgb(201, 196, 196)";  // gradient 83.9% — light gray
 
 // ─── Story counts (replaces the bottom bar) ───────────────────────────────────
 
@@ -58,19 +28,19 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
     <div className="flex items-center gap-2.5">
       {stats.done > 0 && (
         <span className="flex items-center gap-1 text-[10px] font-black leading-none">
-          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: "#0dd456" }} />
+          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_DONE }} />
           {stats.done}
         </span>
       )}
       {stats.inProgress > 0 && (
         <span className="flex items-center gap-1 text-[10px] font-black leading-none">
-          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: "#ff5cdc" }} />
+          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_IN_PROGRESS }} />
           {stats.inProgress}
         </span>
       )}
       {stats.todo > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-black leading-none opacity-50">
-          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-black/30" />
+        <span className="flex items-center gap-1 text-[10px] font-black leading-none opacity-60">
+          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: DOT_TODO }} />
           {stats.todo}
         </span>
       )}
@@ -105,8 +75,6 @@ export function EpicBlock({
   const minWidth     = 100;
   const displayWidth = Math.max(width, minWidth);
   const hasStats     = !!(epic.storyStats && epic.storyStats.total > 0);
-
-  const gradient      = hasStats ? buildStatsGradient(epic.storyStats!) : undefined;
   const statusClasses = getStatusColor(epic.statusCategory);
 
   return (
@@ -136,7 +104,7 @@ export function EpicBlock({
           `}
           style={{
             height:     `${BLOCK_HEIGHT}px`,
-            background: gradient ?? undefined,
+            background: BLOCK_GRADIENT,
           }}
         >
           <div className="h-full flex flex-col justify-between overflow-hidden">

@@ -7,6 +7,15 @@ export interface StoryStats {
   total: number;
 }
 
+export interface Story {
+  key: string;
+  epicKey: string;
+  summary: string;
+  status: string;
+  statusCategory: 'todo' | 'in-progress' | 'done';
+  assignee: { displayName: string; avatarUrl: string } | null;
+}
+
 export interface Epic {
   key: string;
   boardKey: string;

@@ -7,6 +7,7 @@ import { getScrollBounds } from "@/lib/utils/date-utils";
 import { TimelineHeader } from "./TimelineHeader";
 import { SwimLane, computeSwimLaneHeight } from "./SwimLane";
 import { TodayMarker } from "./TodayMarker";
+import { StoryPanel } from "./StoryPanel";
 import { differenceInDays } from "date-fns";
 
 interface TimelineContainerProps {
@@ -27,6 +28,10 @@ export function TimelineContainer({
   selectedEpic,
   onSelectEpic,
 }: TimelineContainerProps) {
+  // Toggle: clicking the same epic again closes the panel
+  const handleSelectEpic = (epic: Epic) => {
+    onSelectEpic(selectedEpic?.key === epic.key ? (null as unknown as Epic) : epic);
+  };
   // containerRef wraps only the timeline area (excludes the label column),
   // so viewportWidth = effective timeline width directly.
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,6 +87,7 @@ export function TimelineContainer({
   }, [checkTodayVisible, scrollContainerRef]);
 
   return (
+    <>
     <div className="flex flex-col h-full bg-linear-bg w-full">
       {/* Scale Controls */}
       <div className="flex items-center justify-between px-4 py-3 border-b-2 border-linear-border bg-linear-surface flex-shrink-0">
@@ -186,7 +192,7 @@ export function TimelineContainer({
                     board={board}
                     height={swimlaneHeights[i]}
                     dateToPosition={dateToPosition}
-                    onSelectEpic={onSelectEpic}
+                    onSelectEpic={handleSelectEpic}
                     selectedEpic={selectedEpic}
                   />
                 ))}
@@ -197,5 +203,14 @@ export function TimelineContainer({
 
       </div>
     </div>
+
+    {/* Story panel — slides in from right when an epic is selected */}
+    {selectedEpic && (
+      <StoryPanel
+        epic={selectedEpic}
+        onClose={() => onSelectEpic(null as unknown as Epic)}
+      />
+    )}
+    </>
   );
 }
