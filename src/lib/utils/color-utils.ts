@@ -3,18 +3,18 @@ export function getStatusColor(statusCategory: string): string {
     case 'new':
     case 'to do':
     case 'todo':
-      // Fluorescent soft lavender
-      return 'bg-linear-todo/15 border border-linear-todo text-linear-text';
+      // Solid acid chartreuse — flat, no border
+      return 'bg-linear-todo text-linear-text border-0';
     case 'indeterminate':
     case 'in progress':
     case 'inprogress':
-      // Fluorescent amber
-      return 'bg-linear-inProgress/20 border border-linear-inProgress text-linear-text';
+      // Solid hot magenta — flat, no border
+      return 'bg-linear-inProgress text-linear-text border-0';
     case 'done':
-      // Fluorescent green
-      return 'bg-linear-done/20 border border-linear-done text-linear-text';
+      // Solid neon mint — flat, no border
+      return 'bg-linear-done text-linear-text border-0';
     default:
-      return 'bg-linear-todo/15 border border-linear-todo text-linear-text';
+      return 'bg-linear-todo text-linear-text border-0';
   }
 }
  
@@ -27,19 +27,19 @@ export function getBadgeColor(
     return 'bg-linear-surface border border-linear-border text-linear-text';
   }
 
-  // Status badge
+  // Status badge — solid fluo pill
   switch (statusCategory?.toLowerCase()) {
     case 'new':
     case 'todo':
     case 'to do':
-      return 'bg-linear-todo/10 border border-linear-todo/60 text-linear-todo';
+      return 'bg-linear-todo text-linear-text border-0 font-bold';
     case 'indeterminate':
     case 'inprogress':
     case 'in progress':
-      return 'bg-linear-inProgress/15 border border-linear-inProgress text-linear-warning';
+      return 'bg-linear-inProgress text-linear-text border-0 font-bold';
     case 'done':
-      return 'bg-linear-done/15 border border-linear-done text-linear-success';
+      return 'bg-linear-done text-linear-text border-0 font-bold';
     default:
-      return 'bg-linear-todo/10 border border-linear-todo/60 text-linear-todo';
+      return 'bg-linear-todo text-linear-text border-0 font-bold';
   }
 }

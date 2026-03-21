@@ -10,32 +10,33 @@ const config: Config = {
     extend: {
       colors: {
         linear: {
-          bg: "#F7F7FA",
+          bg: "#F2F2EA",           // warm paper off-white
           surface: "#FFFFFF",
-          surfaceHover: "#F0F0F5",
-          surfaceActive: "#E8E8F0",
-          border: "#E0E0EA",
-          borderHover: "#C8C8D8",
-          text: "#0D0D14",
-          textMuted: "#6B6B82",
-          textDim: "#A0A0B8",
-          accent: "#5E6AD2",
-          accentHover: "#4A56C8",
-          success: "#00B85C",
-          warning: "#F5A623",
-          danger: "#E53935",
-          info: "#2F65CB",
-          // Epic block status colors — fluorescent light variants
-          todo: "#8B8BF8",
-          inProgress: "#F5A623",
-          done: "#00CC66",
+          surfaceHover: "#EBEBDF",
+          surfaceActive: "#E2E2D4",
+          border: "#D4D4C4",
+          borderHover: "#B8B8A4",
+          text: "#0C0C08",         // warm near-black
+          textMuted: "#6B6B54",
+          textDim: "#A8A888",
+          accent: "#0047FF",       // electric klein blue
+          accentHover: "#0035CC",
+          success: "#00C864",
+          warning: "#FF9500",
+          danger: "#FF2D55",
+          info: "#0047FF",
+          // Epic bar fills — full-saturation fluo
+          todo: "#DDFF00",         // acid chartreuse
+          inProgress: "#FF3D8A",   // hot magenta
+          done: "#00F5A0",         // neon mint
         },
       },
       boxShadow: {
-        'linear': '0 1px 2px 0 rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
-        'linear-sm': '0 1px 1px 0 rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
-        'linear-hover': '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.06)',
-        'popover': '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08)',
+        // Flat offset shadows — design agency signature
+        'linear':       '2px 2px 0px #D4D4C4',
+        'linear-sm':    '1px 1px 0px #D4D4C4',
+        'linear-hover': '4px 4px 0px #B8B8A4',
+        'popover':      '6px 6px 0px #0C0C08',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

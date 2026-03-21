@@ -13,55 +13,73 @@ interface EpicTooltipProps {
 export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
   return (
     <div
-      className="fixed bg-linear-surface border border-linear-border text-linear-text p-4 text-sm z-[9999] pointer-events-none shadow-popover rounded-[8px]"
+      className="fixed z-[9999] pointer-events-none rounded-[3px] text-sm"
       style={{
-        top: `${y - 16}px`,          // 16px sopra il cursore
+        top: `${y - 16}px`,
         left: `${x}px`,
-        transform: "translate(-50%, -100%)",  // centrato sul cursore
-        minWidth: "260px",
+        transform: "translate(-50%, -100%)",
+        minWidth: "280px",
+        backgroundColor: "#0C0C08",
+        color: "#F2F2EA",
+        padding: "16px",
+        boxShadow: "6px 6px 0px rgba(0,0,0,0.35)",
       }}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-mono text-linear-textMuted bg-linear-surfaceActive px-1.5 py-0.5 rounded border border-linear-border shrink-0">
+      {/* Key + Status */}
+      <div className="flex items-center gap-2 mb-3">
+        <span
+          className="text-xs font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px]"
+          style={{ backgroundColor: "rgba(242,242,234,0.12)", color: "#F2F2EA" }}
+        >
           {epic.key}
         </span>
-        <span className="text-[10px] text-linear-textDim px-2 border border-linear-border rounded-full bg-linear-surfaceHover">
+        <span
+          className="text-[10px] font-bold px-2 py-0.5 rounded-[2px]"
+          style={{ backgroundColor: "rgba(242,242,234,0.10)", color: "rgba(242,242,234,0.6)" }}
+        >
           {epic.status}
         </span>
       </div>
 
-      <div className="mb-4 text-sm font-medium leading-snug">{epic.summary}</div>
+      {/* Summary */}
+      <div
+        className="mb-4 text-sm font-black leading-snug tracking-tight"
+        style={{ color: "#F2F2EA" }}
+      >
+        {epic.summary}
+      </div>
 
-      <div className="text-xs space-y-2">
+      {/* Meta */}
+      <div
+        className="text-xs space-y-2"
+        style={{ borderTop: "1px solid rgba(242,242,234,0.12)", paddingTop: "12px" }}
+      >
         {epic.startDate && (
-          <div className="flex justify-between items-center text-linear-textMuted">
-            <span>Start date</span>
-            <span className="text-linear-text">{epic.startDate}</span>
+          <div className="flex justify-between items-center">
+            <span style={{ color: "rgba(242,242,234,0.5)" }}>Start</span>
+            <span className="font-bold" style={{ color: "#F2F2EA" }}>{epic.startDate}</span>
           </div>
         )}
         {epic.dueDate && (
-          <div className="flex justify-between items-center text-linear-textMuted">
-            <span>Due date</span>
-            <span className="text-linear-text">{epic.dueDate}</span>
+          <div className="flex justify-between items-center">
+            <span style={{ color: "rgba(242,242,234,0.5)" }}>Due</span>
+            <span className="font-bold" style={{ color: "#F2F2EA" }}>{epic.dueDate}</span>
           </div>
         )}
         {epic.storyPoints && (
-          <div className="flex justify-between items-center text-linear-textMuted pt-1">
-            <span>Estimate</span>
-            <span className="text-linear-text font-medium">
-              {epic.storyPoints} pts
-            </span>
+          <div className="flex justify-between items-center">
+            <span style={{ color: "rgba(242,242,234,0.5)" }}>Estimate</span>
+            <span className="font-black" style={{ color: "#DDFF00" }}>{epic.storyPoints} pts</span>
           </div>
         )}
         {epic.assignee && (
-          <div className="flex justify-between items-center text-linear-textMuted pt-1 border-t border-linear-border mt-2">
-            <span>Assignee</span>
-            <span className="text-linear-text flex items-center gap-1.5 mt-2">
-              <img
-                src={epic.assignee.avatarUrl}
-                alt=""
-                className="w-4 h-4 rounded-full"
-              />
+          <div
+            className="flex justify-between items-center"
+            style={{ borderTop: "1px solid rgba(242,242,234,0.12)", paddingTop: "8px", marginTop: "4px" }}
+          >
+            <span style={{ color: "rgba(242,242,234,0.5)" }}>Assignee</span>
+            <span className="font-bold flex items-center gap-1.5" style={{ color: "#F2F2EA" }}>
+              <img src={epic.assignee.avatarUrl} alt="" className="w-4 h-4 rounded-full" />
               {epic.assignee.displayName}
             </span>
           </div>
@@ -70,11 +88,12 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
 
       {/* Arrow */}
       <div
-        className="absolute w-3 h-3 bg-linear-surface border-r border-b border-linear-border"
+        className="absolute w-3 h-3"
         style={{
-          bottom: "-7px",
+          bottom: "-6px",
           left: "50%",
           transform: "translateX(-50%) rotate(45deg)",
+          backgroundColor: "#0C0C08",
         }}
       />
     </div>

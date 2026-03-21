@@ -36,20 +36,20 @@ export function TimelineHeader({
       {ticks.map((tick, idx) => (
         <div
           key={idx}
-          className="absolute top-0 h-full border-l border-linear-border/30 flex flex-col justify-center px-1.5 overflow-hidden"
+          className="absolute top-0 h-full border-l border-linear-border flex flex-col justify-center px-2 overflow-hidden"
           style={{
             left: `${tick.leftPx}px`,
             width: tick.widthPx ? `${tick.widthPx}px` : undefined,
           }}
         >
           {tick.sublabel && (
-            <span className="text-[9px] font-medium text-linear-textDim tracking-wide leading-none">
+            <span className="text-[8px] font-black uppercase tracking-widest text-linear-textDim leading-none">
               {tick.sublabel}
             </span>
           )}
           <span
-            className={`font-medium tracking-wide leading-none ${
-              isDayScale ? "text-[10px]" : "text-xs"
+            className={`font-black uppercase tracking-widest leading-none ${
+              isDayScale ? "text-[9px]" : "text-[10px]"
             } text-linear-textMuted`}
           >
             {tick.label}
