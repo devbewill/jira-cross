@@ -161,10 +161,26 @@ export function TimelineContainer({
                 <span className="text-linear-text text-xs font-black uppercase tracking-widest break-words mb-1">
                   {board.name || board.key}
                 </span>
-                <span className="text-[10px] text-linear-textDim font-bold tabular-nums">
+                <span className="text-[10px] text-linear-textDim font-bold tabular-nums mb-2">
                   {board.epics.length}{" "}
                   {board.epics.length === 1 ? "epic" : "epics"}
                 </span>
+                <ul className="flex flex-col gap-1">
+                  {board.epics.map((epic) => (
+                    <li
+                      key={epic.key}
+                      className="flex items-start gap-1.5 cursor-pointer group"
+                      onClick={() => handleSelectEpic(epic)}
+                    >
+                      <span className="text-[9px] font-black text-linear-textDim uppercase tracking-wider flex-shrink-0 mt-[1px] group-hover:text-linear-text transition-colors">
+                        {epic.key}
+                      </span>
+                      <span className="text-[10px] font-bold text-linear-textMuted leading-tight truncate group-hover:text-linear-text transition-colors">
+                        {epic.summary}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
