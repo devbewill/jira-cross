@@ -7,6 +7,25 @@ export interface StoryStats {
   total: number;
 }
 
+export interface JiraRelease {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string | null;
+  releaseDate: string | null;
+  released: boolean;
+  archived: boolean;
+  overdue: boolean;        // releaseDate passed and not yet released
+  projectKey: string;
+  projectName: string;
+}
+
+export interface ProjectReleases {
+  projectKey: string;
+  projectName: string;
+  releases: JiraRelease[];
+}
+
 export interface Story {
   key: string;
   epicKey: string;
