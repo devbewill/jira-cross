@@ -51,18 +51,30 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
 
     const issues = await client.searchIssues(GLOBAL_EPIC_JQL, fieldsList);
 
+    const mapperConfig = {
+      startDateFieldId: 'customfield_10015',
+      storyPointsFieldId: 'customfield_10016',
+      dueDateFieldId: 'duedate',
+      baseUrl: jiraBaseUrl,
+    };
+
     const allEpics = issues.map((issue) => {
       const boardKey = issue.fields?.project?.key || issue.key.split('-')[0];
-      return mapJiraIssueToEpic(issue, boardKey, {
-        startDateFieldId: 'customfield_10015',
-        storyPointsFieldId: 'customfield_10016',
-        dueDateFieldId: 'duedate',
-        baseUrl: jiraBaseUrl,
-      });
+      return mapJiraIssueToEpic(issue, boardKey, mapperConfig);
     });
 
-    const uniqueBoards = Array.from(new Set(allEpics.map((e) => e.boardKey)));
-    const boardsData = groupEpicsByBoard(allEpics, uniqueBoards);
+    // Fetch story counts for all epics in a single JQL query
+    const epicKeys = allEpics.map((e) => e.key);
+    const storyStatsMap = await client.getStoryStatsByEpic(epicKeys);
+
+    // Attach story stats to each epic
+    const allEpicsWithStats = allEpics.map((epic) => ({
+      ...epic,
+      storyStats: storyStatsMap.get(epic.key),
+    }));
+
+    const uniqueBoards = Array.from(new Set(allEpicsWithStats.map((e) => e.boardKey)));
+    const boardsData = groupEpicsByBoard(allEpicsWithStats, uniqueBoards);
 
     const response: EpicsApiResponse = {
       boards: boardsData,

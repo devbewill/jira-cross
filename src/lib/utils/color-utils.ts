@@ -3,18 +3,19 @@ export function getStatusColor(statusCategory: string): string {
     case 'new':
     case 'to do':
     case 'todo':
-      return 'bg-linear-surface border border-linear-border text-linear-text';
+      return 'bg-linear-todo text-linear-text border-[3px] border-black';
     case 'indeterminate':
     case 'in progress':
     case 'inprogress':
-      return 'bg-linear-inProgress/20 border border-linear-inProgress text-linear-text';
+      // White bg — defined entirely by its thick black border
+      return 'bg-linear-inProgress text-linear-text border-[3px] border-black';
     case 'done':
-      return 'bg-linear-done/20 border border-linear-done text-linear-text';
+      return 'bg-linear-done text-linear-text border-[3px] border-black';
     default:
-      return 'bg-linear-surface border border-linear-border text-linear-text';
+      return 'bg-linear-todo text-linear-text border-[3px] border-black';
   }
 }
- 
+
 
 export function getBadgeColor(
   statusCategory: string,
@@ -24,19 +25,19 @@ export function getBadgeColor(
     return 'bg-linear-surface border border-linear-border text-linear-text';
   }
 
-  // Status badge
+  // Status badge — solid fluo pill
   switch (statusCategory?.toLowerCase()) {
     case 'new':
     case 'todo':
     case 'to do':
-      return 'bg-linear-surface border border-linear-border text-linear-textMuted';
+      return 'bg-linear-todo text-linear-text border-0 font-bold';
     case 'indeterminate':
     case 'inprogress':
     case 'in progress':
-      return 'bg-linear-inProgress/20 border border-linear-inProgress text-linear-inProgress';
+      return 'bg-linear-inProgress text-linear-text border border-black font-bold';
     case 'done':
-      return 'bg-linear-done/20 border border-linear-done text-linear-success';
+      return 'bg-linear-done text-linear-text border-0 font-bold';
     default:
-      return 'bg-linear-surface border border-linear-border text-linear-textMuted';
+      return 'bg-linear-todo text-linear-text border-0 font-bold';
   }
 }

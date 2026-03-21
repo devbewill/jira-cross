@@ -10,37 +10,39 @@ const config: Config = {
     extend: {
       colors: {
         linear: {
-          bg: "#0A0A0A",
-          surface: "#121212",
-          surfaceHover: "#1A1A1A",
-          surfaceActive: "#242424",
-          border: "#202020",
-          borderHover: "#2A2A2A",
-          text: "#EEEEEE",
-          textMuted: "#888888",
-          textDim: "#555555",
-          accent: "#5E6AD2",
-          accentHover: "#6B77DF",
-          success: "#1F7A4C",
-          warning: "#B07D1C",
-          danger: "#C1343A",
-          info: "#2F65CB",
-          todo: "#4A4D53",
-          inProgress: "#B07D1C",
-          done: "#1F7A4C",
+          bg: "#FAFAFA",           // cool near-white
+          surface: "#FFFFFF",
+          surfaceHover: "#F5F5F5",
+          surfaceActive: "#EEEEEE",
+          border: "#E0E0E0",
+          borderHover: "#C8C8C8",
+          text: "#111111",         // cool near-black
+          textMuted: "#666666",
+          textDim: "#AAAAAA",
+          accent: "#0047FF",       // electric klein blue
+          accentHover: "#0035CC",
+          success: "#00C864",
+          warning: "#FF9500",
+          danger: "#FF2D55",
+          info: "#0047FF",
+          // Epic bar fills
+          todo: "#DDFF00",         // acid chartreuse
+          inProgress: "#fafafa",    // white — defined by border
+          done: "#00F5A0",         // neon mint
         },
       },
       boxShadow: {
-        'linear': '0 1px 2px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
-        'linear-sm': '0 1px 1px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
-        'linear-hover': '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
-        'popover': '0 8px 16px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+        // Flat offset shadows — design agency signature
+        'linear':       '2px 2px 0px #E0E0E0',
+        'linear-sm':    '1px 1px 0px #E0E0E0',
+        'linear-hover': '4px 4px 0px #C8C8C8',
+        'popover':      '6px 6px 0px #111111',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
-        'linear-gradient': 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
+        'linear-gradient': 'linear-gradient(180deg, rgba(0,0,0,0.01) 0%, rgba(0,0,0,0) 100%)',
       }
     },
   },

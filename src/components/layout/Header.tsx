@@ -8,36 +8,32 @@ export function Header({
   cacheHit: boolean;
 }) {
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-linear-surface border-b border-linear-border flex-shrink-0">
+    <header className="flex items-center justify-between px-6 py-4 bg-linear-surface border-b-2 border-linear-text flex-shrink-0">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold text-linear-text tracking-tight">
-          Production <span className="text-linear-accent font-normal">Dashboard</span>
+        <h1 className="text-lg font-black tracking-tighter text-linear-text uppercase">
+          Production{" "}
+          <span className="text-linear-accent">Dashboard</span>
         </h1>
         {cacheHit && (
-          <span className="text-xs bg-linear-surfaceActive text-linear-textMuted px-2 py-0.5 rounded-full border border-linear-border">
+          <span className="text-[10px] font-black uppercase tracking-widest bg-linear-surfaceActive text-linear-textMuted px-2 py-0.5 rounded-[2px] border border-linear-border">
             Cached ✓
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex gap-2">
-           {/* Decorative elements omitted for clean minimal ui */}
-        </div>
+      <div className="flex items-center gap-3">
         <button
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="flex items-center gap-2 px-3 py-1.5 bg-linear-surfaceHover border border-linear-border text-linear-text rounded-[4px] text-sm hover:bg-linear-surfaceActive hover:text-linear-text transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed shadow-linear-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-linear-text text-linear-bg rounded-[3px] text-xs font-black uppercase tracking-widest hover:bg-linear-textMuted transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-linear-sm hover:shadow-linear-hover"
         >
           {isRefreshing ? (
             <>
-              <div className="w-3 h-3 border-2 border-linear-accent border-t-transparent rounded-full animate-spin" />
-              Syncing...
+              <div className="w-3 h-3 border-2 border-linear-bg border-t-transparent rounded-full animate-spin" />
+              Syncing…
             </>
           ) : (
-            <>
-              ⟲ Sync Jira
-            </>
+            <>⟲ Sync Jira</>
           )}
         </button>
       </div>

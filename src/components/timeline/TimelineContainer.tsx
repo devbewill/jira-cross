@@ -7,6 +7,7 @@ import { getScrollBounds } from "@/lib/utils/date-utils";
 import { TimelineHeader } from "./TimelineHeader";
 import { SwimLane, computeSwimLaneHeight } from "./SwimLane";
 import { TodayMarker } from "./TodayMarker";
+import { StoryPanel } from "./StoryPanel";
 import { differenceInDays } from "date-fns";
 
 interface TimelineContainerProps {
@@ -27,6 +28,10 @@ export function TimelineContainer({
   selectedEpic,
   onSelectEpic,
 }: TimelineContainerProps) {
+  // Toggle: clicking the same epic again closes the panel
+  const handleSelectEpic = (epic: Epic) => {
+    onSelectEpic(selectedEpic?.key === epic.key ? (null as unknown as Epic) : epic);
+  };
   // containerRef wraps only the timeline area (excludes the label column),
   // so viewportWidth = effective timeline width directly.
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,18 +87,19 @@ export function TimelineContainer({
   }, [checkTodayVisible, scrollContainerRef]);
 
   return (
+    <>
     <div className="flex flex-col h-full bg-linear-bg w-full">
       {/* Scale Controls */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-linear-border bg-linear-surface flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-linear-border bg-linear-surface flex-shrink-0">
         <div className="flex gap-1">
           {SCALES.map((s) => (
             <button
               key={s.key}
               onClick={() => changeScale(s.key)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-[4px] transition-all duration-150 ${
+              className={`px-3 py-1.5 text-xs font-black uppercase tracking-widest rounded-[3px] transition-all duration-100 ${
                 scale === s.key
-                  ? "bg-linear-surfaceActive text-linear-text shadow-linear-sm"
-                  : "text-linear-textMuted hover:text-linear-text hover:bg-linear-surfaceHover"
+                  ? "bg-linear-text text-linear-bg shadow-linear-sm"
+                  : "text-linear-textMuted hover:text-linear-text hover:bg-linear-surfaceActive"
               }`}
             >
               {s.label}
@@ -104,9 +110,9 @@ export function TimelineContainer({
         {!todayVisible && (
           <button
             onClick={goToToday}
-            className="px-3 py-1.5 bg-linear-accent text-white text-sm font-medium rounded-[4px] hover:bg-linear-accentHover transition-colors duration-150 shadow-linear-sm"
+            className="px-3 py-1.5 bg-linear-accent text-white text-xs font-black uppercase tracking-widest rounded-[3px] hover:bg-linear-accentHover transition-colors duration-100 shadow-linear-sm hover:shadow-linear-hover"
           >
-            Go to Today
+            → Today
           </button>
         )}
       </div>
@@ -117,9 +123,9 @@ export function TimelineContainer({
         {/* ── Fixed Label Column ──────────────────────────────────────────
             Lives entirely OUTSIDE the horizontal scroll container.
             No z-index tricks needed — it's a separate DOM subtree.        */}
-        <div className="w-56 flex-shrink-0 flex flex-col border-r border-linear-border/50 bg-linear-bg">
+        <div className="w-56 flex-shrink-0 flex flex-col border-r-2 border-linear-border bg-linear-bg">
           {/* Spacer that matches the date-header height */}
-          <div className="h-10 flex-shrink-0 bg-linear-surface border-b border-linear-border" />
+          <div className="h-10 flex-shrink-0 bg-linear-surface border-b-2 border-linear-border" />
           {/* Board labels — synced vertical scroll via labelsScrollRef */}
           <div
             className="flex-1 overflow-y-auto overflow-x-hidden"
@@ -129,13 +135,13 @@ export function TimelineContainer({
             {boards.map((board, i) => (
               <div
                 key={board.key}
-                className="flex flex-col justify-center px-4 py-4 border-b border-linear-border/30 hover:bg-linear-surfaceHover/10 transition-colors"
+                className="flex flex-col justify-center px-4 py-4 border-b border-linear-border hover:bg-linear-surfaceHover transition-colors"
                 style={{ minHeight: `${swimlaneHeights[i]}px` }}
               >
-                <span className="text-linear-text text-sm font-medium tracking-tight break-words mb-1">
+                <span className="text-linear-text text-xs font-black uppercase tracking-widest break-words mb-1">
                   {board.name || board.key}
                 </span>
-                <span className="text-[10px] text-linear-textMuted font-mono">
+                <span className="text-[10px] text-linear-textDim font-bold tabular-nums">
                   {board.epics.length}{" "}
                   {board.epics.length === 1 ? "epic" : "epics"}
                 </span>
@@ -150,7 +156,7 @@ export function TimelineContainer({
           ref={containerRef}
         >
           {/* Fixed date-header (synced via headerScrollRef) */}
-          <div className="flex-shrink-0 bg-linear-surface border-b border-linear-border z-10">
+          <div className="flex-shrink-0 bg-linear-surface border-b-2 border-linear-border z-10">
             <div
               className="overflow-hidden"
               ref={headerScrollRef}
@@ -186,7 +192,7 @@ export function TimelineContainer({
                     board={board}
                     height={swimlaneHeights[i]}
                     dateToPosition={dateToPosition}
-                    onSelectEpic={onSelectEpic}
+                    onSelectEpic={handleSelectEpic}
                     selectedEpic={selectedEpic}
                   />
                 ))}
@@ -197,5 +203,14 @@ export function TimelineContainer({
 
       </div>
     </div>
+
+    {/* Story panel — slides in from right when an epic is selected */}
+    {selectedEpic && (
+      <StoryPanel
+        epic={selectedEpic}
+        onClose={() => onSelectEpic(null as unknown as Epic)}
+      />
+    )}
+    </>
   );
 }
