@@ -45,3 +45,8 @@ export class MemoryCache<T> {
 export const epicsCache = new MemoryCache<any>(
   parseInt(process.env.JIRA_CACHE_TTL || '300', 10)
 );
+
+// Global cache instance for releases data
+export const releasesCache = new MemoryCache<any>(
+  parseInt(process.env.JIRA_CACHE_TTL || '300', 10)
+);

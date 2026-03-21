@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { JiraRelease, ProjectReleases } from '@/types';
+import { releasesCache } from '@/lib/cache/memory-cache';
 
 interface JiraProject {
   id: string;
@@ -43,6 +44,13 @@ export async function GET(): Promise<NextResponse> {
   }
 
   const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
+
+  // Check cache first
+  const cacheKey = 'releases:all-projects';
+  const cached = releasesCache.get(cacheKey);
+  if (cached) {
+    return NextResponse.json({ ...cached, cacheHit: true }, { status: 200 });
+  }
 
   try {
     // 1. Fetch all accessible projects (paginated, up to 200)
@@ -100,7 +108,10 @@ export async function GET(): Promise<NextResponse> {
       )
     ).filter((p): p is ProjectReleases => p !== null);
 
-    return NextResponse.json({ projects: projectReleases }, { status: 200 });
+    const result = { projects: projectReleases, fetchedAt: new Date().toISOString(), cacheHit: false };
+    releasesCache.set(cacheKey, result);
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error('Error fetching releases:', error);
     return NextResponse.json(
