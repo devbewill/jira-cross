@@ -10,33 +10,33 @@ const config: Config = {
     extend: {
       colors: {
         linear: {
-          bg: "#F2F2EA",           // warm paper off-white
+          bg: "#FAFAFA",           // cool near-white
           surface: "#FFFFFF",
-          surfaceHover: "#EBEBDF",
-          surfaceActive: "#E2E2D4",
-          border: "#D4D4C4",
-          borderHover: "#B8B8A4",
-          text: "#0C0C08",         // warm near-black
-          textMuted: "#6B6B54",
-          textDim: "#A8A888",
+          surfaceHover: "#F5F5F5",
+          surfaceActive: "#EEEEEE",
+          border: "#E0E0E0",
+          borderHover: "#C8C8C8",
+          text: "#111111",         // cool near-black
+          textMuted: "#666666",
+          textDim: "#AAAAAA",
           accent: "#0047FF",       // electric klein blue
           accentHover: "#0035CC",
           success: "#00C864",
           warning: "#FF9500",
           danger: "#FF2D55",
           info: "#0047FF",
-          // Epic bar fills — full-saturation fluo
+          // Epic bar fills
           todo: "#DDFF00",         // acid chartreuse
-          inProgress: "#FF3D8A",   // hot magenta
+          inProgress: "#C4AAFF",   // pastel violet
           done: "#00F5A0",         // neon mint
         },
       },
       boxShadow: {
         // Flat offset shadows — design agency signature
-        'linear':       '2px 2px 0px #D4D4C4',
-        'linear-sm':    '1px 1px 0px #D4D4C4',
-        'linear-hover': '4px 4px 0px #B8B8A4',
-        'popover':      '6px 6px 0px #0C0C08',
+        'linear':       '2px 2px 0px #E0E0E0',
+        'linear-sm':    '1px 1px 0px #E0E0E0',
+        'linear-hover': '4px 4px 0px #C8C8C8',
+        'popover':      '6px 6px 0px #111111',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -65,7 +65,8 @@ export function computeSwimLaneHeight(
     0,
     ...Array.from(positions.values()).map((p) => p.laneIndex),
   );
-  return (maxLaneIndex + 1) * 60 + 24;
+  // blockHeight(58) + blockMargin(14) per lane + padding top/bottom(14)
+  return (maxLaneIndex + 1) * 72 + 14;
 }
 
 export function SwimLane({

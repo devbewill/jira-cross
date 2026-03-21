@@ -6,8 +6,8 @@ body {
   height: 100%;
   padding: 0;
   margin: 0;
-  background-color: #F2F2EA;
-  color: #0c0c08;
+  background-color: #FAFAFA;
+  color: #111111;
   font-family:
     "Inter",
     system-ui,
@@ -40,14 +40,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #B8B8A4;
+  background-color: #CCCCCC;
   border-radius: 0px;
-  border: 2px solid #F2F2EA;
+  border: 2px solid #FAFAFA;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #6B6B54;
+  background-color: #999999;
 }
 
 /* Timeline grid lines */

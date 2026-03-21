@@ -26,11 +26,11 @@ export function EpicBlock({
   const blockRef = useRef<HTMLDivElement>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
-  const blockHeight = 44;
-  const blockMargin = 16;
+  const blockHeight = 58;
+  const blockMargin = 14;
   const top = laneIndex * (blockHeight + blockMargin) + blockMargin;
 
-  const minWidth = 80;
+  const minWidth = 100;
   const displayWidth = Math.max(width, minWidth);
 
   const statusClasses = getStatusColor(epic.statusCategory);
@@ -48,7 +48,7 @@ export function EpicBlock({
       <div
         ref={blockRef}
         className={`
-          absolute px-3 py-2 rounded-[3px]
+          absolute px-3 py-2.5 rounded-[3px]
           transition-all duration-100 ease-out
           cursor-pointer group
           ${statusClasses}
@@ -68,13 +68,14 @@ export function EpicBlock({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="h-full flex flex-col justify-center gap-[2px] overflow-hidden">
-          <div className="flex justify-between items-center w-full">
-            <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
+        <div className="h-full flex flex-col justify-between overflow-hidden">
+          {/* Top row: key tag + due date */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
               {epic.key}
             </span>
             {epic.dueDate && (
-              <span className="text-[10px] font-bold opacity-60">
+              <span className="text-[10px] font-bold opacity-50 shrink-0">
                 {new Date(epic.dueDate).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -82,7 +83,9 @@ export function EpicBlock({
               </span>
             )}
           </div>
-          <div className="text-xs font-black leading-tight truncate tracking-tight">
+
+          {/* Summary */}
+          <div className="text-[13px] font-black leading-tight truncate tracking-tight">
             {epic.summary}
           </div>
         </div>
