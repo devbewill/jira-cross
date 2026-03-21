@@ -6,6 +6,7 @@ import { EpicBlock } from "./EpicBlock";
 
 interface SwimLaneProps {
   board: BoardData;
+  height: number;
   dateToPosition: (date: string | null) => number | null;
   onSelectEpic: (epic: Epic) => void;
   selectedEpic: Epic | null;
@@ -53,8 +54,23 @@ function calculateEpicPositions(
   return positions;
 }
 
+/** Pure function used by TimelineContainer to pre-compute row heights
+ *  so the label column can match the timeline rows exactly. */
+export function computeSwimLaneHeight(
+  epics: Epic[],
+  dateToPosition: (date: string | null) => number | null,
+): number {
+  const positions = calculateEpicPositions(epics, dateToPosition);
+  const maxLaneIndex = Math.max(
+    0,
+    ...Array.from(positions.values()).map((p) => p.laneIndex),
+  );
+  return (maxLaneIndex + 1) * 60 + 24;
+}
+
 export function SwimLane({
   board,
+  height,
   dateToPosition,
   onSelectEpic,
   selectedEpic,
@@ -64,48 +80,27 @@ export function SwimLane({
     [board.epics, dateToPosition],
   );
 
-  const maxLaneIndex = Math.max(
-    0,
-    ...Array.from(positions.values()).map((p) => p.laneIndex),
-  );
-  // block height is 48, block margin is 12 -> 60 total per lane
-  const swimlaneHeight = (maxLaneIndex + 1) * 60 + 24;
-
   return (
-    <div className="flex gap-0 h-full border-b border-linear-border/30 group">
-      {/* Board Label — sticky so it stays visible on horizontal scroll */}
-      <div className="w-56 flex-shrink-0 bg-linear-bg border-r border-linear-border/50 flex flex-col justify-center px-4 py-4 sticky left-0 z-[100] group-hover:bg-linear-surfaceHover/10 transition-colors">
-        <span className="text-linear-text text-sm font-medium tracking-tight break-words mb-1">
-          {board.name || board.key}
-        </span>
-        <span className="text-[10px] text-linear-textMuted font-mono">
-          {board.epics.length} {board.epics.length === 1 ? 'epic' : 'epics'}
-        </span>
-      </div>
+    <div
+      className="relative border-b border-linear-border/30"
+      style={{ minHeight: `${height}px` }}
+    >
+      {board.epics.map((epic) => {
+        const pos = positions.get(epic.key);
+        if (!pos) return null;
 
-      {/* Timeline Container — isolate creates a stacking context so epics/tooltips
-          inside never composite above the sticky board label regardless of z-index */}
-      <div
-        className="relative isolate flex-1 bg-transparent group-hover:bg-linear-surfaceHover/5 transition-colors duration-200"
-        style={{ minHeight: `${swimlaneHeight}px` }}
-      >
-        {board.epics.map((epic) => {
-          const pos = positions.get(epic.key);
-          if (!pos) return null;
-
-          return (
-            <EpicBlock
-              key={epic.key}
-              epic={epic}
-              left={pos.left}
-              width={pos.width}
-              laneIndex={pos.laneIndex}
-              onClick={onSelectEpic}
-              selected={selectedEpic?.key === epic.key}
-            />
-          );
-        })}
-      </div>
+        return (
+          <EpicBlock
+            key={epic.key}
+            epic={epic}
+            left={pos.left}
+            width={pos.width}
+            laneIndex={pos.laneIndex}
+            onClick={onSelectEpic}
+            selected={selectedEpic?.key === epic.key}
+          />
+        );
+      })}
     </div>
   );
 }

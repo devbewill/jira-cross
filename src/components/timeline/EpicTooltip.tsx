@@ -4,17 +4,19 @@ import { Epic } from "@/types";
 
 interface EpicTooltipProps {
   epic: Epic;
-  top: number;
-  left: number;
+  /** Screen X of the epic block center (from getBoundingClientRect) */
+  x: number;
+  /** Screen Y of the epic block top (from getBoundingClientRect) */
+  y: number;
 }
 
-export function EpicTooltip({ epic, top, left }: EpicTooltipProps) {
+export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
   return (
     <div
-      className="absolute bg-linear-surface border border-linear-border text-linear-text p-4 text-sm z-50 pointer-events-none shadow-popover rounded-[8px]"
+      className="fixed bg-linear-surface border border-linear-border text-linear-text p-4 text-sm z-[9999] pointer-events-none shadow-popover rounded-[8px]"
       style={{
-        top: `${top - 20}px`,
-        left: `${left}px`,
+        top: `${y - 8}px`,
+        left: `${x}px`,
         transform: "translate(-50%, -100%)",
         minWidth: "260px",
       }}
@@ -27,9 +29,9 @@ export function EpicTooltip({ epic, top, left }: EpicTooltipProps) {
           {epic.status}
         </span>
       </div>
-      
+
       <div className="mb-4 text-sm font-medium leading-snug">{epic.summary}</div>
-      
+
       <div className="text-xs space-y-2">
         {epic.startDate && (
           <div className="flex justify-between items-center text-linear-textMuted">
@@ -46,20 +48,27 @@ export function EpicTooltip({ epic, top, left }: EpicTooltipProps) {
         {epic.storyPoints && (
           <div className="flex justify-between items-center text-linear-textMuted pt-1">
             <span>Estimate</span>
-            <span className="text-linear-text font-medium">{epic.storyPoints} pts</span>
+            <span className="text-linear-text font-medium">
+              {epic.storyPoints} pts
+            </span>
           </div>
         )}
         {epic.assignee && (
           <div className="flex justify-between items-center text-linear-textMuted pt-1 border-t border-linear-border mt-2">
             <span>Assignee</span>
             <span className="text-linear-text flex items-center gap-1.5 mt-2">
-              <img src={epic.assignee.avatarUrl} alt="" className="w-4 h-4 rounded-full" />
+              <img
+                src={epic.assignee.avatarUrl}
+                alt=""
+                className="w-4 h-4 rounded-full"
+              />
               {epic.assignee.displayName}
             </span>
           </div>
         )}
       </div>
 
+      {/* Arrow */}
       <div
         className="absolute w-3 h-3 bg-linear-surface border-r border-b border-linear-border"
         style={{

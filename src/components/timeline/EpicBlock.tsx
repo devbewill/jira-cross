@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Epic } from "@/types";
 import { getStatusColor } from "@/lib/utils/color-utils";
 import { EpicTooltip } from "./EpicTooltip";
@@ -22,7 +23,8 @@ export function EpicBlock({
   onClick,
   selected = false,
 }: EpicBlockProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
+  const blockRef = useRef<HTMLDivElement>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   const blockHeight = 44;
   const blockMargin = 16;
@@ -33,16 +35,31 @@ export function EpicBlock({
 
   const statusClasses = getStatusColor(epic.statusCategory);
 
+  const handleMouseEnter = () => {
+    if (blockRef.current) {
+      const rect = blockRef.current.getBoundingClientRect();
+      setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setTooltipPos(null);
+  };
+
   return (
     <>
       <div
+        ref={blockRef}
         className={`
           absolute px-2 py-1.5 rounded-[6px]
           transition-all duration-200 ease-out
           cursor-pointer
           group
           ${statusClasses}
-          ${selected ? "z-20 ring-1 ring-linear-accent ring-offset-2 ring-offset-linear-bg scale-[1.01]" : "z-10 hover:border-linear-textMuted hover:shadow-linear-hover shadow-linear-sm"}
+          ${selected
+            ? "z-20 ring-1 ring-linear-accent ring-offset-2 ring-offset-linear-bg scale-[1.01]"
+            : "z-10 hover:border-linear-textMuted hover:shadow-linear-hover shadow-linear-sm"
+          }
         `}
         style={{
           left: `${left}px`,
@@ -52,8 +69,8 @@ export function EpicBlock({
           minWidth: `${minWidth}px`,
         }}
         onClick={() => onClick?.(epic)}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <div className="h-full flex flex-col justify-center gap-[2px] overflow-hidden">
           <div className="flex justify-between items-center w-full">
@@ -62,7 +79,10 @@ export function EpicBlock({
             </span>
             {epic.dueDate && (
               <span className="text-[10px] text-linear-textMuted flex items-center gap-1">
-                {new Date(epic.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {new Date(epic.dueDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
               </span>
             )}
           </div>
@@ -72,9 +92,14 @@ export function EpicBlock({
         </div>
       </div>
 
-      {showTooltip && (
-        <EpicTooltip epic={epic} top={top} left={left + displayWidth / 2} />
-      )}
+      {/* Render tooltip via portal so it appears above ALL elements
+          (header, board labels, etc.) regardless of stacking context */}
+      {tooltipPos &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <EpicTooltip epic={epic} x={tooltipPos.x} y={tooltipPos.y} />,
+          document.body,
+        )}
     </>
   );
 }

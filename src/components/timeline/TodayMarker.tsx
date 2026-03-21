@@ -6,20 +6,12 @@ interface TodayMarkerProps {
   scrollOrigin: Date;
   pxPerDay: number;
   today?: Date;
-  /** Pixel offset to align with the timeline area (e.g. board label width) */
-  leftOffset?: number;
 }
 
-export function TodayMarker({
-  scrollOrigin,
-  pxPerDay,
-  today: todayProp,
-  leftOffset = 0,
-}: TodayMarkerProps) {
+export function TodayMarker({ scrollOrigin, pxPerDay, today: todayProp }: TodayMarkerProps) {
   const today = todayProp ?? new Date();
-  const timelinePx =
+  const left =
     differenceInDays(startOfDay(today), startOfDay(scrollOrigin)) * pxPerDay;
-  const left = leftOffset + timelinePx;
 
   return (
     <div
