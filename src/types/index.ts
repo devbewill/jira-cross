@@ -7,6 +7,13 @@ export interface StoryStats {
   total: number;
 }
 
+export interface IssueStats {
+  done: number;
+  inProgress: number;
+  todo: number;
+  total: number;
+}
+
 export interface JiraRelease {
   id: string;
   name: string;

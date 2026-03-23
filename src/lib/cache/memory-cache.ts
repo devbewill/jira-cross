@@ -51,12 +51,15 @@ export class MemoryCache<T> {
 const g = globalThis as typeof globalThis & {
   __epicsCache?: MemoryCache<any>;
   __releasesCache?: MemoryCache<any>;
+  __releaseIssuesCache?: MemoryCache<any>;
 };
 
 const TTL = parseInt(process.env.JIRA_CACHE_TTL || '300', 10);
 
-if (!g.__epicsCache)    g.__epicsCache    = new MemoryCache<any>(TTL);
-if (!g.__releasesCache) g.__releasesCache = new MemoryCache<any>(TTL);
+if (!g.__epicsCache)         g.__epicsCache         = new MemoryCache<any>(TTL);
+if (!g.__releasesCache)      g.__releasesCache      = new MemoryCache<any>(TTL);
+if (!g.__releaseIssuesCache) g.__releaseIssuesCache = new MemoryCache<any>(TTL);
 
-export const epicsCache    = g.__epicsCache;
-export const releasesCache = g.__releasesCache;
+export const epicsCache         = g.__epicsCache;
+export const releasesCache      = g.__releasesCache;
+export const releaseIssuesCache = g.__releaseIssuesCache;

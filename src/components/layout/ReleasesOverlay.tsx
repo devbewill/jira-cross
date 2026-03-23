@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { ProjectReleases, JiraRelease } from "@/types";
+import { ProjectReleases, JiraRelease, IssueStats } from "@/types";
 
 interface ReleasesOverlayProps {
   onClose: () => void;
@@ -34,9 +34,83 @@ function daysUntil(iso: string | null): number | null {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+// ─── Issue Stats Bar ──────────────────────────────────────────────────────────
+
+const BAR_COLORS = {
+  done:       "#57e51e",
+  inProgress: "#F5A623",
+  todo:       "#E0E0E0",
+};
+
+function IssueStatsBar({ stats, loading }: { stats?: IssueStats; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="mt-2 pt-2" style={{ borderTop: "1.5px solid #f0f0f0" }}>
+        <div className="w-full h-1.5 rounded-full bg-[#f0f0f0] animate-pulse" />
+        <div className="mt-1.5 h-2.5 w-24 rounded bg-[#f0f0f0] animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!stats || stats.total === 0) return null;
+
+  const pct = (n: number) => `${((n / stats.total) * 100).toFixed(1)}%`;
+
+  return (
+    <div className="mt-2 pt-2" style={{ borderTop: "1.5px solid #f0f0f0" }}>
+      {/* Segmented bar */}
+      <div
+        className="w-full h-2 rounded-full overflow-hidden flex"
+        style={{ backgroundColor: BAR_COLORS.todo }}
+      >
+        {stats.done > 0 && (
+          <div
+            style={{ width: pct(stats.done), backgroundColor: BAR_COLORS.done, flexShrink: 0 }}
+          />
+        )}
+        {stats.inProgress > 0 && (
+          <div
+            style={{ width: pct(stats.inProgress), backgroundColor: BAR_COLORS.inProgress, flexShrink: 0 }}
+          />
+        )}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+        {stats.done > 0 && (
+          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-[#555]">
+            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: BAR_COLORS.done }} />
+            {stats.done} done
+          </span>
+        )}
+        {stats.inProgress > 0 && (
+          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-[#555]">
+            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: BAR_COLORS.inProgress }} />
+            {stats.inProgress} in progress
+          </span>
+        )}
+        {stats.todo > 0 && (
+          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-[#999]">
+            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: "#bbb" }} />
+            {stats.todo} to do
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Release card ─────────────────────────────────────────────────────────────
 
-function ReleaseCard({ release }: { release: JiraRelease }) {
+function ReleaseCard({
+  release,
+  issueStats,
+  statsLoading,
+}: {
+  release: JiraRelease;
+  issueStats?: IssueStats;
+  statsLoading: boolean;
+}) {
   const status = releaseStatus(release);
   const cfg    = STATUS_CONFIG[status];
   const days   = daysUntil(release.releaseDate);
@@ -93,6 +167,9 @@ function ReleaseCard({ release }: { release: JiraRelease }) {
           {Math.abs(days)}d overdue
         </div>
       )}
+
+      {/* Issue stats bar */}
+      <IssueStatsBar stats={issueStats} loading={statsLoading} />
     </div>
   );
 }
@@ -100,14 +177,19 @@ function ReleaseCard({ release }: { release: JiraRelease }) {
 // ─── Overlay ──────────────────────────────────────────────────────────────────
 
 export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
-  const [projects,        setProjects]        = useState<ProjectReleases[]>([]);
-  const [loading,         setLoading]         = useState(true);
-  const [error,           setError]           = useState<string | null>(null);
-  const [statusFilter,    setStatusFilter]    = useState<"all" | "released" | "overdue" | "upcoming">("all");
-  const [search,          setSearch]          = useState("");
-  const [projectFilter,   setProjectFilter]   = useState<string>("all");
-  const [viewMode,        setViewMode]        = useState<"byProject" | "byDate">("byProject");
+  const [projects,      setProjects]      = useState<ProjectReleases[]>([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState<string | null>(null);
+  const [statusFilter,  setStatusFilter]  = useState<"all" | "released" | "overdue" | "upcoming">("all");
+  const [search,        setSearch]        = useState("");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [viewMode,      setViewMode]      = useState<"byProject" | "byDate">("byProject");
 
+  // Issue stats: keyed by versionId
+  const [statsMap,     setStatsMap]     = useState<Record<string, IssueStats>>({});
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  // Load releases
   useEffect(() => {
     fetch("/api/jira/releases")
       .then((r) => { if (!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
@@ -115,6 +197,32 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
+
+  // After releases load, fetch issue stats for every project in parallel
+  useEffect(() => {
+    if (projects.length === 0) return;
+    setStatsLoading(true);
+
+    const uniqueKeys = [...new Set(projects.map((p) => p.projectKey))];
+
+    Promise.allSettled(
+      uniqueKeys.map((key) =>
+        fetch(`/api/jira/release-issues?projectKey=${key}`)
+          .then((r) => (r.ok ? r.json() : { stats: {} }))
+          .then((data: { stats: Record<string, IssueStats> }) => data.stats ?? {})
+      )
+    )
+      .then((results) => {
+        const merged: Record<string, IssueStats> = {};
+        for (const result of results) {
+          if (result.status === "fulfilled") {
+            Object.assign(merged, result.value);
+          }
+        }
+        setStatsMap(merged);
+      })
+      .finally(() => setStatsLoading(false));
+  }, [projects]);
 
   // Close on Escape
   const handleKey = useCallback((e: KeyboardEvent) => {
@@ -355,7 +463,12 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   {project.releases.map((release) => (
-                    <ReleaseCard key={release.id} release={release} />
+                    <ReleaseCard
+                      key={release.id}
+                      release={release}
+                      issueStats={statsMap[release.id]}
+                      statsLoading={statsLoading}
+                    />
                   ))}
                 </div>
               </section>
@@ -391,7 +504,11 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
                       >
                         {release.projectKey}
                       </span>
-                      <ReleaseCard release={release} />
+                      <ReleaseCard
+                        release={release}
+                        issueStats={statsMap[release.id]}
+                        statsLoading={statsLoading}
+                      />
                     </div>
                   ))}
                 </div>
