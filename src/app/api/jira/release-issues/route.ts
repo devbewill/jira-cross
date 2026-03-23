@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { IssueStats } from '@/types';
 import { releaseIssuesCache } from '@/lib/cache/memory-cache';
 
-async function jiraFetch<T>(url: string, auth: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', Authorization: `Basic ${auth}` },
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error(`Jira API error: ${res.status} ${res.statusText}`);
-  return res.json();
+interface JiraSearchResponse {
+  issues: Array<{
+    fields: {
+      status: { statusCategory: { key: string } };
+      fixVersions: Array<{ id: string }>;
+    };
+  }>;
+  total: number;
 }
 
 /**
@@ -16,6 +17,8 @@ async function jiraFetch<T>(url: string, auth: string): Promise<T> {
  *
  * Returns issue counts grouped by fixVersion id and Jira status category.
  * Response: { stats: Record<versionId, IssueStats> }
+ *
+ * Uses POST /rest/api/3/search/jql (Jira Cloud v3 — the old GET /search is 410 Gone).
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const projectKey = req.nextUrl.searchParams.get('projectKey');
@@ -36,52 +39,57 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const cached   = releaseIssuesCache.get(cacheKey);
   if (cached) return NextResponse.json({ ...cached, cacheHit: true });
 
-  const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
+  const auth    = Buffer.from(`${email}:${apiToken}`).toString('base64');
+  const headers = { 'Content-Type': 'application/json', Authorization: `Basic ${auth}` };
+  const jql     = `project = "${projectKey}" AND fixVersion is not EMPTY`;
+  const url     = `${base}/rest/api/3/search/jql`;
 
   try {
     const statsMap: Record<string, IssueStats> = {};
-
-    // Fetch all issues in the project that belong to at least one fixVersion
-    const jql = encodeURIComponent(
-      `project = "${projectKey}" AND fixVersion is not EMPTY ORDER BY fixVersion ASC`
-    );
 
     let startAt = 0;
     let total   = Infinity;
 
     while (startAt < total && startAt < 2000) {
-      const url = `${base}/rest/api/3/search?jql=${jql}&fields=status,fixVersions&maxResults=100&startAt=${startAt}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          jql,
+          fields:     ['status', 'fixVersions'],
+          maxResults: 100,
+          startAt,
+        }),
+        cache: 'no-store',
+      });
 
-      const res = await jiraFetch<{
-        issues: Array<{
-          fields: {
-            status: { statusCategory: { key: string } };
-            fixVersions: Array<{ id: string }>;
-          };
-        }>;
-        total: number;
-      }>(url, auth);
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Jira API error: ${res.status} ${res.statusText}${text ? ` — ${text}` : ''}`);
+      }
 
-      if (total === Infinity) total = res.total;
-      if (res.issues.length === 0) break;
+      const data: JiraSearchResponse = await res.json();
 
-      for (const issue of res.issues) {
-        // Jira status category keys: 'new' = To Do, 'indeterminate' = In Progress, 'done' = Done
+      if (total === Infinity) total = data.total;
+      if (data.issues.length === 0) break;
+
+      for (const issue of data.issues) {
+        // Jira statusCategory keys: 'new' = To Do, 'indeterminate' = In Progress, 'done' = Done
         const catKey = issue.fields.status?.statusCategory?.key ?? 'new';
 
         for (const fv of issue.fields.fixVersions ?? []) {
           const vid = fv.id;
           if (!statsMap[vid]) statsMap[vid] = { todo: 0, inProgress: 0, done: 0, total: 0 };
 
-          if (catKey === 'done')          { statsMap[vid].done++;       }
-          else if (catKey === 'indeterminate') { statsMap[vid].inProgress++; }
-          else                            { statsMap[vid].todo++;       }
+          if      (catKey === 'done')          statsMap[vid].done++;
+          else if (catKey === 'indeterminate') statsMap[vid].inProgress++;
+          else                                 statsMap[vid].todo++;
 
           statsMap[vid].total++;
         }
       }
 
-      startAt += res.issues.length;
+      startAt += data.issues.length;
     }
 
     const result = { stats: statsMap, fetchedAt: new Date().toISOString(), cacheHit: false };
