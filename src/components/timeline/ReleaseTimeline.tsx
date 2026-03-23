@@ -16,14 +16,14 @@ import {
   releaseStatusOf,
   RELEASE_STATUS_CFG,
 } from "./ReleaseBlock";
+import { ReleaseIssuesPanel } from "./ReleaseIssuesPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface ReleaseTimelineOverlayProps {
-  onClose:       () => void;
-  onRefresh?:    () => void;
+interface ReleaseTimelineProps {
   isRefreshing?: boolean;
 }
+
 
 type StatusFilter = "all" | "upcoming" | "overdue" | "released";
 
@@ -40,7 +40,6 @@ const SCALES: { key: TimeScale; label: string }[] = [
 
 interface BlockPos { left: number; width: number; laneIndex: number }
 
-/** Synthetic start for releases without a startDate: releaseDate - 14 days. */
 function getBlockBounds(
   release: JiraRelease,
   dateToPosition: (d: string | null) => number | null,
@@ -105,19 +104,23 @@ function computeReleaseLaneHeight(
   return (maxLane + 1) * (REL_BLOCK_HEIGHT + REL_BLOCK_MARGIN) + REL_BLOCK_MARGIN;
 }
 
-// ─── Overlay ──────────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
-export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = false }: ReleaseTimelineOverlayProps) {
-  const [allProjects,   setAllProjects]   = useState<ProjectReleases[]>([]);
-  const [loading,       setLoading]       = useState(true);
-  const [error,         setError]         = useState<string | null>(null);
-  const [statusFilter,  setStatusFilter]  = useState<StatusFilter>("all");
-  const [fetchKey,      setFetchKey]      = useState(0);
-  // Start with a real default so pxPerDay > 0 before the ResizeObserver fires
-  const [viewportWidth, setViewportWidth] = useState(1200);
-  const [todayVisible,  setTodayVisible]  = useState(true);
+export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) {
+  const [allProjects,      setAllProjects]      = useState<ProjectReleases[]>([]);
+  const [loading,          setLoading]          = useState(true);
+  const [error,            setError]            = useState<string | null>(null);
+  const [statusFilter,     setStatusFilter]     = useState<StatusFilter>("all");
+  const [fetchKey,         setFetchKey]         = useState(0);
+  const [viewportWidth,    setViewportWidth]    = useState(1200);
+  const [todayVisible,     setTodayVisible]     = useState(true);
+  const [selectedRelease,  setSelectedRelease]  = useState<JiraRelease | null>(null);
 
-  // Re-fetch after sync completes (isRefreshing: true → false)
+  const handleSelectRelease = (release: JiraRelease) => {
+    setSelectedRelease((prev) => prev?.id === release.id ? null : release);
+  };
+
+  // Re-fetch when sync completes (isRefreshing: true → false)
   const prevRefreshing = useRef(false);
   useEffect(() => {
     if (prevRefreshing.current && !isRefreshing) {
@@ -125,13 +128,6 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
     }
     prevRefreshing.current = isRefreshing;
   }, [isRefreshing]);
-
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
 
   // Fetch releases
   useEffect(() => {
@@ -146,7 +142,6 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
 
   // Timeline scale
   const containerRef = useRef<HTMLDivElement>(null);
-  // Re-run after loading so the containerRef div is in the DOM
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -155,18 +150,18 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [loading]); // ← re-run when loading flips to false
+  }, [loading]);
 
   const {
     scale, config, scrollOrigin, scrollContainerRef,
     dateToPosition, changeScale, goToToday, checkTodayVisible, today,
   } = useTimelineScale(viewportWidth);
 
-  const bounds            = getScrollBounds(scale, today);
-  const totalScrollDays   = differenceInDays(bounds.max, bounds.min) + 1;
+  const bounds             = getScrollBounds(scale, today);
+  const totalScrollDays    = differenceInDays(bounds.max, bounds.min) + 1;
   const totalTimelineWidth = totalScrollDays * config.pxPerDay;
 
-  // Header + label scroll sync refs
+  // Header + label scroll sync
   const headerScrollRef = useRef<HTMLDivElement>(null);
   const labelsScrollRef = useRef<HTMLDivElement>(null);
 
@@ -177,23 +172,21 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
     setTodayVisible(checkTodayVisible());
   }, [checkTodayVisible, scrollContainerRef]);
 
-  // ── Filtered projects ──────────────────────────────────────────────────────
-
-  const filteredProjects = useMemo(() => {
-    return allProjects
+  // Filtered projects
+  const filteredProjects = useMemo(() =>
+    allProjects
       .map((p) => ({
         ...p,
         releases: p.releases.filter((r) => {
-          if (!(r.releaseDate || r.startDate)) return false; // skip undated
+          if (!(r.releaseDate || r.startDate)) return false;
           if (statusFilter === "all") return true;
           return releaseStatusOf(r) === statusFilter;
         }),
       }))
-      .filter((p) => p.releases.length > 0);
-  }, [allProjects, statusFilter]);
+      .filter((p) => p.releases.length > 0),
+  [allProjects, statusFilter]);
 
-  // ── Counts for filter badges ───────────────────────────────────────────────
-
+  // Counts for filter badges
   const counts = useMemo(() => {
     const flat = allProjects.flatMap((p) => p.releases.filter((r) => r.releaseDate || r.startDate));
     return {
@@ -204,8 +197,7 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
     };
   }, [allProjects]);
 
-  // ── Pre-compute lane heights (for label column row sync) ───────────────────
-
+  // Pre-compute lane heights
   const laneHeights = useMemo(
     () => filteredProjects.map((p) =>
       computeReleaseLaneHeight(p.releases, dateToPosition, config.pxPerDay)
@@ -213,134 +205,83 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
     [filteredProjects, dateToPosition, config.pxPerDay],
   );
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
-    <div className="fixed inset-0 z-[300] flex flex-col" style={{ backgroundColor: "#F4F4F7" }}>
+    <>
+    <div className="flex flex-col h-full bg-linear-bg w-full">
 
-      {/* ── Top header bar ──────────────────────────────────────────────────── */}
+      {/* ── Toolbar ───────────────────────────────────────────────────────── */}
       <div
-        className="flex-shrink-0 flex items-center gap-4 px-6 py-4 flex-wrap"
-        style={{ borderBottom: "1px solid #E8E8EF", backgroundColor: "#fff" }}
+        className="flex items-center justify-between px-5 py-3 bg-white flex-shrink-0 flex-wrap gap-3"
+        style={{ borderBottom: "1px solid #E8E8EF" }}
       >
-        {/* Title */}
-        <div className="flex-shrink-0">
-          <h2 className="text-lg font-bold text-[#1A1A1B]">
-            Timeline Rilasci
-          </h2>
-          <p className="text-[11px] text-[#A0A0A8] font-medium mt-0.5">
-            Tutti i rilasci pianificati, ordinati sulla timeline per data
-          </p>
+        {/* Scale buttons */}
+        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "#F4F4F7" }}>
+          {SCALES.map((s) => {
+            const active = scale === s.key;
+            return (
+              <button
+                key={s.key}
+                onClick={() => changeScale(s.key)}
+                className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
+                style={active ? {
+                  backgroundColor: "#fff",
+                  color:           "#1A1A1B",
+                  boxShadow:       "0 1px 3px rgba(0,0,0,0.08)",
+                } : {
+                  backgroundColor: "transparent",
+                  color:           "#717171",
+                }}
+              >
+                {s.label}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="flex-1" />
-
-        {!loading && !error && (
-          <>
-            {/* Scale buttons — pill group */}
-            <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "#F4F4F7" }}>
-              {SCALES.map((s) => {
-                const active = scale === s.key;
-                return (
-                  <button
-                    key={s.key}
-                    onClick={() => changeScale(s.key)}
-                    className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
-                    style={active ? {
-                      backgroundColor: "#fff",
-                      color:           "#1A1A1B",
-                      boxShadow:       "0 1px 3px rgba(0,0,0,0.08)",
-                    } : {
-                      backgroundColor: "transparent",
-                      color:           "#717171",
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="w-px h-6 bg-[#E8E8EF]" />
-
-            {/* Status filters */}
-            {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
-              const active = statusFilter === f;
-              const count  = counts[f];
-              const cfg    = f !== "all" ? RELEASE_STATUS_CFG[f] : null;
-              return (
-                <button
-                  key={f}
-                  onClick={() => setStatusFilter(f)}
-                  className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
-                  style={active ? {
-                    backgroundColor: cfg ? cfg.bg    : "hsl(43 96% 56%)",
-                    color:           cfg ? cfg.text  : "#fff",
-                    border:          cfg ? `1px solid ${cfg.border}` : "1px solid hsl(43 96% 46%)",
-                    boxShadow:       "0 1px 3px rgba(0,0,0,0.06)",
-                  } : {
-                    backgroundColor: "#fff",
-                    color:           "#717171",
-                    border:          "1px solid #E8E8EF",
-                  }}
-                >
-                  {f === "all" ? `All (${count})` : `${RELEASE_STATUS_CFG[f].label} (${count})`}
-                </button>
-              );
-            })}
-
-            <div className="w-px h-6 bg-[#E8E8EF]" />
-
-            {/* Go to today */}
-            {!todayVisible && (
+        {/* Status filters + today button */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
+            const active = statusFilter === f;
+            const count  = counts[f];
+            const cfg    = f !== "all" ? RELEASE_STATUS_CFG[f] : null;
+            return (
               <button
-                onClick={goToToday}
+                key={f}
+                onClick={() => setStatusFilter(f)}
                 className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
-                style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", border: "1px solid hsl(43 96% 46%)", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
+                style={active ? {
+                  backgroundColor: cfg ? cfg.bg   : "hsl(43 96% 56%)",
+                  color:           cfg ? cfg.text : "#fff",
+                  border:          cfg ? `1px solid ${cfg.border}` : "1px solid hsl(43 96% 46%)",
+                  boxShadow:       "0 1px 3px rgba(0,0,0,0.06)",
+                } : {
+                  backgroundColor: "#fff",
+                  color:           "#717171",
+                  border:          "1px solid #E8E8EF",
+                }}
               >
-                → Today
+                {f === "all"
+                  ? `All (${count})`
+                  : `${RELEASE_STATUS_CFG[f].label} (${count})`}
               </button>
-            )}
-          </>
-        )}
+            );
+          })}
 
-        {/* Sync + Close */}
-        <div className="flex items-center gap-2">
-          {onRefresh && (
+          {!todayVisible && (
             <button
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
-              onMouseEnter={(e) => { if (!isRefreshing) e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
+              onClick={goToToday}
+              className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
+              style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", border: "1px solid hsl(43 96% 46%)", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
             >
-              {isRefreshing ? (
-                <>
-                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Syncing…
-                </>
-              ) : (
-                <>⟲ Sync Jira</>
-              )}
+              → Today
             </button>
           )}
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
-            style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff";    e.currentTarget.style.color = "#717171"; }}
-          >
-            ✕
-          </button>
         </div>
       </div>
 
-      {/* ── Body ────────────────────────────────────────────────────────────── */}
-
+      {/* ── Loading / Error / Empty ────────────────────────────────────────── */}
       {loading && (
         <div className="flex-1 flex items-center justify-center">
           <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-[#A0A0A8]">
@@ -368,15 +309,13 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
         </div>
       )}
 
+      {/* ── Timeline body ─────────────────────────────────────────────────── */}
       {!loading && !error && filteredProjects.length > 0 && (
         <div className="flex flex-1 overflow-hidden">
 
-          {/* ── Fixed label column ──────────────────────────────────────────── */}
+          {/* Fixed label column */}
           <div className="w-56 flex-shrink-0 flex flex-col bg-white" style={{ borderRight: "1px solid #E8E8EF" }}>
-            {/* Spacer matching date-header height */}
             <div className="h-10 flex-shrink-0 bg-white" style={{ borderBottom: "1px solid #E8E8EF" }} />
-
-            {/* Project labels — vertically synced */}
             <div
               ref={labelsScrollRef}
               className="flex-1 overflow-y-auto overflow-x-hidden"
@@ -408,10 +347,8 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
             </div>
           </div>
 
-          {/* ── Timeline area ────────────────────────────────────────────────── */}
+          {/* Timeline area */}
           <div className="flex-1 flex flex-col overflow-hidden" ref={containerRef}>
-
-            {/* Fixed date header */}
             <div className="flex-shrink-0 bg-white z-10" style={{ borderBottom: "1px solid #E8E8EF" }}>
               <div className="overflow-hidden" ref={headerScrollRef} style={{ pointerEvents: "none" }}>
                 <TimelineHeader
@@ -425,7 +362,6 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
               </div>
             </div>
 
-            {/* Scrollable content */}
             <div
               className="flex-1 overflow-auto"
               ref={scrollContainerRef}
@@ -437,7 +373,6 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
                   pxPerDay={config.pxPerDay}
                   today={today}
                 />
-
                 <div className="flex flex-col">
                   {filteredProjects.map((project, i) => {
                     const positions = calculateReleasePositions(
@@ -445,7 +380,6 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
                       dateToPosition,
                       config.pxPerDay,
                     );
-
                     return (
                       <div
                         key={project.projectKey}
@@ -462,6 +396,8 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
                               left={pos.left}
                               width={pos.width}
                               laneIndex={pos.laneIndex}
+                              isSelected={selectedRelease?.id === release.id}
+                              onClick={handleSelectRelease}
                             />
                           );
                         })}
@@ -475,5 +411,14 @@ export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = fals
         </div>
       )}
     </div>
+
+    {/* Side panel */}
+    {selectedRelease && (
+      <ReleaseIssuesPanel
+        release={selectedRelease}
+        onClose={() => setSelectedRelease(null)}
+      />
+    )}
+    </>
   );
 }

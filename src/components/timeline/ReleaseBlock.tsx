@@ -47,9 +47,11 @@ interface ReleaseBlockProps {
   left: number;
   width: number;
   laneIndex: number;
+  isSelected?: boolean;
+  onClick?: (release: JiraRelease) => void;
 }
 
-export function ReleaseBlock({ release, left, width, laneIndex }: ReleaseBlockProps) {
+export function ReleaseBlock({ release, left, width, laneIndex, isSelected = false, onClick }: ReleaseBlockProps) {
   const [mounted,    setMounted]    = useState(false);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   useEffect(() => setMounted(true), []);
@@ -64,10 +66,18 @@ export function ReleaseBlock({ release, left, width, laneIndex }: ReleaseBlockPr
   return (
     <>
       <div
-        className="absolute group cursor-default select-none"
-        style={{ left: `${left}px`, top: `${top}px`, width: `${dispW}px`, minWidth: `${minW}px`, zIndex: 10 }}
-        onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
-        onMouseLeave={() => setTooltipPos(null)}
+        className="absolute group select-none"
+        style={{
+          left: `${left}px`, top: `${top}px`, width: `${dispW}px`, minWidth: `${minW}px`, zIndex: 10,
+          cursor: onClick ? "pointer" : "default",
+          outline: isSelected ? `2px solid ${cfg.border}` : "none",
+          outlineOffset: "2px",
+          borderRadius: "10px",
+        }}
+        onClick={() => onClick?.(release)}
+        onMouseMove={(e) => { if (!onClick) setTooltipPos({ x: e.clientX, y: e.clientY }); }}
+        onMouseEnter={(e) => { if (onClick) e.currentTarget.style.opacity = "0.85"; }}
+        onMouseLeave={(e) => { setTooltipPos(null); e.currentTarget.style.opacity = "1"; }}
       >
         {/* ── Info row ── */}
         <div

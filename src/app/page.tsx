@@ -4,15 +4,19 @@ import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TimelineContainer } from "@/components/timeline/TimelineContainer";
+import { ReleaseTimeline } from "@/components/timeline/ReleaseTimeline";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { useEpics } from "@/hooks/useEpics";
 import { useSelectedEpic } from "@/hooks/useSelectedEpic";
 
+type ViewMode = "epics" | "releases";
+
 export default function Page() {
   const { data, loading, error, cacheHit, refetch } = useEpics();
   const { selectedEpic, select, deselect } = useSelectedEpic();
   const [errorDismissed, setErrorDismissed] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("epics");
 
   const handleRefresh = async () => {
     try {
@@ -33,6 +37,8 @@ export default function Page() {
           onRefresh={async () => {}}
           isRefreshing={false}
           cacheHit={false}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
         <div className="flex-1 flex items-center justify-center bg-timeline-grid p-6">
           <div className="bg-linear-surface border border-linear-border rounded-[12px] p-8 max-w-md shadow-popover relative w-full">
@@ -70,6 +76,8 @@ export default function Page() {
         onRefresh={handleRefresh}
         isRefreshing={loading}
         cacheHit={cacheHit}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       {/* Error Banner */}
@@ -82,38 +90,46 @@ export default function Page() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
-        {loading && data === null ? (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-linear-bg/80 backdrop-blur-sm">
-            <LoadingSpinner message="Syncing timeline..." />
-          </div>
-        ) : data?.boards ? (
-          <>
-            {/* Timeline */}
-            <div className="flex-1 overflow-hidden relative bg-linear-bg">
-              <TimelineContainer
-                boards={data.boards}
-                selectedEpic={selectedEpic}
-                onSelectEpic={select}
-              />
-            </div>
 
-            {/* Sidebar */}
-            <div className={`transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden h-full shrink-0 border-l border-linear-border z-30 ${selectedEpic ? 'w-80 opacity-100' : 'w-0 opacity-0 border-none'}`}>
-              <Sidebar epic={selectedEpic} onClose={deselect} />
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-timeline-grid bg-linear-bg">
-            <div className="text-center bg-linear-surface border border-linear-border rounded-[12px] p-8 shadow-popover max-w-sm">
-              <p className="text-linear-text font-medium mb-6">No epics found in this project view.</p>
-              <button
-                onClick={handleRefresh}
-                className="px-6 py-2 bg-linear-accent text-white font-medium rounded-[6px] text-sm hover:bg-linear-accentHover transition-colors shadow-linear-sm"
-              >
-                Refresh Data
-              </button>
-            </div>
+        {/* ── Releases timeline view ────────────────────────────────────── */}
+        {viewMode === "releases" && (
+          <div className="flex-1 overflow-hidden">
+            <ReleaseTimeline isRefreshing={loading} />
           </div>
+        )}
+
+        {/* ── Epics timeline view ───────────────────────────────────────── */}
+        {viewMode === "epics" && (
+          loading && data === null ? (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-linear-bg/80 backdrop-blur-sm">
+              <LoadingSpinner message="Syncing timeline..." />
+            </div>
+          ) : data?.boards ? (
+            <>
+              <div className="flex-1 overflow-hidden relative bg-linear-bg">
+                <TimelineContainer
+                  boards={data.boards}
+                  selectedEpic={selectedEpic}
+                  onSelectEpic={select}
+                />
+              </div>
+              <div className={`transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden h-full shrink-0 border-l border-linear-border z-30 ${selectedEpic ? 'w-80 opacity-100' : 'w-0 opacity-0 border-none'}`}>
+                <Sidebar epic={selectedEpic} onClose={deselect} />
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-timeline-grid bg-linear-bg">
+              <div className="text-center bg-linear-surface border border-linear-border rounded-[12px] p-8 shadow-popover max-w-sm">
+                <p className="text-linear-text font-medium mb-6">No epics found in this project view.</p>
+                <button
+                  onClick={handleRefresh}
+                  className="px-6 py-2 bg-linear-accent text-white font-medium rounded-[6px] text-sm hover:bg-linear-accentHover transition-colors shadow-linear-sm"
+                >
+                  Refresh Data
+                </button>
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>

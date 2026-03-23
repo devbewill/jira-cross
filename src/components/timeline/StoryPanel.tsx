@@ -92,26 +92,56 @@ function groupStoriesByRelease(stories: Story[]): ReleaseGroup[] {
   return groups;
 }
 
-// ─── Release group header ──────────────────────────────────────────────────────
+// ─── Release group (accordion) ────────────────────────────────────────────────
 
-function ReleaseGroupHeader({ group }: { group: ReleaseGroup }) {
-  if (!group.fv) {
-    // "No release" bucket
+function ReleaseGroupSection({ group, showHeader }: { group: ReleaseGroup; showHeader: boolean }) {
+  // Default closed — only the "no release" bucket starts open (it's not a real release)
+  const [open, setOpen] = useState(group.fv === null);
+
+  if (!showHeader) {
+    // Single group with no named release — just render items flat
     return (
-      <div
-        className="sticky top-0 z-10 px-5 py-2 flex items-center gap-2"
-        style={{ backgroundColor: "#F8F8FB", borderBottom: "1px solid #E8E8EF" }}
-      >
-        <span
-          className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px]"
-          style={{ backgroundColor: "#ddd", color: "#666" }}
+      <ul>
+        {group.stories.map((story, si) => (
+          <StoryRow key={story.key} story={story} isLast={si === group.stories.length - 1} />
+        ))}
+      </ul>
+    );
+  }
+
+  if (!group.fv) {
+    // "No release" bucket — simple, always open
+    return (
+      <section>
+        <button
+          className="w-full sticky top-0 z-10 px-5 py-2 flex items-center gap-2 text-left transition-colors"
+          style={{ backgroundColor: "#F8F8FB", borderBottom: "1px solid #E8E8EF" }}
+          onClick={() => setOpen((o) => !o)}
         >
-          No release
-        </span>
-        <span className="ml-auto text-[9px] font-bold text-[#aaa]">
-          {group.stories.length} {group.stories.length === 1 ? "item" : "items"}
-        </span>
-      </div>
+          <span
+            className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md"
+            style={{ backgroundColor: "#E5E7EB", color: "#717171" }}
+          >
+            No release
+          </span>
+          <span className="ml-auto flex items-center gap-2 text-[9px] font-semibold text-[#A0A0A8]">
+            {group.stories.length} {group.stories.length === 1 ? "item" : "items"}
+            <span
+              className="transition-transform duration-200 text-[10px]"
+              style={{ display: "inline-block", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+            >
+              ›
+            </span>
+          </span>
+        </button>
+        {open && (
+          <ul>
+            {group.stories.map((story, si) => (
+              <StoryRow key={story.key} story={story} isLast={si === group.stories.length - 1} />
+            ))}
+          </ul>
+        )}
+      </section>
     );
   }
 
@@ -120,55 +150,74 @@ function ReleaseGroupHeader({ group }: { group: ReleaseGroup }) {
   const label  = daysLabel(group.fv);
 
   return (
-    <div
-      className="sticky top-0 z-10 px-5 py-2.5 flex items-center gap-2 flex-wrap"
-      style={{
-        backgroundColor: "#f8f8f8",
-        borderBottom:    "2px solid #111",
-        borderTop:       "2px solid #111",
-      }}
-    >
-      {/* Release name */}
-      <span
-        className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px] leading-none"
-        style={{ backgroundColor: "#111", color: "#fff" }}
+    <section>
+      {/* Accordion header */}
+      <button
+        className="w-full sticky top-0 z-10 px-5 py-2.5 flex items-center gap-2 flex-wrap text-left transition-colors"
+        style={{
+          backgroundColor: "#F8F8FB",
+          borderBottom:    open ? "1px solid #E8E8EF" : "none",
+          borderTop:       "1px solid #E8E8EF",
+        }}
+        onClick={() => setOpen((o) => !o)}
       >
-        {group.fv.name}
-      </span>
-
-      {/* Status badge */}
-      <span
-        className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px] leading-none"
-        style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1.5px solid ${cfg.border}` }}
-      >
-        {cfg.label}
-      </span>
-
-      {/* Release date */}
-      {group.fv.releaseDate && (
-        <span className="text-[9px] font-bold text-[#888]">
-          {formatDate(group.fv.releaseDate)}
-        </span>
-      )}
-
-      {/* Countdown */}
-      {label && (
+        {/* Release name */}
         <span
-          className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px] leading-none"
-          style={{
-            backgroundColor: status === "overdue" ? "#FF2D55" : "#efefef",
-            color:           status === "overdue" ? "#fff"    : "#555",
-          }}
+          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none"
+          style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
         >
-          {label}
+          {group.fv.name}
         </span>
-      )}
 
-      {/* Count */}
-      <span className="ml-auto text-[9px] font-bold text-[#aaa]">
-        {group.stories.length} {group.stories.length === 1 ? "item" : "items"}
-      </span>
-    </div>
+        {/* Status badge */}
+        <span
+          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none"
+          style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}
+        >
+          {cfg.label}
+        </span>
+
+        {/* Release date */}
+        {group.fv.releaseDate && (
+          <span className="text-[9px] font-medium text-[#A0A0A8]">
+            {formatDate(group.fv.releaseDate)}
+          </span>
+        )}
+
+        {/* Countdown */}
+        {label && (
+          <span
+            className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none"
+            style={{
+              backgroundColor: status === "overdue" ? "#FEE2E2" : "#F4F4F7",
+              color:           status === "overdue" ? "#B91C1C" : "#4A4A4A",
+            }}
+          >
+            {label}
+          </span>
+        )}
+
+        {/* Count + chevron */}
+        <span className="ml-auto flex items-center gap-2 text-[9px] font-semibold text-[#A0A0A8]">
+          {group.stories.length} {group.stories.length === 1 ? "item" : "items"}
+          <span
+            className="transition-transform duration-200 text-[10px]"
+            style={{ display: "inline-block", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+          >
+            ›
+          </span>
+        </span>
+      </button>
+
+      {/* Collapsible content */}
+      {open && (
+        <ul>
+          {group.stories.map((story, si) => (
+            <StoryRow key={story.key} story={story} isLast={si === group.stories.length - 1} />
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -367,26 +416,16 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
 
           {!loading && !error && stories.length > 0 && (
             <div>
-              {groups.map((group, gi) => (
-                <section key={group.key}>
-                  {/* Show header only if there are multiple groups, or the single group is a named release */}
-                  {(groups.length > 1 || group.fv !== null) && (
-                    <ReleaseGroupHeader group={group} />
-                  )}
-                  <ul>
-                    {group.stories.map((story, si) => (
-                      <StoryRow
-                        key={story.key}
-                        story={story}
-                        isLast={
-                          si === group.stories.length - 1 &&
-                          gi === groups.length - 1
-                        }
-                      />
-                    ))}
-                  </ul>
-                </section>
-              ))}
+              {groups.map((group) => {
+                const showHeader = groups.length > 1 || group.fv !== null;
+                return (
+                  <ReleaseGroupSection
+                    key={group.key}
+                    group={group}
+                    showHeader={showHeader}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
