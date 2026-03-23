@@ -106,6 +106,7 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
   const [statusFilter,    setStatusFilter]    = useState<"all" | "released" | "overdue" | "upcoming">("all");
   const [search,          setSearch]          = useState("");
   const [projectFilter,   setProjectFilter]   = useState<string>("all");
+  const [viewMode,        setViewMode]        = useState<"byProject" | "byDate">("byProject");
 
   useEffect(() => {
     fetch("/api/jira/releases")
@@ -134,6 +135,52 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
   const projectOptions = useMemo(() =>
     [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
   [projects]);
+
+  // Flat list sorted by releaseDate descending (furthest future first)
+  const flatByDate = useMemo(() => {
+    const all = projects
+      .filter((p) => projectFilter === "all" || p.projectKey === projectFilter)
+      .flatMap((p) =>
+        p.releases
+          .filter((r) => {
+            const matchStatus = statusFilter === "all" || releaseStatus(r) === statusFilter;
+            const matchSearch = search.trim() === "" || r.name.toLowerCase().includes(search.trim().toLowerCase());
+            return matchStatus && matchSearch;
+          })
+          .map((r) => ({ ...r, projectKey: p.projectKey, projectName: p.projectName }))
+      );
+    return all.sort((a, b) => {
+      if (!a.releaseDate && !b.releaseDate) return 0;
+      if (!a.releaseDate) return 1;
+      if (!b.releaseDate) return -1;
+      return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+    });
+  }, [projects, statusFilter, search, projectFilter]);
+
+  // Group flatByDate by year-month, preserving order (desc)
+  const byMonth = useMemo(() => {
+    const groups: { key: string; label: string; releases: typeof flatByDate }[] = [];
+    const seen = new Map<string, number>();
+    for (const r of flatByDate) {
+      let key: string;
+      let label: string;
+      if (r.releaseDate) {
+        const d = new Date(r.releaseDate);
+        key   = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        label = d.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      } else {
+        key   = "no-date";
+        label = "No date";
+      }
+      if (!seen.has(key)) {
+        seen.set(key, groups.length);
+        groups.push({ key, label, releases: [] });
+      }
+      groups[seen.get(key)!].releases.push(r);
+    }
+    return groups;
+  }, [flatByDate]);
 
   // Apply all three filters: status + search + project
   const filtered = useMemo(() =>
@@ -200,6 +247,30 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
             {/* Divider */}
             <div className="w-px h-6 bg-[#e0e0e0]" />
 
+            {/* View mode toggle */}
+            {(["byProject", "byDate"] as const).map((mode) => {
+              const active = viewMode === mode;
+              const label  = mode === "byProject" ? "By Project" : "By Date";
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-[3px] transition-all"
+                  style={{
+                    border:          "2px solid #111",
+                    backgroundColor: active ? "#111" : "#fff",
+                    color:           active ? "#fff" : "#111",
+                    boxShadow:       active ? "2px 2px 0 #111" : "none",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+
+            {/* Divider */}
+            <div className="w-px h-6 bg-[#e0e0e0]" />
+
             {/* Status pills */}
             {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
               const count  = f === "all" ? total : f === "released" ? released : f === "overdue" ? overdue : upcoming;
@@ -255,7 +326,7 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
           </div>
         )}
 
-        {!loading && !error && filtered.length === 0 && (
+        {!loading && !error && (viewMode === "byProject" ? filtered.length === 0 : flatByDate.length === 0) && (
           <div className="flex items-center justify-center h-48">
             <span className="text-xs font-black uppercase tracking-widest text-[#ccc]">
               No releases found
@@ -263,11 +334,11 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
           </div>
         )}
 
-        {!loading && !error && filtered.length > 0 && (
+        {/* By Project view */}
+        {!loading && !error && viewMode === "byProject" && filtered.length > 0 && (
           <div className="space-y-10">
             {filtered.map((project) => (
               <section key={project.projectKey}>
-                {/* Project heading */}
                 <div className="flex items-center gap-3 mb-4">
                   <span
                     className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px]"
@@ -282,11 +353,46 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
                     {project.releases.length} {project.releases.length === 1 ? "release" : "releases"}
                   </span>
                 </div>
-
-                {/* Release cards grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   {project.releases.map((release) => (
                     <ReleaseCard key={release.id} release={release} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {/* By Date view — grouped by month, sorted releaseDate desc */}
+        {!loading && !error && viewMode === "byDate" && flatByDate.length > 0 && (
+          <div className="space-y-10">
+            {byMonth.map((group) => (
+              <section key={group.key}>
+                {/* Month heading */}
+                <div
+                  className="flex items-center gap-4 mb-4 pb-2"
+                  style={{ borderBottom: "3px solid #111" }}
+                >
+                  <h3 className="text-base font-black uppercase tracking-tight text-[#111]">
+                    {group.label}
+                  </h3>
+                  <span className="text-[10px] font-bold text-[#aaa]">
+                    {group.releases.length} {group.releases.length === 1 ? "release" : "releases"}
+                  </span>
+                </div>
+
+                {/* Releases grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {group.releases.map((release) => (
+                    <div key={release.id} className="flex flex-col gap-1.5">
+                      <span
+                        className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px] self-start"
+                        style={{ backgroundColor: "#111", color: "#fff" }}
+                      >
+                        {release.projectKey}
+                      </span>
+                      <ReleaseCard release={release} />
+                    </div>
                   ))}
                 </div>
               </section>

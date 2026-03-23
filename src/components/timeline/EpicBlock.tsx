@@ -9,7 +9,7 @@ import { EpicTooltip } from "./EpicTooltip";
 // ─── Layout constants (exported — SwimLane uses BLOCK_HEIGHT for row height) ──
 const INFO_HEIGHT = 22; // px — summary + counts row above the bar
 const GAP = 4; // px — space between info row and bar
-const BAR_H = 32; // px — the colored segments bar (≈60% reduction from 80)
+const BAR_H = 30; // px — the colored segments bar (≈60% reduction from 80)
 export const BLOCK_HEIGHT = INFO_HEIGHT + GAP + BAR_H; // 56px total
 export const BAR_HEIGHT = 0; // legacy export — no longer used
 export const BLOCK_MARGIN = 14;
@@ -33,11 +33,11 @@ function buildSegments(stats: StoryStats): string[] {
 function StoryCounts({ stats }: { stats: StoryStats }) {
   if (stats.total === 0) return null;
   return (
-    <div className="flex items-center gap-2 flex-shrink-0">
+    <div className="flex items-center gap-2 shrink-0">
       {stats.done > 0 && (
         <span className="flex items-center gap-1 text-[10px] font-black leading-none">
           <span
-            className="w-[10px] h-[10px] rounded-full flex-shrink-0"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ backgroundColor: DOT_DONE, border: "1px solid #111" }}
           />
           {stats.done}
@@ -46,7 +46,7 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
       {stats.inProgress > 0 && (
         <span className="flex items-center gap-1 text-[10px] font-black leading-none">
           <span
-            className="w-[10px] h-[10px] rounded-full flex-shrink-0"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{
               backgroundColor: DOT_IN_PROGRESS,
               border: "1px solid #111",
@@ -58,7 +58,7 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
       {stats.todo > 0 && (
         <span className="flex items-center gap-1 text-[10px] font-black leading-none opacity-50">
           <span
-            className="w-[10px] h-[10px] rounded-full flex-shrink-0"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ backgroundColor: DOT_TODO, border: "1px solid #111" }}
           />
           {stats.todo}
@@ -161,7 +161,7 @@ export function EpicBlock({
 
           {/* Key + due date */}
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
-            <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-[2px] leading-none shrink-0">
+            <span className="inline-block text-[9px] font-black uppercase tracking-widest bg-black/15 px-1.5 py-0.5 rounded-xs leading-none shrink-0">
               {epic.key}
             </span>
             {epic.dueDate && (
