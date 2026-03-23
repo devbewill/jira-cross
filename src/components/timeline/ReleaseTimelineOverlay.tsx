@@ -110,7 +110,8 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState<string | null>(null);
   const [statusFilter,  setStatusFilter]  = useState<StatusFilter>("all");
-  const [viewportWidth, setViewportWidth] = useState(0);
+  // Start with a real default so pxPerDay > 0 before the ResizeObserver fires
+  const [viewportWidth, setViewportWidth] = useState(1200);
   const [todayVisible,  setTodayVisible]  = useState(true);
 
   // Close on Escape
@@ -120,17 +121,22 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Fetch releases
+  // Fetch releases — DEBUG: filter to CEF only
   useEffect(() => {
     fetch("/api/jira/releases")
       .then((r) => { if (!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
-      .then((d) => setAllProjects(d.projects ?? []))
+      .then((d) => {
+        const projects: ProjectReleases[] = d.projects ?? [];
+        // 🔧 DEBUG — remove this filter to show all projects
+        setAllProjects(projects.filter((p) => p.projectKey === "CEF"));
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
   // Timeline scale
   const containerRef = useRef<HTMLDivElement>(null);
+  // Re-run after loading so the containerRef div is in the DOM
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -139,7 +145,7 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [loading]); // ← re-run when loading flips to false
 
   const {
     scale, config, scrollOrigin, scrollContainerRef,
