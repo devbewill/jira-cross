@@ -91,17 +91,24 @@ export function TimelineContainer({
     <>
     <div className="flex flex-col h-full bg-linear-bg w-full">
       {/* Scale Controls */}
-      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-linear-border bg-linear-surface flex-shrink-0">
-        <div className="flex gap-1">
+      <div
+        className="flex items-center justify-between px-5 py-3 bg-white flex-shrink-0"
+        style={{ borderBottom: "1px solid #E8E8EF" }}
+      >
+        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "#F4F4F7" }}>
           {SCALES.map((s) => (
             <button
               key={s.key}
               onClick={() => changeScale(s.key)}
-              className={`px-3 py-1.5 text-xs font-black uppercase tracking-widest rounded-[3px] transition-all duration-100 ${
-                scale === s.key
-                  ? "bg-linear-text text-linear-bg shadow-linear-sm"
-                  : "text-linear-textMuted hover:text-linear-text hover:bg-linear-surfaceActive"
-              }`}
+              className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
+              style={scale === s.key ? {
+                backgroundColor: "#fff",
+                color: "#1A1A1B",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+              } : {
+                backgroundColor: "transparent",
+                color: "#717171",
+              }}
             >
               {s.label}
             </button>
@@ -110,17 +117,14 @@ export function TimelineContainer({
 
         <div className="flex items-center gap-4">
           {/* Legend */}
-          <div className="flex items-center gap-3 border-l-2 border-linear-border pl-4">
+          <div className="flex items-center gap-3 pl-4" style={{ borderLeft: "1px solid #E8E8EF" }}>
             {[
               { color: DOT_DONE,        label: "Done"        },
               { color: DOT_IN_PROGRESS, label: "In Progress" },
               { color: DOT_TODO,        label: "Todo"        },
             ].map(({ color, label }) => (
-              <span key={label} className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-linear-textMuted">
-                <span
-                  className="w-[10px] h-[10px] rounded-full flex-shrink-0"
-                  style={{ backgroundColor: color, border: "1px solid #111" }}
-                />
+              <span key={label} className="flex items-center gap-1.5 text-[11px] font-medium" style={{ color: "#717171" }}>
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                 {label}
               </span>
             ))}
@@ -129,7 +133,10 @@ export function TimelineContainer({
           {!todayVisible && (
             <button
               onClick={goToToday}
-              className="px-3 py-1.5 bg-linear-accent text-white text-xs font-black uppercase tracking-widest rounded-[3px] hover:bg-linear-accentHover transition-colors duration-100 shadow-linear-sm hover:shadow-linear-hover"
+              className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
+              style={{ backgroundColor: "#F28C28", color: "#fff", boxShadow: "0 1px 4px rgba(242,140,40,0.30)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#E07A18"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#F28C28"; }}
             >
               → Today
             </button>
@@ -143,9 +150,9 @@ export function TimelineContainer({
         {/* ── Fixed Label Column ──────────────────────────────────────────
             Lives entirely OUTSIDE the horizontal scroll container.
             No z-index tricks needed — it's a separate DOM subtree.        */}
-        <div className="w-56 flex-shrink-0 flex flex-col border-r-2 border-linear-border bg-linear-bg">
+        <div className="w-56 flex-shrink-0 flex flex-col bg-white" style={{ borderRight: "1px solid #E8E8EF" }}>
           {/* Spacer that matches the date-header height */}
-          <div className="h-10 flex-shrink-0 bg-linear-surface border-b-2 border-linear-border" />
+          <div className="h-10 flex-shrink-0 bg-white" style={{ borderBottom: "1px solid #E8E8EF" }} />
           {/* Board labels — synced vertical scroll via labelsScrollRef */}
           <div
             className="flex-1 overflow-y-auto overflow-x-hidden"
@@ -155,13 +162,15 @@ export function TimelineContainer({
             {boards.map((board, i) => (
               <div
                 key={board.key}
-                className="flex flex-col justify-center px-4 py-4 border-b border-linear-border hover:bg-linear-surfaceHover transition-colors"
-                style={{ minHeight: `${swimlaneHeights[i]}px` }}
+                className="flex flex-col justify-center px-4 py-4 transition-colors cursor-default"
+                style={{ minHeight: `${swimlaneHeights[i]}px`, borderBottom: "1px solid #E8E8EF" }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F8F8FB"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
               >
-                <span className="text-linear-text text-xs font-black uppercase tracking-widest break-words mb-1">
+                <span className="text-[12px] font-semibold break-words mb-0.5" style={{ color: "#1A1A1B" }}>
                   {board.name || board.key}
                 </span>
-                <span className="text-[10px] text-linear-textDim font-bold tabular-nums mb-2">
+                <span className="text-[11px] font-medium tabular-nums mb-2" style={{ color: "#A0A0A8" }}>
                   {board.epics.length}{" "}
                   {board.epics.length === 1 ? "epic" : "epics"}
                 </span>
@@ -172,10 +181,10 @@ export function TimelineContainer({
                       className="flex items-start gap-1.5 cursor-pointer group"
                       onClick={() => handleSelectEpic(epic)}
                     >
-                      <span className="text-[9px] font-black text-linear-textDim uppercase tracking-wider flex-shrink-0 mt-[1px] group-hover:text-linear-text transition-colors">
+                      <span className="text-[9px] font-semibold flex-shrink-0 mt-[1px] transition-colors" style={{ color: "#A0A0A8" }}>
                         {epic.key}
                       </span>
-                      <span className="text-[10px] font-bold text-linear-textMuted leading-tight truncate group-hover:text-linear-text transition-colors">
+                      <span className="text-[10px] font-medium leading-tight truncate transition-colors" style={{ color: "#4A4A4A" }}>
                         {epic.summary}
                       </span>
                     </li>
@@ -192,7 +201,7 @@ export function TimelineContainer({
           ref={containerRef}
         >
           {/* Fixed date-header (synced via headerScrollRef) */}
-          <div className="flex-shrink-0 bg-linear-surface border-b-2 border-linear-border z-10">
+          <div className="flex-shrink-0 bg-white z-10" style={{ borderBottom: "1px solid #E8E8EF" }}>
             <div
               className="overflow-hidden"
               ref={headerScrollRef}

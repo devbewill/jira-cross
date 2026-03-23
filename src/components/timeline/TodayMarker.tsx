@@ -4,21 +4,27 @@ import { differenceInDays, startOfDay } from "date-fns";
 
 interface TodayMarkerProps {
   scrollOrigin: Date;
-  pxPerDay: number;
-  today?: Date;
+  pxPerDay:     number;
+  today?:       Date;
 }
 
 export function TodayMarker({ scrollOrigin, pxPerDay, today: todayProp }: TodayMarkerProps) {
   const today = todayProp ?? new Date();
-  const left =
-    differenceInDays(startOfDay(today), startOfDay(scrollOrigin)) * pxPerDay;
+  const left  = differenceInDays(startOfDay(today), startOfDay(scrollOrigin)) * pxPerDay;
 
   return (
     <div
-      className="absolute top-0 w-0.5 h-full bg-linear-accent z-20 pointer-events-none"
-      style={{ left: `${left}px` }}
+      className="absolute top-0 h-full pointer-events-none"
+      style={{ left: `${left}px`, width: "2px", backgroundColor: "#F28C28", zIndex: 20, opacity: 0.9 }}
     >
-      <div className="absolute -top-[26px] left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest whitespace-nowrap bg-linear-accent text-white px-2 py-1 rounded-[2px]">
+      <div
+        className="absolute text-[9px] font-semibold whitespace-nowrap px-2 py-0.5 rounded-md"
+        style={{
+          top: "-26px", left: "50%", transform: "translateX(-50%)",
+          backgroundColor: "#F28C28", color: "#fff",
+          boxShadow: "0 1px 4px rgba(242,140,40,0.4)",
+        }}
+      >
         Today
       </div>
     </div>

@@ -10,40 +10,37 @@ const config: Config = {
     extend: {
       colors: {
         linear: {
-          bg: "#FAFAFA",           // cool near-white
-          surface: "#FFFFFF",
-          surfaceHover: "#F5F5F5",
-          surfaceActive: "#EEEEEE",
-          border: "#E0E0E0",
-          borderHover: "#C8C8C8",
-          text: "#111111",         // cool near-black
-          textMuted: "#666666",
-          textDim: "#AAAAAA",
-          accent: "#0047FF",       // electric klein blue
-          accentHover: "#0035CC",
-          success: "#00C864",
-          warning: "#FF9500",
-          danger: "#FF2D55",
-          info: "#0047FF",
-          // Epic bar fills
-          todo: "#DDFF00",         // acid chartreuse
-          inProgress: "#fafafa",    // white — defined by border
-          done: "#00F5A0",         // neon mint
+          bg:            "#F4F4F7",
+          surface:       "#FFFFFF",
+          surfaceHover:  "#F8F8FB",
+          surfaceActive: "#EEEEF4",
+          border:        "#E8E8EF",
+          borderHover:   "#D0D0DC",
+          text:          "#1A1A1B",
+          textMuted:     "#4A4A4A",
+          textDim:       "#A0A0A8",
+          accent:        "#F28C28",
+          accentHover:   "#E07A18",
+          accentLight:   "#FEF3E8",
+          success:       "#22C55E",
+          warning:       "#F59E0B",
+          danger:        "#EF4444",
+          todo:          "#E5E7EB",
+          inProgress:    "#F28C28",
+          done:          "#22C55E",
         },
       },
       boxShadow: {
-        // Flat offset shadows — design agency signature
-        'linear':       '2px 2px 0px #E0E0E0',
-        'linear-sm':    '1px 1px 0px #E0E0E0',
-        'linear-hover': '4px 4px 0px #C8C8C8',
-        'popover':      '6px 6px 0px #111111',
+        "linear-xs":    "0 1px 2px rgba(0,0,0,0.05)",
+        "linear-sm":    "0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
+        "linear-hover": "0 4px 16px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.05)",
+        "linear-card":  "0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
+        "popover":      "0 8px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)",
+        "panel":        "-4px 0 24px rgba(0,0,0,0.08)",
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ["Inter", "Montserrat", "system-ui", "sans-serif"],
       },
-      backgroundImage: {
-        'linear-gradient': 'linear-gradient(180deg, rgba(0,0,0,0.01) 0%, rgba(0,0,0,0) 100%)',
-      }
     },
   },
   plugins: [],

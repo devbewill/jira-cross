@@ -17,7 +17,7 @@ function statusDotColor(cat: string): string {
   return DOT_TODO;
 }
 
-const DOT_BORDER = "1px solid #111111";
+const DOT_BORDER = "none";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -35,9 +35,9 @@ function releaseStatus(fv: StoryFixVersion): ReleaseStatus {
 }
 
 const STATUS_CFG = {
-  released: { label: "Released", bg: "#57e51e",          text: "#111", border: "#3aad14" },
-  overdue:  { label: "Overdue",  bg: "#FF2D55",          text: "#fff", border: "#cc0033" },
-  upcoming: { label: "Upcoming", bg: "rgb(255,157,225)", text: "#111", border: "#e060a0" },
+  released: { label: "Released", bg: "#DCFCE7", text: "#15803D", border: "#86EFAC" },
+  overdue:  { label: "Overdue",  bg: "#FEE2E2", text: "#B91C1C", border: "#FCA5A5" },
+  upcoming: { label: "Upcoming", bg: "#FEF3E8", text: "#C2590A", border: "#FDBA74" },
 } as const;
 
 function daysLabel(fv: StoryFixVersion): string | null {
@@ -100,7 +100,7 @@ function ReleaseGroupHeader({ group }: { group: ReleaseGroup }) {
     return (
       <div
         className="sticky top-0 z-10 px-5 py-2 flex items-center gap-2"
-        style={{ backgroundColor: "#f8f8f8", borderBottom: "2px solid #e0e0e0" }}
+        style={{ backgroundColor: "#F8F8FB", borderBottom: "1px solid #E8E8EF" }}
       >
         <span
           className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px]"
@@ -256,8 +256,8 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
         style={{
           width:           "380px",
           backgroundColor: "#ffffff",
-          borderLeft:      "3px solid #111111",
-          boxShadow:       "-6px 0 0 rgba(0,0,0,0.08)",
+          borderLeft:      "1px solid #E8E8EF",
+          boxShadow:       "-4px 0 24px rgba(0,0,0,0.08)",
           animation:       "slideInRight 0.15s ease-out",
           overflow:        "hidden",
         }}
@@ -265,13 +265,13 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
         {/* Header */}
         <div
           className="flex-shrink-0 px-5 pt-5 pb-4"
-          style={{ borderBottom: "2px solid #111111" }}
+          style={{ borderBottom: "1px solid #E8E8EF" }}
         >
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <span
                 className="inline-block text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none mb-2"
-                style={{ backgroundColor: "#111111", color: "#ffffff" }}
+                style={{ backgroundColor: "#1A1A1B", color: "#ffffff", borderRadius: "6px" }}
               >
                 {epic.key}
               </span>
@@ -282,10 +282,10 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
 
             <button
               onClick={onClose}
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[3px] text-xs font-black transition-colors border-2 border-black"
-              style={{ color: "#111111", backgroundColor: "#ffffff" }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#111111"; e.currentTarget.style.color = "#ffffff"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.color = "#111111"; }}
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
+              style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff"; e.currentTarget.style.color = "#717171"; }}
               aria-label="Close panel"
             >
               ✕
@@ -295,7 +295,7 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
           {/* Stats bar + counts */}
           {epic.storyStats && epic.storyStats.total > 0 && (
             <div>
-              <div className="flex w-full h-[6px] rounded-[2px] overflow-hidden mb-2" style={{ border: "1.5px solid #e0e0e0" }}>
+              <div className="flex w-full h-[6px] rounded-full overflow-hidden mb-2" style={{ backgroundColor: "#E5E7EB" }}>
                 {epic.storyStats.done > 0 && (
                   <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: DOT_DONE }} />
                 )}

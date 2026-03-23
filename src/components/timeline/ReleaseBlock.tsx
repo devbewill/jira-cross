@@ -22,9 +22,9 @@ export function releaseStatusOf(r: JiraRelease): ReleaseStatus {
 }
 
 export const RELEASE_STATUS_CFG = {
-  released: { bg: "#57e51e",          text: "#111", border: "#3aad14", label: "Released" },
-  overdue:  { bg: "#FF2D55",          text: "#fff", border: "#cc0033", label: "Overdue"  },
-  upcoming: { bg: "rgb(255,157,225)", text: "#111", border: "#e060a0", label: "Upcoming" },
+  released: { bg: "#DCFCE7", text: "#15803D", border: "#86EFAC", label: "Released" },
+  overdue:  { bg: "#FEE2E2", text: "#B91C1C", border: "#FCA5A5", label: "Overdue"  },
+  upcoming: { bg: "#FEF3E8", text: "#C2590A", border: "#FDBA74", label: "Upcoming" },
 } as const;
 
 function fmtShort(iso: string | null): string {
@@ -74,12 +74,12 @@ export function ReleaseBlock({ release, left, width, laneIndex }: ReleaseBlockPr
           className="flex items-center justify-between gap-2 overflow-hidden"
           style={{ height: `${INFO_H}px`, marginBottom: `${GAP}px` }}
         >
-          <span className="text-[12px] font-black uppercase leading-none tracking-tight truncate min-w-0 text-linear-text">
+          <span className="text-[12px] font-semibold leading-none tracking-tight truncate min-w-0 text-[#1A1A1B]">
             {release.name}
           </span>
           <span
-            className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none flex-shrink-0"
-            style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1.5px solid ${cfg.border}` }}
+            className="text-[8px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none flex-shrink-0"
+            style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}
           >
             {cfg.label}
           </span>
@@ -87,18 +87,18 @@ export function ReleaseBlock({ release, left, width, laneIndex }: ReleaseBlockPr
 
         {/* ── Colored bar ── */}
         <div
-          className="relative w-full rounded-[3px] overflow-hidden transition-all duration-100 group-hover:-translate-x-px group-hover:-translate-y-px"
+          className="relative w-full rounded-lg overflow-hidden transition-all duration-150"
           style={{
             height:          `${BAR_H}px`,
             backgroundColor: cfg.bg,
-            border:          "2px solid #111",
-            boxShadow:       "2px 2px 0 #111",
+            border:          `1px solid ${cfg.border}`,
+            boxShadow:       "0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
           }}
         >
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
             <span
-              className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none"
-              style={{ backgroundColor: "rgba(0,0,0,0.18)", color: cfg.text }}
+              className="text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none"
+              style={{ backgroundColor: "rgba(0,0,0,0.08)", color: cfg.text }}
             >
               {release.projectKey}
             </span>
@@ -106,14 +106,14 @@ export function ReleaseBlock({ release, left, width, laneIndex }: ReleaseBlockPr
             <div className="flex items-center gap-2">
               {label && (
                 <span
-                  className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none"
-                  style={{ backgroundColor: "rgba(0,0,0,0.18)", color: cfg.text }}
+                  className="text-[8px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none"
+                  style={{ backgroundColor: "rgba(0,0,0,0.08)", color: cfg.text }}
                 >
                   {label}
                 </span>
               )}
               {release.releaseDate && (
-                <span className="text-[9px] font-bold opacity-60" style={{ color: cfg.text }}>
+                <span className="text-[9px] font-medium opacity-70" style={{ color: cfg.text }}>
                   {new Date(release.releaseDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
               )}
@@ -129,49 +129,53 @@ export function ReleaseBlock({ release, left, width, laneIndex }: ReleaseBlockPr
           style={{ left: tooltipPos.x + 14, top: tooltipPos.y - 10 }}
         >
           <div
-            className="bg-white rounded-[3px] px-3 py-2.5 flex flex-col gap-1.5"
-            style={{ border: "2px solid #111", boxShadow: "3px 3px 0 #111", minWidth: "200px" }}
+            className="bg-white rounded-xl px-3 py-2.5 flex flex-col gap-1.5"
+            style={{
+              border:    "1px solid #E8E8EF",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)",
+              minWidth:  "200px",
+            }}
           >
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none"
-                style={{ backgroundColor: "#111", color: "#fff" }}
+                className="text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none"
+                style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
               >
                 {release.projectKey}
               </span>
               <span
-                className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none"
-                style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1.5px solid ${cfg.border}` }}
+                className="text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none"
+                style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}
               >
                 {cfg.label}
               </span>
             </div>
 
-            <span className="text-xs font-black uppercase tracking-tight text-[#111]">
+            <span className="text-xs font-semibold text-[#1A1A1B]">
               {release.name}
             </span>
 
             {release.description && (
-              <span className="text-[10px] text-[#888] leading-snug">{release.description}</span>
+              <span className="text-[10px] text-[#717171] leading-snug">{release.description}</span>
             )}
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 mt-1 border-t border-[#f0f0f0] pt-1.5">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 mt-1 pt-1.5" style={{ borderTop: "1px solid #E8E8EF" }}>
               <div>
-                <span className="block text-[8px] font-black uppercase tracking-widest text-[#bbb]">Start</span>
-                <span className="text-[10px] font-bold text-[#111]">{release.startDate ? fmtShort(release.startDate) : "—"}</span>
+                <span className="block text-[8px] font-semibold uppercase tracking-widest text-[#A0A0A8]">Start</span>
+                <span className="text-[10px] font-semibold text-[#1A1A1B]">{release.startDate ? fmtShort(release.startDate) : "—"}</span>
               </div>
               <div>
-                <span className="block text-[8px] font-black uppercase tracking-widest text-[#bbb]">Release</span>
-                <span className="text-[10px] font-bold text-[#111]">{fmtShort(release.releaseDate)}</span>
+                <span className="block text-[8px] font-semibold uppercase tracking-widest text-[#A0A0A8]">Release</span>
+                <span className="text-[10px] font-semibold text-[#1A1A1B]">{fmtShort(release.releaseDate)}</span>
               </div>
             </div>
 
             {label && (
               <span
-                className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-[2px] text-center"
+                className="text-[9px] font-semibold uppercase tracking-widest px-2 py-1 rounded-md text-center"
                 style={{
-                  backgroundColor: status === "overdue" ? "#FF2D55" : "#f0f0f0",
-                  color:           status === "overdue" ? "#fff"    : "#555",
+                  backgroundColor: status === "overdue" ? "#FEE2E2" : "#F4F4F7",
+                  color:           status === "overdue" ? "#B91C1C" : "#4A4A4A",
                 }}
               >
                 {label}

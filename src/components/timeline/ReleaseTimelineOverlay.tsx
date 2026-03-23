@@ -202,19 +202,19 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 z-[300] flex flex-col" style={{ backgroundColor: "#FAFAFA" }}>
+    <div className="fixed inset-0 z-[300] flex flex-col" style={{ backgroundColor: "#F4F4F7" }}>
 
       {/* ── Top header bar ──────────────────────────────────────────────────── */}
       <div
         className="flex-shrink-0 flex items-center gap-4 px-6 py-4 flex-wrap"
-        style={{ borderBottom: "3px solid #111", backgroundColor: "#fff" }}
+        style={{ borderBottom: "1px solid #E8E8EF", backgroundColor: "#fff" }}
       >
         {/* Title */}
         <div className="flex-shrink-0">
-          <h2 className="text-xl font-black uppercase tracking-tight text-[#111]">
+          <h2 className="text-lg font-bold text-[#1A1A1B]">
             Timeline Rilasci
           </h2>
-          <p className="text-[11px] text-[#888] font-medium mt-0.5">
+          <p className="text-[11px] text-[#A0A0A8] font-medium mt-0.5">
             Tutti i rilasci pianificati, ordinati sulla timeline per data
           </p>
         </div>
@@ -223,20 +223,22 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
 
         {!loading && !error && (
           <>
-            {/* Scale buttons */}
-            <div className="flex gap-1">
+            {/* Scale buttons — pill group */}
+            <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "#F4F4F7" }}>
               {SCALES.map((s) => {
                 const active = scale === s.key;
                 return (
                   <button
                     key={s.key}
                     onClick={() => changeScale(s.key)}
-                    className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-[3px] transition-all"
-                    style={{
-                      border:          "2px solid #111",
-                      backgroundColor: active ? "#111" : "#fff",
-                      color:           active ? "#fff" : "#111",
-                      boxShadow:       active ? "2px 2px 0 #111" : "none",
+                    className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
+                    style={active ? {
+                      backgroundColor: "#fff",
+                      color:           "#1A1A1B",
+                      boxShadow:       "0 1px 3px rgba(0,0,0,0.08)",
+                    } : {
+                      backgroundColor: "transparent",
+                      color:           "#717171",
                     }}
                   >
                     {s.label}
@@ -245,7 +247,7 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
               })}
             </div>
 
-            <div className="w-px h-6 bg-[#e0e0e0]" />
+            <div className="w-px h-6 bg-[#E8E8EF]" />
 
             {/* Status filters */}
             {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
@@ -256,27 +258,33 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
                 <button
                   key={f}
                   onClick={() => setStatusFilter(f)}
-                  className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-[3px] transition-all"
-                  style={{
-                    border:          `2px solid #111`,
-                    backgroundColor: active ? (cfg ? cfg.bg : "#111") : "#fff",
-                    color:           active ? (cfg ? cfg.text : "#fff") : "#111",
-                    boxShadow:       active ? "2px 2px 0 #111" : "none",
+                  className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
+                  style={active ? {
+                    backgroundColor: cfg ? cfg.bg    : "#F28C28",
+                    color:           cfg ? cfg.text  : "#fff",
+                    border:          cfg ? `1px solid ${cfg.border}` : "1px solid #E07A18",
+                    boxShadow:       "0 1px 3px rgba(0,0,0,0.06)",
+                  } : {
+                    backgroundColor: "#fff",
+                    color:           "#717171",
+                    border:          "1px solid #E8E8EF",
                   }}
                 >
-                  {f === "all" ? `All (${count})` : `${f} (${count})`}
+                  {f === "all" ? `All (${count})` : `${RELEASE_STATUS_CFG[f].label} (${count})`}
                 </button>
               );
             })}
 
-            <div className="w-px h-6 bg-[#e0e0e0]" />
+            <div className="w-px h-6 bg-[#E8E8EF]" />
 
             {/* Go to today */}
             {!todayVisible && (
               <button
                 onClick={goToToday}
-                className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-[3px] transition-all"
-                style={{ border: "2px solid #111", backgroundColor: "#111", color: "#fff", boxShadow: "2px 2px 0 #111" }}
+                className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
+                style={{ backgroundColor: "#F28C28", color: "#fff", border: "1px solid #E07A18", boxShadow: "0 1px 4px rgba(242,140,40,0.30)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#E07A18"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#F28C28"; }}
               >
                 → Today
               </button>
@@ -287,10 +295,10 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
         {/* Close */}
         <button
           onClick={onClose}
-          className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-[3px] font-black text-sm"
-          style={{ border: "2px solid #111", color: "#111", backgroundColor: "#fff" }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#111"; e.currentTarget.style.color = "#fff"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff"; e.currentTarget.style.color = "#111"; }}
+          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
+          style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff";    e.currentTarget.style.color = "#717171"; }}
         >
           ✕
         </button>
@@ -300,7 +308,7 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
 
       {loading && (
         <div className="flex-1 flex items-center justify-center">
-          <span className="text-xs font-black uppercase tracking-widest animate-pulse text-[#aaa]">
+          <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-[#A0A0A8]">
             Fetching releases…
           </span>
         </div>
@@ -309,8 +317,8 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
       {error && (
         <div className="flex-1 flex items-center justify-center px-8">
           <div
-            className="p-4 rounded-[3px] text-sm font-bold"
-            style={{ border: "3px solid #FF2D55", backgroundColor: "#fff0f3", color: "#FF2D55" }}
+            className="p-4 rounded-xl text-sm font-semibold"
+            style={{ border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2", color: "#B91C1C" }}
           >
             {error}
           </div>
@@ -319,7 +327,7 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
 
       {!loading && !error && filteredProjects.length === 0 && (
         <div className="flex-1 flex items-center justify-center">
-          <span className="text-xs font-black uppercase tracking-widest text-[#ccc]">
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#A0A0A8]">
             No releases found
           </span>
         </div>
@@ -329,9 +337,9 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
         <div className="flex flex-1 overflow-hidden">
 
           {/* ── Fixed label column ──────────────────────────────────────────── */}
-          <div className="w-56 flex-shrink-0 flex flex-col border-r-2 border-linear-border bg-linear-bg">
+          <div className="w-56 flex-shrink-0 flex flex-col bg-white" style={{ borderRight: "1px solid #E8E8EF" }}>
             {/* Spacer matching date-header height */}
-            <div className="h-10 flex-shrink-0 bg-linear-surface border-b-2 border-linear-border" />
+            <div className="h-10 flex-shrink-0 bg-white" style={{ borderBottom: "1px solid #E8E8EF" }} />
 
             {/* Project labels — vertically synced */}
             <div
@@ -342,19 +350,21 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
               {filteredProjects.map((project, i) => (
                 <div
                   key={project.projectKey}
-                  className="flex flex-col justify-center px-4 py-4 border-b border-linear-border"
-                  style={{ minHeight: `${laneHeights[i]}px` }}
+                  className="flex flex-col justify-center px-4 py-4 transition-colors cursor-default"
+                  style={{ minHeight: `${laneHeights[i]}px`, borderBottom: "1px solid #E8E8EF" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F8F8FB"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
                 >
                   <span
-                    className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px] self-start mb-1"
-                    style={{ backgroundColor: "#111", color: "#fff" }}
+                    className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start mb-1"
+                    style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
                   >
                     {project.projectKey}
                   </span>
-                  <span className="text-[11px] font-black uppercase tracking-tight text-linear-text break-words leading-snug mb-1">
+                  <span className="text-[12px] font-semibold text-[#1A1A1B] break-words leading-snug mb-0.5">
                     {project.projectName}
                   </span>
-                  <span className="text-[10px] text-linear-textDim font-bold tabular-nums">
+                  <span className="text-[11px] text-[#A0A0A8] font-medium tabular-nums">
                     {project.releases.length}{" "}
                     {project.releases.length === 1 ? "release" : "releases"}
                   </span>
@@ -367,7 +377,7 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
           <div className="flex-1 flex flex-col overflow-hidden" ref={containerRef}>
 
             {/* Fixed date header */}
-            <div className="flex-shrink-0 bg-linear-surface border-b-2 border-linear-border z-10">
+            <div className="flex-shrink-0 bg-white z-10" style={{ borderBottom: "1px solid #E8E8EF" }}>
               <div className="overflow-hidden" ref={headerScrollRef} style={{ pointerEvents: "none" }}>
                 <TimelineHeader
                   scale={scale}
@@ -404,8 +414,8 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
                     return (
                       <div
                         key={project.projectKey}
-                        className="relative border-b border-linear-border/30"
-                        style={{ minHeight: `${laneHeights[i]}px` }}
+                        className="relative"
+                        style={{ minHeight: `${laneHeights[i]}px`, borderBottom: "1px solid #E8E8EF" }}
                       >
                         {project.releases.map((release) => {
                           const pos = positions.get(release.id);

@@ -16,9 +16,9 @@ function releaseStatus(r: JiraRelease): "released" | "overdue" | "upcoming" {
 }
 
 const STATUS_CONFIG = {
-  released: { label: "Released",  color: "#57e51e",           textColor: "#111",    border: "#3aad14" },
-  overdue:  { label: "Overdue",   color: "#FF2D55",           textColor: "#fff",    border: "#cc0033" },
-  upcoming: { label: "Upcoming",  color: "rgb(255,157,225)",  textColor: "#111",    border: "#e060a0" },
+  released: { label: "Released", color: "#DCFCE7", textColor: "#15803D", border: "#86EFAC" },
+  overdue:  { label: "Overdue",  color: "#FEE2E2", textColor: "#B91C1C", border: "#FCA5A5" },
+  upcoming: { label: "Upcoming", color: "#FEF3E8", textColor: "#C2590A", border: "#FDBA74" },
 } as const;
 
 function formatDate(iso: string | null): string {
@@ -37,17 +37,17 @@ function daysUntil(iso: string | null): number | null {
 // ─── Issue Stats Bar ──────────────────────────────────────────────────────────
 
 const BAR_COLORS = {
-  done:       "#57e51e",
-  inProgress: "#F5A623",
-  todo:       "#E0E0E0",
+  done:       "#22C55E",
+  inProgress: "#F28C28",
+  todo:       "#E5E7EB",
 };
 
 function IssueStatsBar({ stats, loading }: { stats?: IssueStats; loading: boolean }) {
   if (loading) {
     return (
-      <div className="mt-2 pt-2" style={{ borderTop: "1.5px solid #f0f0f0" }}>
-        <div className="w-full h-1.5 rounded-full bg-[#f0f0f0] animate-pulse" />
-        <div className="mt-1.5 h-2.5 w-24 rounded bg-[#f0f0f0] animate-pulse" />
+      <div className="mt-2 pt-2" style={{ borderTop: "1px solid #E8E8EF" }}>
+        <div className="w-full h-[6px] rounded-full bg-[#E5E7EB] animate-pulse" />
+        <div className="mt-1.5 h-2.5 w-24 rounded-md bg-[#E5E7EB] animate-pulse" />
       </div>
     );
   }
@@ -57,10 +57,10 @@ function IssueStatsBar({ stats, loading }: { stats?: IssueStats; loading: boolea
   const pct = (n: number) => `${((n / stats.total) * 100).toFixed(1)}%`;
 
   return (
-    <div className="mt-2 pt-2" style={{ borderTop: "1.5px solid #f0f0f0" }}>
+    <div className="mt-2 pt-2" style={{ borderTop: "1px solid #E8E8EF" }}>
       {/* Segmented bar */}
       <div
-        className="w-full h-2 rounded-full overflow-hidden flex"
+        className="w-full h-[6px] rounded-full overflow-hidden flex"
         style={{ backgroundColor: BAR_COLORS.todo }}
       >
         {stats.done > 0 && (
@@ -78,20 +78,20 @@ function IssueStatsBar({ stats, loading }: { stats?: IssueStats; loading: boolea
       {/* Legend */}
       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
         {stats.done > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-[#555]">
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-[#555]">
             <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: BAR_COLORS.done }} />
             {stats.done} done
           </span>
         )}
         {stats.inProgress > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-[#555]">
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-[#555]">
             <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: BAR_COLORS.inProgress }} />
             {stats.inProgress} in progress
           </span>
         )}
         {stats.todo > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-[#999]">
-            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: "#bbb" }} />
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-[#A0A0A8]">
+            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: BAR_COLORS.todo }} />
             {stats.todo} to do
           </span>
         )}
@@ -117,17 +117,20 @@ function ReleaseCard({
 
   return (
     <div
-      className="bg-white rounded-[3px] p-4 flex flex-col gap-2"
-      style={{ border: "3px solid #111", boxShadow: "3px 3px 0 #111" }}
+      className="bg-white rounded-xl p-4 flex flex-col gap-2"
+      style={{
+        border:    "1px solid #E8E8EF",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+      }}
     >
       {/* Name + status badge */}
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[13px] font-black uppercase tracking-tight text-[#111] leading-snug">
+        <span className="text-[13px] font-semibold text-[#1A1A1B] leading-snug">
           {release.name}
         </span>
         <span
-          className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px] leading-none flex-shrink-0"
-          style={{ backgroundColor: cfg.color, color: cfg.textColor, border: `1.5px solid ${cfg.border}` }}
+          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none flex-shrink-0"
+          style={{ backgroundColor: cfg.color, color: cfg.textColor, border: `1px solid ${cfg.border}` }}
         >
           {cfg.label}
         </span>
@@ -135,34 +138,34 @@ function ReleaseCard({
 
       {/* Description */}
       {release.description && (
-        <p className="text-[11px] text-[#666] leading-snug">{release.description}</p>
+        <p className="text-[11px] text-[#717171] leading-snug">{release.description}</p>
       )}
 
       {/* Dates grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1">
         <div>
-          <span className="block text-[9px] font-black uppercase tracking-widest text-[#aaa]">Start</span>
-          <span className="text-[11px] font-bold text-[#111]">{formatDate(release.startDate)}</span>
+          <span className="block text-[9px] font-semibold uppercase tracking-widest text-[#A0A0A8]">Start</span>
+          <span className="text-[11px] font-semibold text-[#1A1A1B]">{formatDate(release.startDate)}</span>
         </div>
         <div>
-          <span className="block text-[9px] font-black uppercase tracking-widest text-[#aaa]">Release</span>
-          <span className="text-[11px] font-bold text-[#111]">{formatDate(release.releaseDate)}</span>
+          <span className="block text-[9px] font-semibold uppercase tracking-widest text-[#A0A0A8]">Release</span>
+          <span className="text-[11px] font-semibold text-[#1A1A1B]">{formatDate(release.releaseDate)}</span>
         </div>
       </div>
 
       {/* Countdown / delay */}
       {status === "upcoming" && days !== null && (
         <div
-          className="text-[10px] font-black uppercase tracking-widest mt-1 px-2 py-1 rounded-[2px]"
-          style={{ backgroundColor: "#f5f5f5", color: "#444" }}
+          className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md"
+          style={{ backgroundColor: "#F4F4F7", color: "#4A4A4A" }}
         >
           {days > 0 ? `${days}d to release` : days === 0 ? "Due today" : `${Math.abs(days)}d overdue`}
         </div>
       )}
       {status === "overdue" && days !== null && (
         <div
-          className="text-[10px] font-black uppercase tracking-widest mt-1 px-2 py-1 rounded-[2px]"
-          style={{ backgroundColor: "#FF2D55", color: "#fff" }}
+          className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md"
+          style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
         >
           {Math.abs(days)}d overdue
         </div>
@@ -306,19 +309,19 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
   [projects, statusFilter, search, projectFilter]);
 
   return (
-    <div className="fixed inset-0 z-[300] flex flex-col" style={{ backgroundColor: "#FAFAFA" }}>
+    <div className="fixed inset-0 z-[300] flex flex-col" style={{ backgroundColor: "#F4F4F7" }}>
 
       {/* Header bar */}
       <div
-        className="flex-shrink-0 flex items-center justify-between px-8 py-5 gap-6"
-        style={{ borderBottom: "3px solid #111", backgroundColor: "#fff" }}
+        className="flex-shrink-0 flex items-center justify-between px-8 py-4 gap-6"
+        style={{ borderBottom: "1px solid #E8E8EF", backgroundColor: "#fff" }}
       >
         {/* Title */}
         <div className="flex-shrink-0">
-          <h2 className="text-xl font-black uppercase tracking-tight text-[#111]">
+          <h2 className="text-lg font-bold text-[#1A1A1B]">
             Release Status
           </h2>
-          <p className="text-[11px] text-[#888] font-medium mt-0.5">
+          <p className="text-[11px] text-[#A0A0A8] font-medium mt-0.5">
             All versions across every Jira project — excluding archived
           </p>
         </div>
@@ -333,16 +336,18 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
               placeholder="Search releases…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-[11px] font-bold placeholder:text-[#bbb] placeholder:font-medium outline-none px-3 py-1.5 rounded-[3px] w-48"
-              style={{ border: "2px solid #111", color: "#111", backgroundColor: "#fff" }}
+              className="text-[11px] font-medium placeholder:text-[#A0A0A8] outline-none px-3 py-1.5 rounded-lg w-48 transition-colors"
+              style={{ border: "1px solid #E8E8EF", color: "#1A1A1B", backgroundColor: "#fff" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "#F28C28"; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = "#E8E8EF"; }}
             />
 
             {/* Project dropdown */}
             <select
               value={projectFilter}
               onChange={(e) => setProjectFilter(e.target.value)}
-              className="text-[11px] font-black uppercase tracking-widest outline-none px-3 py-1.5 rounded-[3px] cursor-pointer"
-              style={{ border: "2px solid #111", color: "#111", backgroundColor: "#fff" }}
+              className="text-[11px] font-medium outline-none px-3 py-1.5 rounded-lg cursor-pointer"
+              style={{ border: "1px solid #E8E8EF", color: "#1A1A1B", backgroundColor: "#fff" }}
             >
               <option value="all">All projects</option>
               {projectOptions.map((p) => (
@@ -353,49 +358,58 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
             </select>
 
             {/* Divider */}
-            <div className="w-px h-6 bg-[#e0e0e0]" />
+            <div className="w-px h-6 bg-[#E8E8EF]" />
 
-            {/* View mode toggle */}
-            {(["byProject", "byDate"] as const).map((mode) => {
-              const active = viewMode === mode;
-              const label  = mode === "byProject" ? "By Project" : "By Date";
-              return (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-[3px] transition-all"
-                  style={{
-                    border:          "2px solid #111",
-                    backgroundColor: active ? "#111" : "#fff",
-                    color:           active ? "#fff" : "#111",
-                    boxShadow:       active ? "2px 2px 0 #111" : "none",
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
+            {/* View mode toggle — pill group */}
+            <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "#F4F4F7" }}>
+              {(["byProject", "byDate"] as const).map((mode) => {
+                const active = viewMode === mode;
+                const label  = mode === "byProject" ? "By Project" : "By Date";
+                return (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
+                    style={active ? {
+                      backgroundColor: "#fff",
+                      color:           "#1A1A1B",
+                      boxShadow:       "0 1px 3px rgba(0,0,0,0.08)",
+                    } : {
+                      backgroundColor: "transparent",
+                      color:           "#717171",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
 
             {/* Divider */}
-            <div className="w-px h-6 bg-[#e0e0e0]" />
+            <div className="w-px h-6 bg-[#E8E8EF]" />
 
             {/* Status pills */}
             {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
               const count  = f === "all" ? total : f === "released" ? released : f === "overdue" ? overdue : upcoming;
               const active = statusFilter === f;
+              const cfg    = f !== "all" ? STATUS_CONFIG[f] : null;
               return (
                 <button
                   key={f}
                   onClick={() => setStatusFilter(f)}
-                  className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-[3px] transition-all"
-                  style={{
-                    border:          "2px solid #111",
-                    backgroundColor: active ? "#111" : "#fff",
-                    color:           active ? "#fff" : "#111",
-                    boxShadow:       active ? "2px 2px 0 #111" : "none",
+                  className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
+                  style={active ? {
+                    backgroundColor: cfg ? cfg.color       : "#F28C28",
+                    color:           cfg ? cfg.textColor   : "#fff",
+                    border:          cfg ? `1px solid ${cfg.border}` : "1px solid #E07A18",
+                    boxShadow:       "0 1px 3px rgba(0,0,0,0.06)",
+                  } : {
+                    backgroundColor: "#fff",
+                    color:           "#717171",
+                    border:          "1px solid #E8E8EF",
                   }}
                 >
-                  {f === "all" ? `All (${count})` : `${f} (${count})`}
+                  {f === "all" ? `All (${count})` : `${STATUS_CONFIG[f].label} (${count})`}
                 </button>
               );
             })}
@@ -405,10 +419,10 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
         {/* Close */}
         <button
           onClick={onClose}
-          className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-[3px] font-black text-sm transition-colors"
-          style={{ border: "2px solid #111", color: "#111", backgroundColor: "#fff" }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#111"; e.currentTarget.style.color = "#fff"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff"; e.currentTarget.style.color = "#111"; }}
+          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
+          style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff";    e.currentTarget.style.color = "#717171"; }}
         >
           ✕
         </button>
@@ -419,7 +433,7 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
 
         {loading && (
           <div className="flex items-center justify-center h-48">
-            <span className="text-xs font-black uppercase tracking-widest animate-pulse text-[#aaa]">
+            <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-[#A0A0A8]">
               Fetching releases…
             </span>
           </div>
@@ -427,8 +441,8 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
 
         {error && (
           <div
-            className="p-4 rounded-[3px] text-sm font-bold"
-            style={{ border: "3px solid #FF2D55", backgroundColor: "#fff0f3", color: "#FF2D55" }}
+            className="p-4 rounded-xl text-sm font-semibold"
+            style={{ border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2", color: "#B91C1C" }}
           >
             {error}
           </div>
@@ -436,7 +450,7 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
 
         {!loading && !error && (viewMode === "byProject" ? filtered.length === 0 : flatByDate.length === 0) && (
           <div className="flex items-center justify-center h-48">
-            <span className="text-xs font-black uppercase tracking-widest text-[#ccc]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#A0A0A8]">
               No releases found
             </span>
           </div>
@@ -449,15 +463,15 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
               <section key={project.projectKey}>
                 <div className="flex items-center gap-3 mb-4">
                   <span
-                    className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px]"
-                    style={{ backgroundColor: "#111", color: "#fff" }}
+                    className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md"
+                    style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
                   >
                     {project.projectKey}
                   </span>
-                  <h3 className="text-sm font-black uppercase tracking-tight text-[#111]">
+                  <h3 className="text-sm font-semibold text-[#1A1A1B]">
                     {project.projectName}
                   </h3>
-                  <span className="text-[10px] font-bold text-[#aaa]">
+                  <span className="text-[10px] font-medium text-[#A0A0A8]">
                     {project.releases.length} {project.releases.length === 1 ? "release" : "releases"}
                   </span>
                 </div>
@@ -483,13 +497,13 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
               <section key={group.key}>
                 {/* Month heading */}
                 <div
-                  className="flex items-center gap-4 mb-4 pb-2"
-                  style={{ borderBottom: "3px solid #111" }}
+                  className="flex items-center gap-4 mb-4 pb-3"
+                  style={{ borderBottom: "1px solid #E8E8EF" }}
                 >
-                  <h3 className="text-base font-black uppercase tracking-tight text-[#111]">
+                  <h3 className="text-base font-semibold text-[#1A1A1B]">
                     {group.label}
                   </h3>
-                  <span className="text-[10px] font-bold text-[#aaa]">
+                  <span className="text-[10px] font-medium text-[#A0A0A8]">
                     {group.releases.length} {group.releases.length === 1 ? "release" : "releases"}
                   </span>
                 </div>
@@ -499,8 +513,8 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
                   {group.releases.map((release) => (
                     <div key={release.id} className="flex flex-col gap-1.5">
                       <span
-                        className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[2px] self-start"
-                        style={{ backgroundColor: "#111", color: "#fff" }}
+                        className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start"
+                        style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
                       >
                         {release.projectKey}
                       </span>
