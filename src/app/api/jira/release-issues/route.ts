@@ -10,6 +10,7 @@ interface JiraSearchResponse {
     };
   }>;
   total: number;
+  nextPageToken?: string | null;
 }
 
 /**
@@ -18,7 +19,8 @@ interface JiraSearchResponse {
  * Returns issue counts grouped by fixVersion id and Jira status category.
  * Response: { stats: Record<versionId, IssueStats> }
  *
- * Uses POST /rest/api/3/search/jql (Jira Cloud v3 — the old GET /search is 410 Gone).
+ * Uses POST /rest/api/3/search/jql which is cursor-based (nextPageToken),
+ * NOT offset-based (startAt was invalid and caused 400).
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const projectKey = req.nextUrl.searchParams.get('projectKey');
@@ -47,19 +49,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const statsMap: Record<string, IssueStats> = {};
 
-    let startAt = 0;
-    let total   = Infinity;
+    let nextPageToken: string | null = null;
+    let totalFetched = 0;
+    let firstPage    = true;
 
-    while (startAt < total && startAt < 2000) {
+    while (firstPage || nextPageToken) {
+      firstPage = false;
+
+      const body: Record<string, unknown> = {
+        jql,
+        fields:     ['status', 'fixVersions'],
+        maxResults: 100,
+      };
+      if (nextPageToken) body.nextPageToken = nextPageToken;
+
       const res = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          jql,
-          fields:     ['status', 'fixVersions'],
-          maxResults: 100,
-          startAt,
-        }),
+        body: JSON.stringify(body),
         cache: 'no-store',
       });
 
@@ -70,11 +77,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       const data: JiraSearchResponse = await res.json();
 
-      if (total === Infinity) total = data.total;
       if (data.issues.length === 0) break;
 
       for (const issue of data.issues) {
-        // Jira statusCategory keys: 'new' = To Do, 'indeterminate' = In Progress, 'done' = Done
+        // statusCategory keys: 'new' = To Do · 'indeterminate' = In Progress · 'done' = Done
         const catKey = issue.fields.status?.statusCategory?.key ?? 'new';
 
         for (const fv of issue.fields.fixVersions ?? []) {
@@ -89,7 +95,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         }
       }
 
-      startAt += data.issues.length;
+      totalFetched  += data.issues.length;
+      nextPageToken  = data.nextPageToken ?? null;
+
+      // Safety cap: stop at 2 000 issues per project
+      if (totalFetched >= 2000) break;
     }
 
     const result = { stats: statsMap, fetchedAt: new Date().toISOString(), cacheHit: false };
