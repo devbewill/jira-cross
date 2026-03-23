@@ -134,9 +134,9 @@ export function TimelineContainer({
             <button
               onClick={goToToday}
               className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
-              style={{ backgroundColor: "#F28C28", color: "#fff", boxShadow: "0 1px 4px rgba(242,140,40,0.30)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#E07A18"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#F28C28"; }}
+              style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
             >
               → Today
             </button>

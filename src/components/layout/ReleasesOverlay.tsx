@@ -38,7 +38,7 @@ function daysUntil(iso: string | null): number | null {
 
 const BAR_COLORS = {
   done:       "#22C55E",
-  inProgress: "#F28C28",
+  inProgress: "hsl(43 96% 56%)",
   todo:       "#E5E7EB",
 };
 
@@ -338,7 +338,7 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
               onChange={(e) => setSearch(e.target.value)}
               className="text-[11px] font-medium placeholder:text-[#A0A0A8] outline-none px-3 py-1.5 rounded-lg w-48 transition-colors"
               style={{ border: "1px solid #E8E8EF", color: "#1A1A1B", backgroundColor: "#fff" }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "#F28C28"; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(43 96% 56%)"; }}
               onBlur={(e)  => { e.currentTarget.style.borderColor = "#E8E8EF"; }}
             />
 
@@ -399,9 +399,9 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
                   onClick={() => setStatusFilter(f)}
                   className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
                   style={active ? {
-                    backgroundColor: cfg ? cfg.color       : "#F28C28",
+                    backgroundColor: cfg ? cfg.color       : "hsl(43 96% 56%)",
                     color:           cfg ? cfg.textColor   : "#fff",
-                    border:          cfg ? `1px solid ${cfg.border}` : "1px solid #E07A18",
+                    border:          cfg ? `1px solid ${cfg.border}` : "1px solid hsl(43 96% 46%)",
                     boxShadow:       "0 1px 3px rgba(0,0,0,0.06)",
                   } : {
                     backgroundColor: "#fff",

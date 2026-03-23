@@ -260,9 +260,9 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
                   onClick={() => setStatusFilter(f)}
                   className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
                   style={active ? {
-                    backgroundColor: cfg ? cfg.bg    : "#F28C28",
+                    backgroundColor: cfg ? cfg.bg    : "hsl(43 96% 56%)",
                     color:           cfg ? cfg.text  : "#fff",
-                    border:          cfg ? `1px solid ${cfg.border}` : "1px solid #E07A18",
+                    border:          cfg ? `1px solid ${cfg.border}` : "1px solid hsl(43 96% 46%)",
                     boxShadow:       "0 1px 3px rgba(0,0,0,0.06)",
                   } : {
                     backgroundColor: "#fff",
@@ -282,9 +282,9 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
               <button
                 onClick={goToToday}
                 className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
-                style={{ backgroundColor: "#F28C28", color: "#fff", border: "1px solid #E07A18", boxShadow: "0 1px 4px rgba(242,140,40,0.30)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#E07A18"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#F28C28"; }}
+                style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", border: "1px solid hsl(43 96% 46%)", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
               >
                 → Today
               </button>

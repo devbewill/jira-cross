@@ -28,7 +28,7 @@ export function Header({
             className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: "#FEF3E8" }}
           >
-            <span className="text-lg leading-none" style={{ color: "#F28C28" }}>◈</span>
+            <span className="text-lg leading-none" style={{ color: "hsl(43 96% 56%)" }}>◈</span>
           </div>
 
           <div className="flex flex-col gap-0">
@@ -62,7 +62,7 @@ export function Header({
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#FEF3E8"; e.currentTarget.style.borderColor = "#FDBA74"; e.currentTarget.style.color = "#C2590A"; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff"; e.currentTarget.style.borderColor = "#E8E8EF"; e.currentTarget.style.color = "#4A4A4A"; }}
           >
-            <span style={{ color: "#F28C28" }}>▦</span> Timeline Rilasci
+            <span style={{ color: "hsl(43 96% 56%)" }}>▦</span> Timeline Rilasci
           </button>
 
           <button
@@ -72,16 +72,16 @@ export function Header({
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#FEF3E8"; e.currentTarget.style.borderColor = "#FDBA74"; e.currentTarget.style.color = "#C2590A"; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff"; e.currentTarget.style.borderColor = "#E8E8EF"; e.currentTarget.style.color = "#4A4A4A"; }}
           >
-            <span style={{ color: "#F28C28" }}>◈</span> Status Rilasci
+            <span style={{ color: "hsl(43 96% 56%)" }}>◈</span> Status Rilasci
           </button>
 
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: "#F28C28", color: "#fff", boxShadow: "0 1px 4px rgba(242,140,40,0.30)" }}
-            onMouseEnter={(e) => { if (!isRefreshing) e.currentTarget.style.backgroundColor = "#E07A18"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#F28C28"; }}
+            style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
+            onMouseEnter={(e) => { if (!isRefreshing) e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
           >
             {isRefreshing ? (
               <>

@@ -15,7 +15,7 @@ export const BLOCK_MARGIN = 14;
 
 // ─── HD Mango status colors ───────────────────────────────────────────────────
 export const DOT_DONE        = "#22C55E"; // clean green
-export const DOT_IN_PROGRESS = "#F28C28"; // mango orange
+export const DOT_IN_PROGRESS = "hsl(43 96% 56%)"; // mango orange
 export const DOT_TODO        = "#E5E7EB"; // light gray
 
 function buildSegments(stats: StoryStats): string[] {
