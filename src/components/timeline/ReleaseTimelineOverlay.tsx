@@ -125,11 +125,7 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
   useEffect(() => {
     fetch("/api/jira/releases")
       .then((r) => { if (!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
-      .then((d) => {
-        const projects: ProjectReleases[] = d.projects ?? [];
-        // 🔧 DEBUG — remove this filter to show all projects
-        setAllProjects(projects.filter((p) => p.projectKey === "CEF"));
-      })
+      .then((d) => setAllProjects(d.projects ?? []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
