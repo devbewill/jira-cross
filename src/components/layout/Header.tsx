@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ReleasesOverlay } from "./ReleasesOverlay";
+import { ReleaseTimelineOverlay } from "../timeline/ReleaseTimelineOverlay";
 
 export function Header({
   onRefresh,
@@ -12,7 +13,8 @@ export function Header({
   isRefreshing: boolean;
   cacheHit: boolean;
 }) {
-  const [showReleases, setShowReleases] = useState(false);
+  const [showReleases,         setShowReleases]         = useState(false);
+  const [showReleaseTimeline,  setShowReleaseTimeline]  = useState(false);
 
   return (
     <>
@@ -34,6 +36,17 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-3">
+
+          <button
+            onClick={() => setShowReleaseTimeline(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-[3px] text-xs font-black uppercase tracking-widest transition-colors duration-100"
+            style={{ border: "2px solid #111", backgroundColor: "#fff", color: "#111", boxShadow: "2px 2px 0 #111" }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#111"; e.currentTarget.style.color = "#fff"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff"; e.currentTarget.style.color = "#111"; }}
+          >
+            ▦ Timeline Rilasci
+          </button>
+
           <button
             onClick={() => setShowReleases(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-[3px] text-xs font-black uppercase tracking-widest transition-colors duration-100"
@@ -61,7 +74,8 @@ export function Header({
         </div>
       </header>
 
-      {showReleases && <ReleasesOverlay onClose={() => setShowReleases(false)} />}
+      {showReleases        && <ReleasesOverlay        onClose={() => setShowReleases(false)}        />}
+      {showReleaseTimeline && <ReleaseTimelineOverlay onClose={() => setShowReleaseTimeline(false)} />}
     </>
   );
 }
