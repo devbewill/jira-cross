@@ -22,7 +22,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Works for both next-gen and classic Jira projects
     const jql = `parent = ${epicKey} ORDER BY status ASC, created ASC`;
-    const issues = await client.searchIssues(jql, ['summary', 'status', 'assignee', 'parent']);
+    const issues = await client.searchIssues(jql, ['summary', 'status', 'assignee', 'parent', 'fixVersions']);
 
     const stories: Story[] = issues.map((issue) => ({
       key:            issue.key,
@@ -36,6 +36,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             avatarUrl:   issue.fields.assignee.avatarUrls?.['32x32'] ?? '',
           }
         : null,
+      fixVersions: Array.isArray(issue.fields?.fixVersions)
+        ? issue.fields.fixVersions.map((fv: { id: string; name: string; releaseDate?: string; released?: boolean }) => ({
+            id:          fv.id,
+            name:        fv.name,
+            releaseDate: fv.releaseDate ?? null,
+            released:    fv.released ?? false,
+          }))
+        : [],
     }));
 
     return NextResponse.json({ stories }, { status: 200 });

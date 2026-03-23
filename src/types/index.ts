@@ -33,6 +33,13 @@ export interface ProjectReleases {
   releases: JiraRelease[];
 }
 
+export interface StoryFixVersion {
+  id: string;
+  name: string;
+  releaseDate: string | null;
+  released: boolean;
+}
+
 export interface Story {
   key: string;
   epicKey: string;
@@ -40,6 +47,7 @@ export interface Story {
   status: string;
   statusCategory: 'todo' | 'in-progress' | 'done';
   assignee: { displayName: string; avatarUrl: string } | null;
+  fixVersions?: StoryFixVersion[];
 }
 
 export interface Epic {
