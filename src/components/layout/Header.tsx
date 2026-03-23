@@ -95,8 +95,8 @@ export function Header({
         </div>
       </header>
 
-      {showReleases        && <ReleasesOverlay        onClose={() => setShowReleases(false)}        />}
-      {showReleaseTimeline && <ReleaseTimelineOverlay onClose={() => setShowReleaseTimeline(false)} />}
+      {showReleases        && <ReleasesOverlay        onClose={() => setShowReleases(false)}        onRefresh={onRefresh} isRefreshing={isRefreshing} />}
+      {showReleaseTimeline && <ReleaseTimelineOverlay onClose={() => setShowReleaseTimeline(false)} onRefresh={onRefresh} isRefreshing={isRefreshing} />}
     </>
   );
 }

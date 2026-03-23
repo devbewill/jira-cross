@@ -20,7 +20,9 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ReleaseTimelineOverlayProps {
-  onClose: () => void;
+  onClose:       () => void;
+  onRefresh?:    () => void;
+  isRefreshing?: boolean;
 }
 
 type StatusFilter = "all" | "upcoming" | "overdue" | "released";
@@ -105,14 +107,24 @@ function computeReleaseLaneHeight(
 
 // ─── Overlay ──────────────────────────────────────────────────────────────────
 
-export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps) {
+export function ReleaseTimelineOverlay({ onClose, onRefresh, isRefreshing = false }: ReleaseTimelineOverlayProps) {
   const [allProjects,   setAllProjects]   = useState<ProjectReleases[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState<string | null>(null);
   const [statusFilter,  setStatusFilter]  = useState<StatusFilter>("all");
+  const [fetchKey,      setFetchKey]      = useState(0);
   // Start with a real default so pxPerDay > 0 before the ResizeObserver fires
   const [viewportWidth, setViewportWidth] = useState(1200);
   const [todayVisible,  setTodayVisible]  = useState(true);
+
+  // Re-fetch after sync completes (isRefreshing: true → false)
+  const prevRefreshing = useRef(false);
+  useEffect(() => {
+    if (prevRefreshing.current && !isRefreshing) {
+      setFetchKey((k) => k + 1);
+    }
+    prevRefreshing.current = isRefreshing;
+  }, [isRefreshing]);
 
   // Close on Escape
   useEffect(() => {
@@ -121,14 +133,16 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Fetch releases — DEBUG: filter to CEF only
+  // Fetch releases
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     fetch("/api/jira/releases")
       .then((r) => { if (!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
       .then((d) => setAllProjects(d.projects ?? []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [fetchKey]);
 
   // Timeline scale
   const containerRef = useRef<HTMLDivElement>(null);
@@ -292,16 +306,37 @@ export function ReleaseTimelineOverlay({ onClose }: ReleaseTimelineOverlayProps)
           </>
         )}
 
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
-          style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff";    e.currentTarget.style.color = "#717171"; }}
-        >
-          ✕
-        </button>
+        {/* Sync + Close */}
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
+              onMouseEnter={(e) => { if (!isRefreshing) e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
+            >
+              {isRefreshing ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Syncing…
+                </>
+              ) : (
+                <>⟲ Sync Jira</>
+              )}
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
+            style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff";    e.currentTarget.style.color = "#717171"; }}
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       {/* ── Body ────────────────────────────────────────────────────────────── */}

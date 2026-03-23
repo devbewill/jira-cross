@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { ProjectReleases, JiraRelease, IssueStats } from "@/types";
 
 interface ReleasesOverlayProps {
-  onClose: () => void;
+  onClose:      () => void;
+  onRefresh?:   () => void;
+  isRefreshing?: boolean;
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -179,7 +181,7 @@ function ReleaseCard({
 
 // ─── Overlay ──────────────────────────────────────────────────────────────────
 
-export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
+export function ReleasesOverlay({ onClose, onRefresh, isRefreshing = false }: ReleasesOverlayProps) {
   const [projects,      setProjects]      = useState<ProjectReleases[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState<string | null>(null);
@@ -187,19 +189,31 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
   const [search,        setSearch]        = useState("");
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [viewMode,      setViewMode]      = useState<"byProject" | "byDate">("byProject");
+  const [fetchKey,      setFetchKey]      = useState(0);
 
   // Issue stats: keyed by versionId
   const [statsMap,     setStatsMap]     = useState<Record<string, IssueStats>>({});
   const [statsLoading, setStatsLoading] = useState(false);
 
+  // Re-fetch after sync completes (isRefreshing: true → false)
+  const prevRefreshing = useRef(false);
+  useEffect(() => {
+    if (prevRefreshing.current && !isRefreshing) {
+      setFetchKey((k) => k + 1);
+    }
+    prevRefreshing.current = isRefreshing;
+  }, [isRefreshing]);
+
   // Load releases
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     fetch("/api/jira/releases")
       .then((r) => { if (!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
       .then((d) => setProjects(d.projects ?? []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [fetchKey]);
 
   // After releases load, fetch issue stats for every project in parallel
   useEffect(() => {
@@ -416,16 +430,37 @@ export function ReleasesOverlay({ onClose }: ReleasesOverlayProps) {
           </div>
         )}
 
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
-          style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff";    e.currentTarget.style.color = "#717171"; }}
-        >
-          ✕
-        </button>
+        {/* Sync + Close */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
+              onMouseEnter={(e) => { if (!isRefreshing) e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
+            >
+              {isRefreshing ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Syncing…
+                </>
+              ) : (
+                <>⟲ Sync Jira</>
+              )}
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
+            style={{ border: "1px solid #E8E8EF", color: "#717171", backgroundColor: "#fff" }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F4F4F7"; e.currentTarget.style.color = "#1A1A1B"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#fff";    e.currentTarget.style.color = "#717171"; }}
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       {/* Content */}
