@@ -35,7 +35,7 @@ export function TimelineContainer({
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewportWidth, setViewportWidth]     = useState(0);
   const [todayVisible, setTodayVisible]       = useState(true);
-  const [showReleaseBars, setShowReleaseBars] = useState(true);
+  const [showReleaseBars, setShowReleaseBars] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
