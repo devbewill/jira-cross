@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Epic, StoryStats } from "@/types";
+import { Epic, EpicRelease, StoryStats } from "@/types";
 import { STATUS_COLORS } from "@/lib/utils/status-config";
 import { EpicTooltip } from "./EpicTooltip";
 
@@ -50,18 +50,23 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
   );
 }
 
+// ─── Release marker colors ─────────────────────────────────────────────────────
+const releaseMarkerColor = (r: EpicRelease) =>
+  r.released ? "#22C55E" : r.overdue ? "#EF4444" : "#EC4899";
+
 // ─── Epic block ───────────────────────────────────────────────────────────────
 
 interface EpicBlockProps {
-  epic:      Epic;
-  left:      number;
-  width:     number;
-  laneIndex: number;
-  onClick?:  (epic: Epic) => void;
-  selected?: boolean;
+  epic:            Epic;
+  left:            number;
+  width:           number;
+  laneIndex:       number;
+  onClick?:        (epic: Epic) => void;
+  selected?:       boolean;
+  dateToPosition?: (date: string | null) => number | null;
 }
 
-export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = false }: EpicBlockProps) {
+export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = false, dateToPosition }: EpicBlockProps) {
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const [mounted,    setMounted]    = useState(false);
   useEffect(() => setMounted(true), []);
@@ -71,6 +76,16 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
   const dispWidth = Math.max(width, minWidth);
   const hasStats  = !!(epic.storyStats && epic.storyStats.total > 0);
   const segments  = hasStats ? buildSegments(epic.storyStats!) : [];
+
+  // Release markers: compute position relative to the bar's left edge
+  const releaseMarkers = (epic.releases ?? []).flatMap((rel) => {
+    if (!rel.releaseDate || !dateToPosition) return [];
+    const absX = dateToPosition(rel.releaseDate);
+    if (absX === null) return [];
+    const relX = absX - left;
+    if (relX < 2 || relX > dispWidth - 2) return [];
+    return [{ rel, relX }];
+  });
 
   return (
     <>
@@ -109,6 +124,34 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
               ))}
             </div>
           )}
+
+          {/* Release markers */}
+          {releaseMarkers.map(({ rel, relX }) => {
+            const color = releaseMarkerColor(rel);
+            const label = rel.name.length > 12 ? rel.name.slice(0, 11) + "…" : rel.name;
+            return (
+              <div
+                key={rel.id}
+                className="absolute top-0 h-full pointer-events-none z-20"
+                style={{ left: `${relX}px` }}
+              >
+                {/* Vertical line */}
+                <div className="absolute top-0 bottom-0 w-px" style={{ backgroundColor: color, opacity: 0.9 }} />
+                {/* Dot at top */}
+                <div
+                  className="absolute w-2 h-2 rounded-full -translate-x-[3px]"
+                  style={{ top: "4px", backgroundColor: color }}
+                />
+                {/* Release name label */}
+                <div
+                  className="absolute text-[8px] font-bold leading-none whitespace-nowrap px-1 py-0.5 rounded"
+                  style={{ top: "16px", left: "4px", backgroundColor: color, color: "#fff", opacity: 0.95 }}
+                >
+                  {label}
+                </div>
+              </div>
+            );
+          })}
 
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
             <span className="inline-block text-[9px] font-semibold px-1.5 py-0.5 rounded-md leading-none shrink-0 bg-white/18 text-white">

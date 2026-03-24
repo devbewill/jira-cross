@@ -53,6 +53,14 @@ export interface Story {
   fixVersions?: StoryFixVersion[];
 }
 
+export interface EpicRelease {
+  id: string;
+  name: string;
+  releaseDate: string | null;
+  released: boolean;
+  overdue: boolean;
+}
+
 export interface Epic {
   key: string;
   boardKey: string;
@@ -67,6 +75,7 @@ export interface Epic {
   completedChildCount: number;
   url: string;
   storyStats?: StoryStats;
+  releases?: EpicRelease[];
 }
 
 export interface BoardData {

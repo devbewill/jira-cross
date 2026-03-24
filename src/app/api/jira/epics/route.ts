@@ -54,12 +54,16 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     });
 
     const epicKeys = allEpics.map((e) => e.key);
-    const storyStatsMap = await client.getStoryStatsByEpic(epicKeys);
+    const epicDataMap = await client.getStoryStatsByEpic(epicKeys);
 
-    const allEpicsWithStats = allEpics.map((epic) => ({
-      ...epic,
-      storyStats: storyStatsMap.get(epic.key),
-    }));
+    const allEpicsWithStats = allEpics.map((epic) => {
+      const data = epicDataMap.get(epic.key);
+      return {
+        ...epic,
+        storyStats: data?.stats,
+        releases:   data?.releases ?? [],
+      };
+    });
 
     const uniqueBoards = Array.from(new Set(allEpicsWithStats.map((e) => e.boardKey)));
     const boardsData = groupEpicsByBoard(allEpicsWithStats, uniqueBoards);

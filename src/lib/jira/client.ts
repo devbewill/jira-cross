@@ -1,6 +1,6 @@
 import { JiraSearchResponse, JiraIssueRaw } from './types';
 import { DEFAULT_PAGE_SIZE, MAX_RESULTS } from './queries';
-import { StoryStats } from '@/types';
+import { StoryStats, EpicRelease } from '@/types';
 
 export class JiraClient {
   private baseUrl: string;
@@ -76,40 +76,58 @@ export class JiraClient {
   }
 
   /**
-   * Fetches all child issues belonging to a list of epic keys
-   * in a SINGLE JQL query, then aggregates status counts per epic.
+   * Fetches all child issues belonging to a list of epic keys in a SINGLE JQL query,
+   * then aggregates status counts AND distinct fix versions per epic.
    */
-  async getStoryStatsByEpic(epicKeys: string[]): Promise<Map<string, StoryStats>> {
-    const statsMap = new Map<string, StoryStats>();
-    if (epicKeys.length === 0) return statsMap;
+  async getStoryStatsByEpic(
+    epicKeys: string[],
+  ): Promise<Map<string, { stats: StoryStats; releases: EpicRelease[] }>> {
+    const dataMap = new Map<string, { stats: StoryStats; releases: EpicRelease[] }>();
+    if (epicKeys.length === 0) return dataMap;
 
     epicKeys.forEach((key) => {
-      statsMap.set(key, { done: 0, inProgress: 0, todo: 0, total: 0 });
+      dataMap.set(key, { stats: { done: 0, inProgress: 0, todo: 0, total: 0 }, releases: [] });
     });
 
     const keyList = epicKeys.join(', ');
     const jql = `parent in (${keyList}) ORDER BY status`;
 
     try {
-      const issues = await this.searchIssues(jql, ['status', 'parent']);
+      const issues = await this.searchIssues(jql, ['status', 'parent', 'fixVersions']);
 
       for (const issue of issues) {
         const parentKey: string | undefined = issue.fields?.parent?.key;
         if (!parentKey) continue;
-        const stats = statsMap.get(parentKey);
-        if (!stats) continue;
+        const data = dataMap.get(parentKey);
+        if (!data) continue;
 
+        // Story stats
         const catKey: string = issue.fields?.status?.statusCategory?.key ?? 'new';
-        stats.total++;
-        if (catKey === 'done') stats.done++;
-        else if (catKey === 'indeterminate' || catKey === 'in-progress') stats.inProgress++;
-        else stats.todo++;
+        data.stats.total++;
+        if (catKey === 'done') data.stats.done++;
+        else if (catKey === 'indeterminate' || catKey === 'in-progress') data.stats.inProgress++;
+        else data.stats.todo++;
+
+        // Distinct fix versions
+        const fvs: any[] = issue.fields?.fixVersions ?? [];
+        for (const fv of fvs) {
+          if (!data.releases.find((r) => r.id === fv.id)) {
+            const releaseDate: string | null = fv.releaseDate ?? null;
+            data.releases.push({
+              id:          fv.id,
+              name:        fv.name,
+              releaseDate,
+              released:    fv.released ?? false,
+              overdue:     !fv.released && !!releaseDate && new Date(releaseDate) < new Date(),
+            });
+          }
+        }
       }
     } catch (err) {
       console.warn('[JiraClient] getStoryStatsByEpic failed:', err);
     }
 
-    return statsMap;
+    return dataMap;
   }
 
   async getFields() {

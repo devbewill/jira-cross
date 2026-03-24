@@ -99,6 +99,7 @@ export function SwimLane({
             laneIndex={pos.laneIndex}
             onClick={onSelectEpic}
             selected={selectedEpic?.key === epic.key}
+            dateToPosition={dateToPosition}
           />
         );
       })}
