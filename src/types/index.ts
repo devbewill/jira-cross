@@ -12,6 +12,8 @@ export interface IssueStats {
   inProgress: number;
   todo: number;
   total: number;
+  components?: string[];
+  description?: string;
 }
 
 export interface JiraRelease {
@@ -22,7 +24,7 @@ export interface JiraRelease {
   releaseDate: string | null;
   released: boolean;
   archived: boolean;
-  overdue: boolean;        // releaseDate passed and not yet released
+  overdue: boolean; // releaseDate passed and not yet released
   projectKey: string;
   projectName: string;
 }
@@ -36,6 +38,7 @@ export interface ProjectReleases {
 export interface StoryFixVersion {
   id: string;
   name: string;
+  description?: string;
   releaseDate: string | null;
   released: boolean;
 }
@@ -45,7 +48,7 @@ export interface Story {
   epicKey: string;
   summary: string;
   status: string;
-  statusCategory: 'todo' | 'in-progress' | 'done';
+  statusCategory: "todo" | "in-progress" | "done";
   assignee: { displayName: string; avatarUrl: string } | null;
   fixVersions?: StoryFixVersion[];
 }
@@ -57,7 +60,7 @@ export interface Epic {
   startDate: string | null;
   dueDate: string | null;
   status: string;
-  statusCategory: 'todo' | 'in-progress' | 'done';
+  statusCategory: "todo" | "in-progress" | "done";
   assignee: { displayName: string; avatarUrl: string } | null;
   storyPoints: number | null;
   childIssueCount: number;
@@ -79,7 +82,7 @@ export interface EpicsApiResponse {
 }
 
 // Timeline Scale & Config
-export type TimeScale = 'today' | 'weeks' | 'months' | 'quarters';
+export type TimeScale = "today" | "weeks" | "months" | "quarters";
 
 export interface ScaleConfig {
   /** Pixels per day at this scale */
@@ -91,7 +94,7 @@ export interface ScaleConfig {
   /** Total visible days (computed from the range rule) */
   visibleDays: number;
   /** Tick unit displayed in the header */
-  tickUnit: 'day' | 'month' | 'quarter';
+  tickUnit: "day" | "month" | "quarter";
 }
 
 export interface TimelineConfig {
@@ -105,7 +108,7 @@ export interface TimelineConfig {
   /** Total scrollable width in pixels */
   totalWidth: number;
   /** Tick unit for the header */
-  tickUnit: 'day' | 'month' | 'quarter';
+  tickUnit: "day" | "month" | "quarter";
 }
 
 // Timeline Positioning

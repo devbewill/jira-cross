@@ -189,6 +189,25 @@ function ReleaseCard({
         </p>
       )}
 
+      {/* Components */}
+      {issueStats?.components && issueStats.components.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {issueStats.components.map((component) => (
+            <span
+              key={component}
+              className="text-[9px] font-medium px-2 py-0.5 rounded-md"
+              style={{
+                backgroundColor: "#F4F4F7",
+                color: "#4A4A4A",
+                border: "1px solid #E8E8EF",
+              }}
+            >
+              {component}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Dates grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1">
         <div>
@@ -475,6 +494,7 @@ export function ReleasesOverlay({
                 border: "1px solid #E8E8EF",
                 color: "#1A1A1B",
                 backgroundColor: "#fff",
+                maxWidth: "200px",
               }}
             >
               <option value="all">All projects</option>
