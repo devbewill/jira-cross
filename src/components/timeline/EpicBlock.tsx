@@ -184,7 +184,7 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
               {epic.key}
             </span>
             {epic.dueDate && (
-              <span className={`text-[9px] leading-none shrink-0 ${isOverdue ? "font-bold text-red-400" : "font-bold text-white"}`}>
+              <span className={`text-[9px] leading-none shrink-0 ${isOverdue ? "font-bold text-red-400" : "font-bold text-black"}`}>
                 {new Date(epic.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               </span>
             )}
