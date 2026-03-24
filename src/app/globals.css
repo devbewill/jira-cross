@@ -6,8 +6,8 @@ body {
   height: 100%;
   padding: 0;
   margin: 0;
-  background-color: #F4F4F7;
-  color: #1A1A1B;
+  background-color: var(--color-linear-bg);
+  color: var(--color-linear-text);
   font-family: "Inter", "Montserrat", system-ui, -apple-system, sans-serif;
   font-weight: 400;
   line-height: 1.6;
@@ -21,19 +21,23 @@ body {
   flex-direction: column;
 }
 
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background-color: #D0D0DC;
+  background-color: var(--color-linear-borderHover);
   border-radius: 99px;
-  border: 1px solid #F4F4F7;
+  border: 1px solid var(--color-linear-bg);
   background-clip: content-box;
 }
-::-webkit-scrollbar-thumb:hover { background-color: #A0A0A8; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--color-linear-textDim); }
+
+/* ─── Timeline grid background ───────────────────────────────────────────── */
 
 .bg-timeline-grid {
-  background-color: #F4F4F7;
+  background-color: var(--color-linear-bg);
   background-image: linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
   background-size: var(--grid-size, 40px) 100%;
 }

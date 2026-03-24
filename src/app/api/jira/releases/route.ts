@@ -45,7 +45,6 @@ export async function GET(): Promise<NextResponse> {
 
   const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
 
-  // Check cache first
   const cacheKey = 'releases:all-projects';
   const cached = releasesCache.get(cacheKey);
   if (cached) {
@@ -53,37 +52,22 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
-    // 1. Fetch ALL projects with pagination (50 per page until isLast)
+    // Fetch ALL projects with pagination
     const projects: JiraProject[] = [];
     let startAt = 0;
     let isLast  = false;
 
-    let totalDeclared = 0;
     while (!isLast) {
       const url = `${base}/rest/api/3/project/search?maxResults=100&startAt=${startAt}&orderBy=key`;
       const res = await jiraFetch<{ values: JiraProject[]; isLast: boolean; total: number }>(url, auth);
-      if (startAt === 0) totalDeclared = res.total ?? 0;
       projects.push(...(res.values ?? []));
       isLast  = res.isLast ?? true;
       startAt += res.values?.length ?? 0;
     }
 
-    console.log(`[releases] Jira declares ${totalDeclared} total projects, fetched ${projects.length}`);
-    console.log(`[releases] project keys:`, projects.map(p => p.key).join(', '));
-
-    // Debug: try to fetch PILLARS directly regardless of project search
-    try {
-      const pillars = await jiraFetch<JiraProject>(`${base}/rest/api/3/project/PILLARS`, auth);
-      const inList  = projects.some(p => p.key === 'PILLARS');
-      console.log(`[releases] PILLARS direct fetch OK: id=${pillars.id}, in project list: ${inList}`);
-    } catch (e) {
-      console.log(`[releases] PILLARS direct fetch failed:`, e instanceof Error ? e.message : e);
-    }
-
-    // 2. Fetch versions for every project in parallel
+    // Fetch versions for every project in parallel
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const CUTOFF = new Date('2025-01-01');
 
     const projectReleases: ProjectReleases[] = (
@@ -96,21 +80,16 @@ export async function GET(): Promise<NextResponse> {
             const releases: JiraRelease[] = versions
               .filter((v) => !v.archived)
               .filter((v) => {
-                // Keep only releases with at least one date >= 2025-01-01.
-                // Releases with no dates at all are kept (likely undated future releases).
                 const relDate   = v.releaseDate ?? v.userReleaseDate;
                 const startDate = v.startDate   ?? v.userStartDate;
-                if (!relDate && !startDate) return true; // no dates → keep
+                if (!relDate && !startDate) return true;
                 const relD   = relDate   ? new Date(relDate)   : null;
                 const startD = startDate ? new Date(startDate) : null;
                 return (relD && relD >= CUTOFF) || (startD && startD >= CUTOFF);
               })
               .map((v) => {
                 const relDate = v.releaseDate ?? v.userReleaseDate ?? null;
-                const isOverdue =
-                  !v.released &&
-                  !!relDate &&
-                  new Date(relDate) < today;
+                const isOverdue = !v.released && !!relDate && new Date(relDate) < today;
 
                 return {
                   id:          v.id,
@@ -126,8 +105,6 @@ export async function GET(): Promise<NextResponse> {
                 };
               });
 
-            // Skip projects with no active versions
-            console.log(`[releases] ${project.key}: ${versions.length} total versions, ${releases.length} active (non-archived)`);
             if (releases.length === 0) return null;
 
             return {
@@ -135,9 +112,7 @@ export async function GET(): Promise<NextResponse> {
               projectName: project.name,
               releases,
             };
-          } catch (err) {
-            // Non-fatal: some projects may deny version access
-            console.log(`[releases] ${project.key}: skipped — ${err instanceof Error ? err.message : err}`);
+          } catch {
             return null;
           }
         }),

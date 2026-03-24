@@ -43,23 +43,28 @@ export class MemoryCache<T> {
 
 // ─── Singleton instances via globalThis ───────────────────────────────────────
 // Next.js dev mode hot-reloads individual route modules, which would create a
-// fresh MemoryCache instance per route — meaning refresh/route.ts would clear a
-// different object than epics/route.ts reads from.
-// Anchoring the instances on globalThis ensures every module always gets the
-// exact same object, surviving hot reloads.
+// fresh MemoryCache instance per route. Anchoring on globalThis ensures every
+// module always gets the same object, surviving hot reloads.
 
 const g = globalThis as typeof globalThis & {
   __epicsCache?: MemoryCache<any>;
   __releasesCache?: MemoryCache<any>;
   __releaseIssuesCache?: MemoryCache<any>;
+  __storiesCache?: MemoryCache<any>;
+  __versionIssuesCache?: MemoryCache<any>;
 };
 
 const TTL = parseInt(process.env.JIRA_CACHE_TTL || '300', 10);
+const SHORT_TTL = 60; // 60s for detail panels (stories, version-issues)
 
 if (!g.__epicsCache)         g.__epicsCache         = new MemoryCache<any>(TTL);
 if (!g.__releasesCache)      g.__releasesCache      = new MemoryCache<any>(TTL);
 if (!g.__releaseIssuesCache) g.__releaseIssuesCache = new MemoryCache<any>(TTL);
+if (!g.__storiesCache)       g.__storiesCache       = new MemoryCache<any>(SHORT_TTL);
+if (!g.__versionIssuesCache) g.__versionIssuesCache = new MemoryCache<any>(SHORT_TTL);
 
 export const epicsCache         = g.__epicsCache;
 export const releasesCache      = g.__releasesCache;
 export const releaseIssuesCache = g.__releaseIssuesCache;
+export const storiesCache       = g.__storiesCache;
+export const versionIssuesCache = g.__versionIssuesCache;

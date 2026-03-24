@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { JiraClient } from '@/lib/jira/client';
 import { Story } from '@/types';
+import { versionIssuesCache } from '@/lib/cache/memory-cache';
 
 /**
  * GET /api/jira/version-issues?versionId=12345
  *
  * Returns all issues belonging to a specific fixVersion (Jira release).
- * No cache — always fetches live so the panel reflects the latest state.
+ * Short-lived cache (60s) to avoid re-fetching when clicking the same release.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const versionId = request.nextUrl.searchParams.get('versionId');
@@ -20,6 +21,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   if (!base || !email || !apiToken) {
     return NextResponse.json({ error: 'Missing Jira credentials' }, { status: 500 });
+  }
+
+  const cacheKey = `version-issues:${versionId}`;
+  const cached = versionIssuesCache.get(cacheKey);
+  if (cached) {
+    return NextResponse.json({ ...cached, cacheHit: true }, { status: 200 });
   }
 
   try {
@@ -49,7 +56,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         : [],
     }));
 
-    return NextResponse.json({ stories }, { status: 200 });
+    const result = { stories, fetchedAt: new Date().toISOString(), cacheHit: false };
+    versionIssuesCache.set(cacheKey, result);
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error('[version-issues]', versionId, error);
     return NextResponse.json(

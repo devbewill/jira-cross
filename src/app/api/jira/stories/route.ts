@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { JiraClient } from "@/lib/jira/client";
 import { Story } from "@/types";
+import { storiesCache } from "@/lib/cache/memory-cache";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const epicKey = request.nextUrl.searchParams.get("epicKey");
@@ -23,10 +24,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  // Short-lived cache (60s) to avoid re-fetching when clicking the same epic
+  const cacheKey = `stories:${epicKey}`;
+  const cached = storiesCache.get(cacheKey);
+  if (cached) {
+    return NextResponse.json({ ...cached, cacheHit: true }, { status: 200 });
+  }
+
   try {
     const client = new JiraClient(jiraBaseUrl, jiraEmail, jiraApiToken);
 
-    // Works for both next-gen and classic Jira projects
     const jql = `parent = ${epicKey} ORDER BY status ASC, created ASC`;
     const issues = await client.searchIssues(jql, [
       "summary",
@@ -68,7 +75,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         : [],
     }));
 
-    return NextResponse.json({ stories }, { status: 200 });
+    const result = { stories, fetchedAt: new Date().toISOString(), cacheHit: false };
+    storiesCache.set(cacheKey, result);
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("Error fetching stories:", error);
     return NextResponse.json(

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { ProjectReleases, JiraRelease, IssueStats } from "@/types";
+import { releaseStatusOf, RELEASE_STATUS_CONFIG, STATUS_COLORS } from "@/lib/utils/status-config";
+import { formatDate, daysUntilDate } from "@/lib/utils/format-utils";
 
 interface ReleasesOverlayProps {
   onClose: () => void;
@@ -9,70 +11,14 @@ interface ReleasesOverlayProps {
   isRefreshing?: boolean;
 }
 
-// ─── Status helpers ───────────────────────────────────────────────────────────
-
-function releaseStatus(r: JiraRelease): "released" | "overdue" | "upcoming" {
-  if (r.released) return "released";
-  if (r.overdue) return "overdue";
-  return "upcoming";
-}
-
-const STATUS_CONFIG = {
-  released: {
-    label: "Released",
-    color: "#DCFCE7",
-    textColor: "#15803D",
-    border: "#86EFAC",
-  },
-  overdue: {
-    label: "Overdue",
-    color: "#FEE2E2",
-    textColor: "#B91C1C",
-    border: "#FCA5A5",
-  },
-  upcoming: {
-    label: "Upcoming",
-    color: "#FEF3E8",
-    textColor: "#C2590A",
-    border: "#FDBA74",
-  },
-} as const;
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function daysUntil(iso: string | null): number | null {
-  if (!iso) return null;
-  const diff = new Date(iso).getTime() - Date.now();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
 // ─── Issue Stats Bar ──────────────────────────────────────────────────────────
 
-const BAR_COLORS = {
-  done: "#22C55E",
-  inProgress: "hsl(43 96% 56%)",
-  todo: "#E5E7EB",
-};
-
-function IssueStatsBar({
-  stats,
-  loading,
-}: {
-  stats?: IssueStats;
-  loading: boolean;
-}) {
+function IssueStatsBar({ stats, loading }: { stats?: IssueStats; loading: boolean }) {
   if (loading) {
     return (
-      <div className="mt-2 pt-2" style={{ borderTop: "1px solid #E8E8EF" }}>
-        <div className="w-full h-[6px] rounded-full bg-[#E5E7EB] animate-pulse" />
-        <div className="mt-1.5 h-2.5 w-24 rounded-md bg-[#E5E7EB] animate-pulse" />
+      <div className="mt-2 pt-2 border-t border-linear-border">
+        <div className="w-full h-[6px] rounded-full bg-linear-todo animate-pulse" />
+        <div className="mt-1.5 h-2.5 w-24 rounded-md bg-linear-todo animate-pulse" />
       </div>
     );
   }
@@ -82,58 +28,32 @@ function IssueStatsBar({
   const pct = (n: number) => `${((n / stats.total) * 100).toFixed(1)}%`;
 
   return (
-    <div className="mt-2 pt-2" style={{ borderTop: "1px solid #E8E8EF" }}>
-      {/* Segmented bar */}
-      <div
-        className="w-full h-[6px] rounded-full overflow-hidden flex"
-        style={{ backgroundColor: BAR_COLORS.todo }}
-      >
+    <div className="mt-2 pt-2 border-t border-linear-border">
+      <div className="w-full h-[6px] rounded-full overflow-hidden flex bg-linear-todo">
         {stats.done > 0 && (
-          <div
-            style={{
-              width: pct(stats.done),
-              backgroundColor: BAR_COLORS.done,
-              flexShrink: 0,
-            }}
-          />
+          <div style={{ width: pct(stats.done), backgroundColor: STATUS_COLORS.done, flexShrink: 0 }} />
         )}
         {stats.inProgress > 0 && (
-          <div
-            style={{
-              width: pct(stats.inProgress),
-              backgroundColor: BAR_COLORS.inProgress,
-              flexShrink: 0,
-            }}
-          />
+          <div style={{ width: pct(stats.inProgress), backgroundColor: STATUS_COLORS.inProgress, flexShrink: 0 }} />
         )}
       </div>
 
-      {/* Legend */}
       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
         {stats.done > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-[#555]">
-            <span
-              className="w-2 h-2 rounded-full inline-block flex-shrink-0"
-              style={{ backgroundColor: BAR_COLORS.done }}
-            />
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-textMuted">
+            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-done" />
             {stats.done} done
           </span>
         )}
         {stats.inProgress > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-[#555]">
-            <span
-              className="w-2 h-2 rounded-full inline-block flex-shrink-0"
-              style={{ backgroundColor: BAR_COLORS.inProgress }}
-            />
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-textMuted">
+            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-accent" />
             {stats.inProgress} in progress
           </span>
         )}
         {stats.todo > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-[#A0A0A8]">
-            <span
-              className="w-2 h-2 rounded-full inline-block flex-shrink-0"
-              style={{ backgroundColor: BAR_COLORS.todo }}
-            />
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-textDim">
+            <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-todo" />
             {stats.todo} to do
           </span>
         )}
@@ -153,30 +73,20 @@ function ReleaseCard({
   issueStats?: IssueStats;
   statsLoading: boolean;
 }) {
-  const status = releaseStatus(release);
-  const cfg = STATUS_CONFIG[status];
-  const days = daysUntil(release.releaseDate);
+  const status = releaseStatusOf(release);
+  const cfg = RELEASE_STATUS_CONFIG[status];
+  const days = daysUntilDate(release.releaseDate);
 
   return (
-    <div
-      className="bg-white rounded-xl p-4 flex flex-col gap-2"
-      style={{
-        border: "1px solid #E8E8EF",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
-      }}
-    >
+    <div className="bg-linear-surface rounded-xl p-4 flex flex-col gap-2 border border-linear-border shadow-linear-sm">
       {/* Name + status badge */}
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[13px] font-semibold text-[#1A1A1B] leading-snug">
+        <span className="text-[13px] font-semibold text-linear-text leading-snug">
           {release.name}
         </span>
         <span
           className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none flex-shrink-0"
-          style={{
-            backgroundColor: cfg.color,
-            color: cfg.textColor,
-            border: `1px solid ${cfg.border}`,
-          }}
+          style={{ backgroundColor: cfg.bgHex, color: cfg.textHex, border: `1px solid ${cfg.borderHex}` }}
         >
           {cfg.label}
         </span>
@@ -184,7 +94,7 @@ function ReleaseCard({
 
       {/* Description */}
       {release.description && (
-        <p className="text-[11px] text-[#717171] leading-snug">
+        <p className="text-[11px] text-linear-textSecondary leading-snug">
           {release.description}
         </p>
       )}
@@ -195,12 +105,7 @@ function ReleaseCard({
           {issueStats.components.map((component) => (
             <span
               key={component}
-              className="text-[9px] font-medium px-2 py-0.5 rounded-md"
-              style={{
-                backgroundColor: "#F4F4F7",
-                color: "#4A4A4A",
-                border: "1px solid #E8E8EF",
-              }}
+              className="text-[9px] font-medium px-2 py-0.5 rounded-md bg-linear-bg text-linear-textMuted border border-linear-border"
             >
               {component}
             </span>
@@ -211,46 +116,27 @@ function ReleaseCard({
       {/* Dates grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1">
         <div>
-          <span className="block text-[9px] font-semibold uppercase tracking-widest text-[#A0A0A8]">
-            Start
-          </span>
-          <span className="text-[11px] font-semibold text-[#1A1A1B]">
-            {formatDate(release.startDate)}
-          </span>
+          <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">Start</span>
+          <span className="text-[11px] font-semibold text-linear-text">{formatDate(release.startDate)}</span>
         </div>
         <div>
-          <span className="block text-[9px] font-semibold uppercase tracking-widest text-[#A0A0A8]">
-            Release
-          </span>
-          <span className="text-[11px] font-semibold text-[#1A1A1B]">
-            {formatDate(release.releaseDate)}
-          </span>
+          <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">Release</span>
+          <span className="text-[11px] font-semibold text-linear-text">{formatDate(release.releaseDate)}</span>
         </div>
       </div>
 
       {/* Countdown / delay */}
       {status === "upcoming" && days !== null && (
-        <div
-          className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md"
-          style={{ backgroundColor: "#F4F4F7", color: "#4A4A4A" }}
-        >
-          {days > 0
-            ? `${days}d to release`
-            : days === 0
-              ? "Due today"
-              : `${Math.abs(days)}d overdue`}
+        <div className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md bg-linear-bg text-linear-textMuted">
+          {days > 0 ? `${days}d to release` : days === 0 ? "Due today" : `${Math.abs(days)}d overdue`}
         </div>
       )}
       {status === "overdue" && days !== null && (
-        <div
-          className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md"
-          style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
-        >
+        <div className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md bg-red-100 text-red-700">
           {Math.abs(days)}d overdue
         </div>
       )}
 
-      {/* Issue stats bar */}
       <IssueStatsBar stats={issueStats} loading={statsLoading} />
     </div>
   );
@@ -266,19 +152,15 @@ export function ReleasesOverlay({
   const [projects, setProjects] = useState<ProjectReleases[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "released" | "overdue" | "upcoming"
-  >("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "released" | "overdue" | "upcoming">("all");
   const [search, setSearch] = useState("");
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"byProject" | "byDate">("byProject");
   const [fetchKey, setFetchKey] = useState(0);
 
-  // Issue stats: keyed by versionId
   const [statsMap, setStatsMap] = useState<Record<string, IssueStats>>({});
   const [statsLoading, setStatsLoading] = useState(false);
 
-  // Re-fetch after sync completes (isRefreshing: true → false)
   const prevRefreshing = useRef(false);
   useEffect(() => {
     if (prevRefreshing.current && !isRefreshing) {
@@ -287,7 +169,6 @@ export function ReleasesOverlay({
     prevRefreshing.current = isRefreshing;
   }, [isRefreshing]);
 
-  // Load releases
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -301,7 +182,6 @@ export function ReleasesOverlay({
       .finally(() => setLoading(false));
   }, [fetchKey]);
 
-  // After releases load, fetch issue stats for every project in parallel
   useEffect(() => {
     if (projects.length === 0) return;
     setStatsLoading(true);
@@ -312,9 +192,7 @@ export function ReleasesOverlay({
       uniqueKeys.map((key) =>
         fetch(`/api/jira/release-issues?projectKey=${key}`)
           .then((r) => (r.ok ? r.json() : { stats: {} }))
-          .then(
-            (data: { stats: Record<string, IssueStats> }) => data.stats ?? {},
-          ),
+          .then((data: { stats: Record<string, IssueStats> }) => data.stats ?? {}),
       ),
     )
       .then((results) => {
@@ -329,11 +207,8 @@ export function ReleasesOverlay({
       .finally(() => setStatsLoading(false));
   }, [projects]);
 
-  // Close on Escape
   const handleKey = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    },
+    (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); },
     [onClose],
   );
   useEffect(() => {
@@ -341,62 +216,38 @@ export function ReleasesOverlay({
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey]);
 
-  // Counts (on raw data, unaffected by search/project filter)
   const total = projects.reduce((s, p) => s + p.releases.length, 0);
-  const released = projects.reduce(
-    (s, p) => s + p.releases.filter((r) => r.released).length,
-    0,
-  );
-  const overdue = projects.reduce(
-    (s, p) => s + p.releases.filter((r) => r.overdue && !r.released).length,
-    0,
-  );
+  const released = projects.reduce((s, p) => s + p.releases.filter((r) => r.released).length, 0);
+  const overdue = projects.reduce((s, p) => s + p.releases.filter((r) => r.overdue && !r.released).length, 0);
   const upcoming = total - released - overdue;
 
-  // Sorted project list for the dropdown
   const projectOptions = useMemo(
-    () =>
-      [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
+    () => [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
     [projects],
   );
 
-  // Flat list sorted by releaseDate descending (furthest future first)
   const flatByDate = useMemo(() => {
     const all = projects
       .filter((p) => projectFilter === "all" || p.projectKey === projectFilter)
       .flatMap((p) =>
         p.releases
           .filter((r) => {
-            const matchStatus =
-              statusFilter === "all" || releaseStatus(r) === statusFilter;
-            const matchSearch =
-              search.trim() === "" ||
-              r.name.toLowerCase().includes(search.trim().toLowerCase());
+            const matchStatus = statusFilter === "all" || releaseStatusOf(r) === statusFilter;
+            const matchSearch = search.trim() === "" || r.name.toLowerCase().includes(search.trim().toLowerCase());
             return matchStatus && matchSearch;
           })
-          .map((r) => ({
-            ...r,
-            projectKey: p.projectKey,
-            projectName: p.projectName,
-          })),
+          .map((r) => ({ ...r, projectKey: p.projectKey, projectName: p.projectName })),
       );
     return all.sort((a, b) => {
       if (!a.releaseDate && !b.releaseDate) return 0;
       if (!a.releaseDate) return 1;
       if (!b.releaseDate) return -1;
-      return (
-        new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
-      );
+      return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
     });
   }, [projects, statusFilter, search, projectFilter]);
 
-  // Group flatByDate by year-month, preserving order (desc)
   const byMonth = useMemo(() => {
-    const groups: {
-      key: string;
-      label: string;
-      releases: typeof flatByDate;
-    }[] = [];
+    const groups: { key: string; label: string; releases: typeof flatByDate }[] = [];
     const seen = new Map<string, number>();
     for (const r of flatByDate) {
       let key: string;
@@ -404,10 +255,7 @@ export function ReleasesOverlay({
       if (r.releaseDate) {
         const d = new Date(r.releaseDate);
         key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        label = d.toLocaleDateString("it-IT", {
-          month: "long",
-          year: "numeric",
-        });
+        label = d.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
         label = label.charAt(0).toUpperCase() + label.slice(1);
       } else {
         key = "no-date";
@@ -422,21 +270,15 @@ export function ReleasesOverlay({
     return groups;
   }, [flatByDate]);
 
-  // Apply all three filters: status + search + project
   const filtered = useMemo(
     () =>
       projects
-        .filter(
-          (p) => projectFilter === "all" || p.projectKey === projectFilter,
-        )
+        .filter((p) => projectFilter === "all" || p.projectKey === projectFilter)
         .map((p) => ({
           ...p,
           releases: p.releases.filter((r) => {
-            const matchStatus =
-              statusFilter === "all" || releaseStatus(r) === statusFilter;
-            const matchSearch =
-              search.trim() === "" ||
-              r.name.toLowerCase().includes(search.trim().toLowerCase());
+            const matchStatus = statusFilter === "all" || releaseStatusOf(r) === statusFilter;
+            const matchSearch = search.trim() === "" || r.name.toLowerCase().includes(search.trim().toLowerCase());
             return matchStatus && matchSearch;
           }),
         }))
@@ -445,19 +287,13 @@ export function ReleasesOverlay({
   );
 
   return (
-    <div
-      className="fixed inset-0 z-[300] flex flex-col"
-      style={{ backgroundColor: "#F4F4F7" }}
-    >
+    <div className="fixed inset-0 z-[300] flex flex-col bg-linear-bg">
       {/* Header bar */}
-      <div
-        className="flex-shrink-0 flex items-center justify-between px-8 py-4 gap-6"
-        style={{ borderBottom: "1px solid #E8E8EF", backgroundColor: "#fff" }}
-      >
+      <div className="flex-shrink-0 flex items-center justify-between px-8 py-4 gap-6 border-b border-linear-border bg-linear-surface">
         {/* Title */}
         <div className="flex-shrink-0">
-          <h2 className="text-lg font-bold text-[#1A1A1B]">Release Status</h2>
-          <p className="text-[11px] text-[#A0A0A8] font-medium mt-0.5">
+          <h2 className="text-lg font-bold text-linear-text">Release Status</h2>
+          <p className="text-[11px] text-linear-textDim font-medium mt-0.5">
             All versions across every Jira project — excluding archived
           </p>
         </div>
@@ -465,37 +301,19 @@ export function ReleasesOverlay({
         {/* Controls */}
         {!loading && !error && (
           <div className="flex items-center gap-3 flex-1 justify-center flex-wrap">
-            {/* Search input */}
             <input
               type="text"
               placeholder="Search releases…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-[11px] font-medium placeholder:text-[#A0A0A8] outline-none px-3 py-1.5 rounded-lg w-48 transition-colors"
-              style={{
-                border: "1px solid #E8E8EF",
-                color: "#1A1A1B",
-                backgroundColor: "#fff",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "hsl(43 96% 56%)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#E8E8EF";
-              }}
+              className="text-[11px] font-medium placeholder:text-linear-textDim outline-none px-3 py-1.5 rounded-lg w-48 transition-colors border border-linear-border text-linear-text bg-linear-surface focus:border-linear-accent"
             />
 
-            {/* Project dropdown */}
             <select
               value={projectFilter}
               onChange={(e) => setProjectFilter(e.target.value)}
-              className="text-[11px] font-medium outline-none px-3 py-1.5 rounded-lg cursor-pointer"
-              style={{
-                border: "1px solid #E8E8EF",
-                color: "#1A1A1B",
-                backgroundColor: "#fff",
-                maxWidth: "200px",
-              }}
+              className="text-[11px] font-medium outline-none px-3 py-1.5 rounded-lg cursor-pointer border border-linear-border text-linear-text bg-linear-surface"
+              style={{ maxWidth: "200px" }}
             >
               <option value="all">All projects</option>
               {projectOptions.map((p) => (
@@ -505,14 +323,10 @@ export function ReleasesOverlay({
               ))}
             </select>
 
-            {/* Divider */}
-            <div className="w-px h-6 bg-[#E8E8EF]" />
+            <div className="w-px h-6 bg-linear-border" />
 
-            {/* View mode toggle — pill group */}
-            <div
-              className="flex gap-1 p-1 rounded-lg"
-              style={{ backgroundColor: "#F4F4F7" }}
-            >
+            {/* View mode toggle */}
+            <div className="flex gap-1 p-1 rounded-lg bg-linear-bg">
               {(["byProject", "byDate"] as const).map((mode) => {
                 const active = viewMode === mode;
                 const label = mode === "byProject" ? "By Project" : "By Date";
@@ -520,19 +334,11 @@ export function ReleasesOverlay({
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode)}
-                    className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
-                    style={
+                    className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150 ${
                       active
-                        ? {
-                            backgroundColor: "#fff",
-                            color: "#1A1A1B",
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                          }
-                        : {
-                            backgroundColor: "transparent",
-                            color: "#717171",
-                          }
-                    }
+                        ? "bg-linear-surface text-linear-text shadow-btn-active"
+                        : "bg-transparent text-linear-textSecondary"
+                    }`}
                   >
                     {label}
                   </button>
@@ -540,46 +346,26 @@ export function ReleasesOverlay({
               })}
             </div>
 
-            {/* Divider */}
-            <div className="w-px h-6 bg-[#E8E8EF]" />
+            <div className="w-px h-6 bg-linear-border" />
 
             {/* Status pills */}
             {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
-              const count =
-                f === "all"
-                  ? total
-                  : f === "released"
-                    ? released
-                    : f === "overdue"
-                      ? overdue
-                      : upcoming;
+              const count = f === "all" ? total : f === "released" ? released : f === "overdue" ? overdue : upcoming;
               const active = statusFilter === f;
-              const cfg = f !== "all" ? STATUS_CONFIG[f] : null;
+              const cfg = f !== "all" ? RELEASE_STATUS_CONFIG[f] : null;
               return (
                 <button
                   key={f}
                   onClick={() => setStatusFilter(f)}
-                  className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
-                  style={
+                  className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 border ${
                     active
-                      ? {
-                          backgroundColor: cfg ? cfg.color : "hsl(43 96% 56%)",
-                          color: cfg ? cfg.textColor : "#fff",
-                          border: cfg
-                            ? `1px solid ${cfg.border}`
-                            : "1px solid hsl(43 96% 46%)",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                        }
-                      : {
-                          backgroundColor: "#fff",
-                          color: "#717171",
-                          border: "1px solid #E8E8EF",
-                        }
-                  }
+                      ? cfg
+                        ? `${cfg.bg} ${cfg.text} ${cfg.border} shadow-linear-xs`
+                        : "bg-linear-accent text-white border-linear-accentHover shadow-linear-xs"
+                      : "bg-linear-surface text-linear-textSecondary border-linear-border"
+                  }`}
                 >
-                  {f === "all"
-                    ? `All (${count})`
-                    : `${STATUS_CONFIG[f].label} (${count})`}
+                  {f === "all" ? `All (${count})` : `${RELEASE_STATUS_CONFIG[f].label} (${count})`}
                 </button>
               );
             })}
@@ -592,19 +378,7 @@ export function ReleasesOverlay({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: "#0b1c3b",
-                color: "#fff",
-                boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)",
-              }}
-              onMouseEnter={(e) => {
-                if (!isRefreshing)
-                  e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)";
-              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed bg-[#0b1c3b] text-white shadow-accent-glow hover:bg-[#1e395c]"
             >
               {isRefreshing ? (
                 <>
@@ -618,20 +392,7 @@ export function ReleasesOverlay({
           )}
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
-            style={{
-              border: "1px solid #E8E8EF",
-              color: "#717171",
-              backgroundColor: "#fff",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#F4F4F7";
-              e.currentTarget.style.color = "#1A1A1B";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#fff";
-              e.currentTarget.style.color = "#717171";
-            }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors border border-linear-border text-linear-textSecondary bg-linear-surface hover:bg-linear-bg hover:text-linear-text"
           >
             ✕
           </button>
@@ -642,119 +403,75 @@ export function ReleasesOverlay({
       <div className="flex-1 overflow-y-auto px-8 py-6">
         {loading && (
           <div className="flex items-center justify-center h-48">
-            <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-[#A0A0A8]">
+            <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-linear-textDim">
               Fetching releases…
             </span>
           </div>
         )}
 
         {error && (
-          <div
-            className="p-4 rounded-xl text-sm font-semibold"
-            style={{
-              border: "1px solid #FCA5A5",
-              backgroundColor: "#FEF2F2",
-              color: "#B91C1C",
-            }}
-          >
+          <div className="p-4 rounded-xl text-sm font-semibold border border-red-300 bg-red-50 text-red-700">
             {error}
           </div>
         )}
 
-        {!loading &&
-          !error &&
-          (viewMode === "byProject"
-            ? filtered.length === 0
-            : flatByDate.length === 0) && (
-            <div className="flex items-center justify-center h-48">
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#A0A0A8]">
-                No releases found
-              </span>
-            </div>
-          )}
+        {!loading && !error && (viewMode === "byProject" ? filtered.length === 0 : flatByDate.length === 0) && (
+          <div className="flex items-center justify-center h-48">
+            <span className="text-xs font-semibold uppercase tracking-widest text-linear-textDim">
+              No releases found
+            </span>
+          </div>
+        )}
 
         {/* By Project view */}
-        {!loading &&
-          !error &&
-          viewMode === "byProject" &&
-          filtered.length > 0 && (
-            <div className="space-y-10">
-              {filtered.map((project) => (
-                <section key={project.projectKey}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span
-                      className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md"
-                      style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
-                    >
-                      {project.projectKey}
-                    </span>
-                    <h3 className="text-sm font-semibold text-[#1A1A1B]">
-                      {project.projectName}
-                    </h3>
-                    <span className="text-[10px] font-medium text-[#A0A0A8]">
-                      {project.releases.length}{" "}
-                      {project.releases.length === 1 ? "release" : "releases"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {project.releases.map((release) => (
-                      <ReleaseCard
-                        key={release.id}
-                        release={release}
-                        issueStats={statsMap[release.id]}
-                        statsLoading={statsLoading}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          )}
+        {!loading && !error && viewMode === "byProject" && filtered.length > 0 && (
+          <div className="space-y-10">
+            {filtered.map((project) => (
+              <section key={project.projectKey}>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-linear-text text-white">
+                    {project.projectKey}
+                  </span>
+                  <h3 className="text-sm font-semibold text-linear-text">{project.projectName}</h3>
+                  <span className="text-[10px] font-medium text-linear-textDim">
+                    {project.releases.length} {project.releases.length === 1 ? "release" : "releases"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {project.releases.map((release) => (
+                    <ReleaseCard key={release.id} release={release} issueStats={statsMap[release.id]} statsLoading={statsLoading} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
 
-        {/* By Date view — grouped by month, sorted releaseDate desc */}
-        {!loading &&
-          !error &&
-          viewMode === "byDate" &&
-          flatByDate.length > 0 && (
-            <div className="space-y-10">
-              {byMonth.map((group) => (
-                <section key={group.key}>
-                  {/* Month heading */}
-                  <div
-                    className="flex items-center gap-4 mb-4 pb-3"
-                    style={{ borderBottom: "1px solid #E8E8EF" }}
-                  >
-                    <h3 className="text-base font-semibold text-[#1A1A1B]">
-                      {group.label}
-                    </h3>
-                    <span className="text-[10px] font-medium text-[#A0A0A8]">
-                      {group.releases.length}{" "}
-                      {group.releases.length === 1 ? "release" : "releases"}
-                    </span>
-                  </div>
-
-                  {/* Releases grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {group.releases.map((release) => (
-                      <div key={release.id} className="flex flex-col gap-1.5">
-                        <span
-                          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start"
-                          style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
-                        >
-                          {release.projectKey}
-                        </span>
-                        <ReleaseCard
-                          release={release}
-                          issueStats={statsMap[release.id]}
-                          statsLoading={statsLoading}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          )}
+        {/* By Date view */}
+        {!loading && !error && viewMode === "byDate" && flatByDate.length > 0 && (
+          <div className="space-y-10">
+            {byMonth.map((group) => (
+              <section key={group.key}>
+                <div className="flex items-center gap-4 mb-4 pb-3 border-b border-linear-border">
+                  <h3 className="text-base font-semibold text-linear-text">{group.label}</h3>
+                  <span className="text-[10px] font-medium text-linear-textDim">
+                    {group.releases.length} {group.releases.length === 1 ? "release" : "releases"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {group.releases.map((release) => (
+                    <div key={release.id} className="flex flex-col gap-1.5">
+                      <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start bg-linear-text text-white">
+                        {release.projectKey}
+                      </span>
+                      <ReleaseCard release={release} issueStats={statsMap[release.id]} statsLoading={statsLoading} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

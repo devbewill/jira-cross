@@ -2,76 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Epic, Story, StoryFixVersion } from "@/types";
-import { DOT_DONE, DOT_IN_PROGRESS, DOT_TODO } from "./EpicBlock";
+import { STATUS_COLORS, fixVersionStatusOf, RELEASE_STATUS_CONFIG, statusDotColor } from "@/lib/utils/status-config";
+import { formatDate } from "@/lib/utils/format-utils";
 
 interface StoryPanelProps {
   epic: Epic;
   onClose: () => void;
 }
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
-function statusDotColor(cat: string): string {
-  if (cat === "done") return DOT_DONE;
-  if (cat === "indeterminate" || cat === "in-progress") return DOT_IN_PROGRESS;
-  return DOT_TODO;
-}
-
-const DOT_BORDER = "none";
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-type ReleaseStatus = "released" | "overdue" | "upcoming";
-
-function releaseStatus(fv: StoryFixVersion): ReleaseStatus {
-  if (fv.released) return "released";
-  if (fv.releaseDate && new Date(fv.releaseDate) < new Date()) return "overdue";
-  return "upcoming";
-}
-
-const STATUS_CFG = {
-  released: {
-    label: "Released",
-    bg: "#DCFCE7",
-    text: "#15803D",
-    border: "#86EFAC",
-  },
-  overdue: {
-    label: "Overdue",
-    bg: "#FEE2E2",
-    text: "#B91C1C",
-    border: "#FCA5A5",
-  },
-  upcoming: {
-    label: "Upcoming",
-    bg: "#FEF3E8",
-    text: "#C2590A",
-    border: "#FDBA74",
-  },
-} as const;
-
-function daysLabel(fv: StoryFixVersion): string | null {
-  if (!fv.releaseDate || fv.released) return null;
-  const diff = Math.ceil(
-    (new Date(fv.releaseDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-  );
-  if (diff > 0) return `${diff}d to release`;
-  if (diff === 0) return "Due today";
-  return `${Math.abs(diff)}d overdue`;
-}
-
 // ─── Release group data structure ─────────────────────────────────────────────
 
 interface ReleaseGroup {
-  key: string; // versionId or 'no-release'
-  fv: StoryFixVersion | null; // null for "no release" bucket
+  key: string;
+  fv: StoryFixVersion | null;
   stories: Story[];
 }
 
@@ -81,7 +24,6 @@ function groupStoriesByRelease(stories: Story[]): ReleaseGroup[] {
   for (const story of stories) {
     const fv = story.fixVersions?.[0] ?? null;
     const key = fv?.id ?? "no-release";
-
     if (!map.has(key)) {
       map.set(key, { key, fv, stories: [] });
     }
@@ -89,21 +31,14 @@ function groupStoriesByRelease(stories: Story[]): ReleaseGroup[] {
   }
 
   const groups = [...map.values()];
-
-  // Sort: upcoming by releaseDate asc → overdue → released → no-date → no-release
   groups.sort((a, b) => {
     if (a.key === "no-release" && b.key !== "no-release") return 1;
     if (b.key === "no-release" && a.key !== "no-release") return -1;
     if (a.key === "no-release" && b.key === "no-release") return 0;
-
     if (!a.fv?.releaseDate && !b.fv?.releaseDate) return 0;
     if (!a.fv?.releaseDate) return 1;
     if (!b.fv?.releaseDate) return -1;
-
-    return (
-      new Date(a.fv.releaseDate).getTime() -
-      new Date(b.fv.releaseDate).getTime()
-    );
+    return new Date(a.fv.releaseDate).getTime() - new Date(b.fv.releaseDate).getTime();
   });
 
   return groups;
@@ -111,75 +46,43 @@ function groupStoriesByRelease(stories: Story[]): ReleaseGroup[] {
 
 // ─── Release group (accordion) ────────────────────────────────────────────────
 
-function ReleaseGroupSection({
-  group,
-  showHeader,
-}: {
-  group: ReleaseGroup;
-  showHeader: boolean;
-}) {
-  // Default closed — only the "no release" bucket starts open (it's not a real release)
+function ReleaseGroupSection({ group, showHeader }: { group: ReleaseGroup; showHeader: boolean }) {
   const [open, setOpen] = useState(false);
 
   if (!showHeader) {
-    // Single group with no named release — just render items flat
     return (
       <ul>
         {group.stories.map((story, si) => (
-          <StoryRow
-            key={story.key}
-            story={story}
-            isLast={si === group.stories.length - 1}
-          />
+          <StoryRow key={story.key} story={story} isLast={si === group.stories.length - 1} />
         ))}
       </ul>
     );
   }
 
   if (!group.fv) {
-    // "No release" bucket — simple, always open
     return (
-      <section style={{ borderBottom: "1px solid rgb(96 96 96)" }}>
+      <section className="border-b border-neutral-500">
         <button
-          className="w-full sticky top-0 z-10 px-5 py-2 flex items-center gap-2 flex-wrap text-left transition-all duration-200"
-          style={{
-            backgroundColor: "#E5E7EB",
-          }}
+          className="w-full sticky top-0 z-10 px-5 py-2 flex items-center gap-3 text-left transition-all duration-200 bg-linear-todo"
           onClick={() => setOpen((o) => !o)}
         >
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Chevron */}
-            <span
-              className="transition-transform duration-200 text-[10px] font-bold"
-              style={{
-                display: "inline-block",
-                transform: open ? "rotate(90deg)" : "rotate(0deg)",
-                color: open ? "#1A1A1B" : "#666666",
-              }}
-            >
-              ▶
-            </span>
-
-            <span
-              className="text-[11px] font-bold uppercase tracking-widest leading-none"
-              style={{ color: "#717171" }}
-            >
-              No release
-            </span>
-            <span className="ml-auto flex items-center gap-2 text-[9px] font-semibold text-[#555555]">
-              {group.stories.length}{" "}
-              {group.stories.length === 1 ? "item" : "items"}
-            </span>
-          </div>
+          <span
+            className="transition-transform duration-200 text-[10px] font-bold flex-shrink-0"
+            style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", color: open ? "var(--color-linear-text)" : "#666666" }}
+          >
+            ▶
+          </span>
+          <span className="flex-1 text-[11px] font-bold uppercase tracking-widest leading-none text-linear-textSecondary">
+            No release
+          </span>
+          <span className="flex-shrink-0 text-[9px] font-semibold text-linear-textMuted">
+            {group.stories.length} {group.stories.length === 1 ? "item" : "items"}
+          </span>
         </button>
         {open && (
-          <ul style={{ backgroundColor: "#FAFAFB" }}>
+          <ul className="bg-linear-surfaceHover">
             {group.stories.map((story, si) => (
-              <StoryRow
-                key={story.key}
-                story={story}
-                isLast={si === group.stories.length - 1}
-              />
+              <StoryRow key={story.key} story={story} isLast={si === group.stories.length - 1} />
             ))}
           </ul>
         )}
@@ -187,85 +90,56 @@ function ReleaseGroupSection({
     );
   }
 
-  const status = releaseStatus(group.fv);
-  const cfg = STATUS_CFG[status];
-  const label = daysLabel(group.fv);
+  const status = fixVersionStatusOf(group.fv);
+  const cfg = RELEASE_STATUS_CONFIG[status];
 
   return (
-    <section style={{ borderBottom: "1px solid rgb(96 96 96)" }}>
-      {/* Accordion header */}
+    <section className="border-b border-neutral-500">
       <button
-        className="w-full sticky top-0 z-10 px-5 py-2.5 flex items-center gap-2 flex-wrap text-left transition-all duration-200"
-        style={{
-          backgroundColor: cfg.bg,
-        }}
+        className="w-full sticky top-0 z-10 px-5 py-2.5 flex items-center gap-3 text-left transition-all duration-200"
+        style={{ backgroundColor: cfg.bgHex }}
         onClick={() => setOpen((o) => !o)}
       >
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Chevron */}
-          <span
-            className="transition-transform duration-200 text-[10px] font-bold"
-            style={{
-              display: "inline-block",
-              transform: open ? "rotate(90deg)" : "rotate(0deg)",
-              color: open ? "#1A1A1B" : "#666666",
-            }}
-          >
-            ▶
+        {/* Arrow — always anchored left, aligned to first text line */}
+        <span
+          className="transition-transform duration-200 text-[10px] font-bold flex-shrink-0 self-start mt-[2px]"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", color: open ? "var(--color-linear-text)" : "#666666" }}
+        >
+          ▶
+        </span>
+
+        {/* Title + description column */}
+        <div className="flex flex-col flex-1 min-w-0">
+          <span className="text-[11px] font-bold uppercase tracking-widest leading-none text-linear-text">
+            {group.fv.name}
           </span>
+          {group.fv.description && (
+            <p className="text-[12px] text-linear-textMuted leading-snug mt-0.5">
+              {group.fv.description}
+            </p>
+          )}
+        </div>
 
-          {/* Release name and description */}
-          <div className="flex flex-col">
-            <span
-              className="text-[11px] font-bold uppercase tracking-widest leading-none"
-              style={{ color: "#1A1A1B" }}
-            >
-              {group.fv.name}
-            </span>
-
-            {/* Description */}
-            {group.fv.description && (
-              <p className="text-[12px] text-[#555555] leading-snug">
-                {group.fv.description}
-              </p>
-            )}
-          </div>
-
-          {/* Release date */}
+        {/* Date + status + count — right side, stacked vertically */}
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
           {group.fv.releaseDate && (
-            <span
-              className="text-[11px] font-medium px-2 py-0.5 rounded-md leading-none"
-              style={{ backgroundColor: "#ffffff", color: "#1A1A1B" }}
-            >
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md leading-none bg-linear-surface text-linear-text">
               {formatDate(group.fv.releaseDate)}
             </span>
           )}
-
-          {/* Status */}
-          <span
-            className="text-[9px] font-bold uppercase tracking-widest leading-none"
-            style={{ color: cfg.text }}
-          >
+          <span className="text-[9px] font-bold uppercase tracking-widest leading-none" style={{ color: cfg.textHex }}>
             {cfg.label}
           </span>
-
-          {/* Count */}
-          <span className="ml-auto flex items-center gap-2 text-[9px] font-semibold text-[#555555]">
-            {group.stories.length}{" "}
-            {group.stories.length === 1 ? "item" : "items"}
+          <span className="text-[9px] font-semibold text-linear-textMuted">
+            {group.stories.length} {group.stories.length === 1 ? "item" : "items"}
           </span>
         </div>
       </button>
 
-      {/* Collapsible content */}
       {open && (
-        <ul style={{ backgroundColor: "#FAFAFB" }}>
+        <ul className="bg-linear-surfaceHover">
           {group.stories.map((story, si) => (
-            <StoryRow
-              key={story.key}
-              story={story}
-              isLast={si === group.stories.length - 1}
-            />
+            <StoryRow key={story.key} story={story} isLast={si === group.stories.length - 1} />
           ))}
         </ul>
       )}
@@ -278,37 +152,25 @@ function ReleaseGroupSection({
 function StoryRow({ story, isLast }: { story: Story; isLast: boolean }) {
   return (
     <li
-      className="flex items-start gap-3 px-5 py-3.5 transition-colors cursor-default"
-      style={{
-        borderBottom: isLast ? "none" : "1px solid #f0f0f0",
-        backgroundColor: "transparent",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fafafa")}
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
+      className={`flex items-start gap-3 px-5 py-3.5 transition-colors cursor-default hover:bg-linear-surfaceHover ${
+        isLast ? "" : "border-b border-linear-border/50"
+      }`}
     >
-      {/* Status dot */}
       <span
         className="w-[10px] h-[10px] rounded-full flex-shrink-0 mt-[2px]"
-        style={{
-          backgroundColor: statusDotColor(story.statusCategory),
-          border: DOT_BORDER,
-        }}
+        style={{ backgroundColor: statusDotColor(story.statusCategory) }}
       />
-
       <div className="flex-1 min-w-0">
-        <span className="block text-[9px] font-black uppercase tracking-widest text-[#aaa] mb-0.5">
+        <span className="block text-[9px] font-black uppercase tracking-widest text-linear-textDim mb-0.5">
           {story.key}
         </span>
-        <span className="block text-xs font-bold leading-snug text-[#111]">
+        <span className="block text-xs font-bold leading-snug text-linear-text">
           {story.summary}
         </span>
-        <span className="block text-[9px] font-bold mt-0.5 uppercase tracking-wider text-[#bbb]">
+        <span className="block text-[9px] font-bold mt-0.5 uppercase tracking-wider text-linear-textDim">
           {story.status}
         </span>
       </div>
-
       {story.assignee?.avatarUrl && (
         <img
           src={story.assignee.avatarUrl}
@@ -344,71 +206,30 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
   }, [epic.key]);
 
   const groups = useMemo(() => groupStoriesByRelease(stories), [stories]);
-
-  // Count how many stories actually have a release assigned
-  const withRelease = stories.filter(
-    (s) => (s.fixVersions?.length ?? 0) > 0,
-  ).length;
+  const withRelease = stories.filter((s) => (s.fixVersions?.length ?? 0) > 0).length;
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-[200]"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 z-[200]" onClick={onClose} aria-hidden="true" />
 
-      {/* Panel */}
       <div
-        className="fixed right-0 top-0 h-full z-[201] flex flex-col"
-        style={{
-          width: "450px",
-          backgroundColor: "#ffffff",
-          borderLeft: "1px solid #E8E8EF",
-          boxShadow: "-4px 0 24px rgba(0,0,0,0.08)",
-          animation: "slideInRight 0.15s ease-out",
-          overflow: "hidden",
-        }}
+        className="fixed right-0 top-0 h-full z-[201] flex flex-col w-[450px] bg-linear-surface border-l border-linear-border shadow-panel animate-slide-in-right overflow-hidden"
       >
         {/* Header */}
-        <div
-          className="flex-shrink-0 px-5 pt-5 pb-4"
-          style={{ borderBottom: "1px solid #E8E8EF" }}
-        >
+        <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-linear-border">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
-              <span
-                className="inline-block text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-[2px] leading-none mb-2"
-                style={{
-                  backgroundColor: "#1A1A1B",
-                  color: "#ffffff",
-                  borderRadius: "6px",
-                }}
-              >
+              <span className="inline-block text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none mb-2 bg-linear-text text-white">
                 {epic.key}
               </span>
-              <h2 className="text-sm font-black uppercase leading-snug tracking-tight text-[#111111] truncate">
+              <h2 className="text-sm font-black uppercase leading-snug tracking-tight text-linear-text truncate">
                 {epic.summary}
               </h2>
             </div>
 
             <button
               onClick={onClose}
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors"
-              style={{
-                border: "1px solid #E8E8EF",
-                color: "#717171",
-                backgroundColor: "#fff",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#F4F4F7";
-                e.currentTarget.style.color = "#1A1A1B";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#fff";
-                e.currentTarget.style.color = "#717171";
-              }}
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors border border-linear-border text-linear-textSecondary bg-linear-surface hover:bg-linear-bg hover:text-linear-text"
               aria-label="Close panel"
             >
               ✕
@@ -418,66 +239,30 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
           {/* Stats bar + counts */}
           {epic.storyStats && epic.storyStats.total > 0 && (
             <div>
-              <div
-                className="flex w-full h-[6px] rounded-full overflow-hidden mb-2"
-                style={{ backgroundColor: "#E5E7EB" }}
-              >
+              <div className="flex w-full h-[6px] rounded-full overflow-hidden mb-2 bg-linear-todo">
                 {epic.storyStats.done > 0 && (
-                  <div
-                    style={{
-                      width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`,
-                      backgroundColor: DOT_DONE,
-                    }}
-                  />
+                  <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: STATUS_COLORS.done }} />
                 )}
                 {epic.storyStats.inProgress > 0 && (
-                  <div
-                    style={{
-                      width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`,
-                      backgroundColor: DOT_IN_PROGRESS,
-                    }}
-                  />
+                  <div style={{ width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`, backgroundColor: STATUS_COLORS.inProgress }} />
                 )}
                 {epic.storyStats.todo > 0 && (
-                  <div
-                    style={{
-                      width: `${(epic.storyStats.todo / epic.storyStats.total) * 100}%`,
-                      backgroundColor: DOT_TODO,
-                    }}
-                  />
+                  <div style={{ width: `${(epic.storyStats.todo / epic.storyStats.total) * 100}%`, backgroundColor: STATUS_COLORS.todo }} />
                 )}
               </div>
 
               <div className="flex gap-3 text-[10px] font-bold">
                 <span className="flex items-center gap-1">
-                  <span
-                    className="w-[10px] h-[10px] rounded-full flex-shrink-0"
-                    style={{ backgroundColor: DOT_DONE, border: DOT_BORDER }}
-                  />
-                  <span className="text-[#111]">
-                    {epic.storyStats.done} done
-                  </span>
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-linear-done" />
+                  <span className="text-linear-text">{epic.storyStats.done} done</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span
-                    className="w-[10px] h-[10px] rounded-full flex-shrink-0"
-                    style={{
-                      backgroundColor: DOT_IN_PROGRESS,
-                      border: DOT_BORDER,
-                    }}
-                  />
-                  <span className="text-[#111]">
-                    {epic.storyStats.inProgress} in progress
-                  </span>
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-linear-accent" />
+                  <span className="text-linear-text">{epic.storyStats.inProgress} in progress</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span
-                    className="w-[10px] h-[10px] rounded-full flex-shrink-0"
-                    style={{ backgroundColor: DOT_TODO, border: DOT_BORDER }}
-                  />
-                  <span className="text-[#888]">
-                    {epic.storyStats.todo} todo
-                  </span>
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-linear-todo" />
+                  <span className="text-linear-textDim">{epic.storyStats.todo} todo</span>
                 </span>
               </div>
             </div>
@@ -485,11 +270,11 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
 
           {!loading && !error && (
             <div className="flex items-center gap-3 mt-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#aaa]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-linear-textDim">
                 {stories.length} {stories.length === 1 ? "story" : "stories"}
               </p>
               {withRelease > 0 && (
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#aaa]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-linear-textDim">
                   · {withRelease} in a release
                 </p>
               )}
@@ -498,18 +283,10 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
         </div>
 
         {/* Story list */}
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{
-            scrollbarWidth: "thin",
-            scrollbarColor: "#e0e0e0 transparent",
-          }}
-        >
+        <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#e0e0e0 transparent" }}>
           {loading && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-bold uppercase tracking-widest animate-pulse text-[#aaa]">
-                Loading…
-              </span>
+              <span className="text-xs font-bold uppercase tracking-widest animate-pulse text-linear-textDim">Loading…</span>
             </div>
           )}
 
@@ -521,9 +298,7 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
 
           {!loading && !error && stories.length === 0 && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#ccc]">
-                No stories found
-              </span>
+              <span className="text-xs font-bold uppercase tracking-widest text-linear-textDim">No stories found</span>
             </div>
           )}
 
@@ -531,32 +306,17 @@ export function StoryPanel({ epic, onClose }: StoryPanelProps) {
             <div>
               {groups.some((g) => g.fv !== null) && (
                 <div className="px-5 py-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#aaa]">
-                    RILASCI:
-                  </span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-linear-textDim">RILASCI:</span>
                 </div>
               )}
               {groups.map((group) => {
                 const showHeader = groups.length > 1 || group.fv !== null;
-                return (
-                  <ReleaseGroupSection
-                    key={group.key}
-                    group={group}
-                    showHeader={showHeader}
-                  />
-                );
+                return <ReleaseGroupSection key={group.key} group={group} showHeader={showHeader} />;
               })}
             </div>
           )}
         </div>
       </div>
-
-      <style>{`
-        @keyframes slideInRight {
-          from { transform: translateX(100%); }
-          to   { transform: translateX(0); }
-        }
-      `}</style>
     </>
   );
 }

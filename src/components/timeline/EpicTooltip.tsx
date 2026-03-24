@@ -2,7 +2,7 @@
 
 import { useRef, useLayoutEffect, useState } from "react";
 import { Epic } from "@/types";
-import { DOT_DONE, DOT_IN_PROGRESS, DOT_TODO } from "./EpicBlock";
+import { STATUS_COLORS } from "@/lib/utils/status-config";
 
 interface EpicTooltipProps {
   epic: Epic;
@@ -31,95 +31,85 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
   return (
     <div
       ref={ref}
-      className="fixed z-[9999] pointer-events-none rounded-xl text-sm"
+      className="fixed z-[9999] pointer-events-none rounded-xl text-sm bg-linear-surface border border-linear-border shadow-popover p-4"
       style={{
-        visibility:      pos ? "visible" : "hidden",
-        top:             pos ? `${pos.top}px`  : `${y}px`,
-        left:            pos ? `${pos.left}px` : `${x}px`,
-        minWidth:        "280px",
-        backgroundColor: "#ffffff",
-        border:          "1px solid #E8E8EF",
-        boxShadow:       "0 8px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)",
-        padding:         "16px",
+        visibility: pos ? "visible" : "hidden",
+        top:        pos ? `${pos.top}px`  : `${y}px`,
+        left:       pos ? `${pos.left}px` : `${x}px`,
+        minWidth:   "280px",
       }}
     >
       {/* Key + Status */}
       <div className="flex items-center gap-2 mb-3">
-        <span
-          className="text-[10px] font-semibold px-2 py-0.5 rounded-md leading-none"
-          style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
-        >
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md leading-none bg-linear-text text-white">
           {epic.key}
         </span>
-        <span
-          className="text-[10px] font-medium px-2 py-0.5 rounded-md"
-          style={{ backgroundColor: "#F4F4F7", color: "#717171" }}
-        >
+        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-linear-bg text-linear-textSecondary">
           {epic.status}
         </span>
       </div>
 
       {/* Summary */}
-      <div className="mb-4 text-[13px] font-semibold leading-snug" style={{ color: "#1A1A1B" }}>
+      <div className="mb-4 text-[13px] font-semibold leading-snug text-linear-text">
         {epic.summary}
       </div>
 
       {/* Meta */}
-      <div className="text-xs space-y-2" style={{ borderTop: "1px solid #E8E8EF", paddingTop: "12px" }}>
+      <div className="text-xs space-y-2 border-t border-linear-border pt-3">
         {epic.startDate && (
           <div className="flex justify-between items-center">
-            <span style={{ color: "#717171" }}>Start</span>
-            <span className="font-semibold" style={{ color: "#1A1A1B" }}>{epic.startDate}</span>
+            <span className="text-linear-textSecondary">Start</span>
+            <span className="font-semibold text-linear-text">{epic.startDate}</span>
           </div>
         )}
         {epic.dueDate && (
           <div className="flex justify-between items-center">
-            <span style={{ color: "#717171" }}>Due</span>
-            <span className="font-semibold" style={{ color: "#1A1A1B" }}>{epic.dueDate}</span>
+            <span className="text-linear-textSecondary">Due</span>
+            <span className="font-semibold text-linear-text">{epic.dueDate}</span>
           </div>
         )}
         {epic.storyPoints && (
           <div className="flex justify-between items-center">
-            <span style={{ color: "#717171" }}>Estimate</span>
-            <span className="font-semibold" style={{ color: "#1A1A1B" }}>{epic.storyPoints} pts</span>
+            <span className="text-linear-textSecondary">Estimate</span>
+            <span className="font-semibold text-linear-text">{epic.storyPoints} pts</span>
           </div>
         )}
 
         {epic.storyStats && epic.storyStats.total > 0 && (
-          <div style={{ borderTop: "1px solid #E8E8EF", paddingTop: "10px", marginTop: "6px" }}>
+          <div className="border-t border-linear-border pt-2.5 mt-1.5">
             <div className="flex items-center justify-between mb-2">
-              <span style={{ color: "#717171" }}>Stories</span>
-              <span className="font-semibold" style={{ color: "#1A1A1B" }}>{epic.storyStats.total} total</span>
+              <span className="text-linear-textSecondary">Stories</span>
+              <span className="font-semibold text-linear-text">{epic.storyStats.total} total</span>
             </div>
-            <div className="flex w-full h-[6px] rounded-full overflow-hidden mb-2" style={{ backgroundColor: "#E5E7EB" }}>
+            <div className="flex w-full h-[6px] rounded-full overflow-hidden mb-2 bg-linear-todo">
               {epic.storyStats.done > 0 && (
-                <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: DOT_DONE }} />
+                <div style={{ width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`, backgroundColor: STATUS_COLORS.done }} />
               )}
               {epic.storyStats.inProgress > 0 && (
-                <div style={{ width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`, backgroundColor: DOT_IN_PROGRESS }} />
+                <div style={{ width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`, backgroundColor: STATUS_COLORS.inProgress }} />
               )}
             </div>
             <div className="flex gap-3 text-[10px] font-medium">
               <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: DOT_DONE }} />
-                <span style={{ color: "#1A1A1B" }}>{epic.storyStats.done} done</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-linear-done" />
+                <span className="text-linear-text">{epic.storyStats.done} done</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: DOT_IN_PROGRESS }} />
-                <span style={{ color: "#1A1A1B" }}>{epic.storyStats.inProgress} in progress</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-linear-accent" />
+                <span className="text-linear-text">{epic.storyStats.inProgress} in progress</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: DOT_TODO }} />
-                <span style={{ color: "#A0A0A8" }}>{epic.storyStats.todo} todo</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-linear-todo" />
+                <span className="text-linear-textDim">{epic.storyStats.todo} todo</span>
               </span>
             </div>
           </div>
         )}
 
         {epic.assignee && (
-          <div className="flex justify-between items-center" style={{ borderTop: "1px solid #E8E8EF", paddingTop: "8px", marginTop: "4px" }}>
-            <span style={{ color: "#717171" }}>Assignee</span>
-            <span className="font-medium flex items-center gap-1.5" style={{ color: "#1A1A1B" }}>
+          <div className="flex justify-between items-center border-t border-linear-border pt-2 mt-1">
+            <span className="text-linear-textSecondary">Assignee</span>
+            <span className="font-medium flex items-center gap-1.5 text-linear-text">
               <img src={epic.assignee.avatarUrl} alt="" className="w-4 h-4 rounded-full" />
               {epic.assignee.displayName}
             </span>
@@ -130,13 +120,13 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
       {/* Arrow */}
       {pos && (
         <div
-          className="absolute w-2.5 h-2.5"
+          className="absolute w-2.5 h-2.5 bg-linear-surface"
           style={pos.below ? {
             top: "-6px", left: `${x - pos.left}px`, transform: "rotate(45deg)",
-            backgroundColor: "#fff", borderLeft: "1px solid #E8E8EF", borderTop: "1px solid #E8E8EF",
+            borderLeft: "1px solid var(--color-linear-border)", borderTop: "1px solid var(--color-linear-border)",
           } : {
             bottom: "-6px", left: `${x - pos.left}px`, transform: "rotate(45deg)",
-            backgroundColor: "#fff", borderRight: "1px solid #E8E8EF", borderBottom: "1px solid #E8E8EF",
+            borderRight: "1px solid var(--color-linear-border)", borderBottom: "1px solid var(--color-linear-border)",
           }}
         />
       )}

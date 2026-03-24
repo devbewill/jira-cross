@@ -19,6 +19,7 @@ const config: Config = {
           text:          "#1A1A1B",
           textMuted:     "#4A4A4A",
           textDim:       "#A0A0A8",
+          textSecondary: "#717171",
           accent:        "hsl(43 96% 56%)",
           accentHover:   "hsl(43 96% 46%)",
           accentLight:   "#FEF3E8",
@@ -37,9 +38,20 @@ const config: Config = {
         "linear-card":  "0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
         "popover":      "0 8px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)",
         "panel":        "-4px 0 24px rgba(0,0,0,0.08)",
+        "btn-active":   "0 1px 3px rgba(0,0,0,0.08)",
+        "accent-glow":  "0 1px 4px hsla(43, 96%, 56%, 0.30)",
       },
       fontFamily: {
         sans: ["Inter", "Montserrat", "system-ui", "sans-serif"],
+      },
+      keyframes: {
+        "slide-in-right": {
+          from: { transform: "translateX(100%)" },
+          to:   { transform: "translateX(0)" },
+        },
+      },
+      animation: {
+        "slide-in-right": "slide-in-right 0.15s ease-out",
       },
     },
   },

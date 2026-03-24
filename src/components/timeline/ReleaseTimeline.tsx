@@ -7,15 +7,10 @@ import { differenceInDays } from "date-fns";
 import { JiraRelease, ProjectReleases, TimeScale } from "@/types";
 import { useTimelineScale } from "@/hooks/useTimelineScale";
 import { getScrollBounds } from "@/lib/utils/date-utils";
+import { releaseStatusOf, RELEASE_STATUS_CONFIG } from "@/lib/utils/status-config";
 import { TimelineHeader } from "./TimelineHeader";
 import { TodayMarker } from "./TodayMarker";
-import {
-  ReleaseBlock,
-  REL_BLOCK_HEIGHT,
-  REL_BLOCK_MARGIN,
-  releaseStatusOf,
-  RELEASE_STATUS_CFG,
-} from "./ReleaseBlock";
+import { ReleaseBlock, REL_BLOCK_HEIGHT, REL_BLOCK_MARGIN } from "./ReleaseBlock";
 import { ReleaseIssuesPanel } from "./ReleaseIssuesPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,10 +19,7 @@ interface ReleaseTimelineProps {
   isRefreshing?: boolean;
 }
 
-
 type StatusFilter = "all" | "upcoming" | "overdue" | "released";
-
-// ─── Scale config ─────────────────────────────────────────────────────────────
 
 const SCALES: { key: TimeScale; label: string }[] = [
   { key: "today",    label: "Today"    },
@@ -120,7 +112,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     setSelectedRelease((prev) => prev?.id === release.id ? null : release);
   };
 
-  // Re-fetch when sync completes (isRefreshing: true → false)
   const prevRefreshing = useRef(false);
   useEffect(() => {
     if (prevRefreshing.current && !isRefreshing) {
@@ -129,7 +120,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     prevRefreshing.current = isRefreshing;
   }, [isRefreshing]);
 
-  // Fetch releases
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -140,7 +130,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
       .finally(() => setLoading(false));
   }, [fetchKey]);
 
-  // Timeline scale
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = containerRef.current;
@@ -161,7 +150,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
   const totalScrollDays    = differenceInDays(bounds.max, bounds.min) + 1;
   const totalTimelineWidth = totalScrollDays * config.pxPerDay;
 
-  // Header + label scroll sync
   const headerScrollRef = useRef<HTMLDivElement>(null);
   const labelsScrollRef = useRef<HTMLDivElement>(null);
 
@@ -172,7 +160,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     setTodayVisible(checkTodayVisible());
   }, [checkTodayVisible, scrollContainerRef]);
 
-  // Filtered projects
   const filteredProjects = useMemo(() =>
     allProjects
       .map((p) => ({
@@ -186,7 +173,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
       .filter((p) => p.releases.length > 0),
   [allProjects, statusFilter]);
 
-  // Counts for filter badges
   const counts = useMemo(() => {
     const flat = allProjects.flatMap((p) => p.releases.filter((r) => r.releaseDate || r.startDate));
     return {
@@ -197,7 +183,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     };
   }, [allProjects]);
 
-  // Pre-compute lane heights
   const laneHeights = useMemo(
     () => filteredProjects.map((p) =>
       computeReleaseLaneHeight(p.releases, dateToPosition, config.pxPerDay)
@@ -209,28 +194,21 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     <>
     <div className="flex flex-col h-full bg-linear-bg w-full">
 
-      {/* ── Toolbar ───────────────────────────────────────────────────────── */}
-      <div
-        className="flex items-center justify-between px-5 py-3 bg-white flex-shrink-0 flex-wrap gap-3"
-        style={{ borderBottom: "1px solid #E8E8EF" }}
-      >
+      {/* Toolbar */}
+      <div className="flex items-center justify-between px-5 py-3 bg-linear-surface flex-shrink-0 flex-wrap gap-3 border-b border-linear-border">
         {/* Scale buttons */}
-        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "#F4F4F7" }}>
+        <div className="flex gap-1 p-1 rounded-lg bg-linear-bg">
           {SCALES.map((s) => {
             const active = scale === s.key;
             return (
               <button
                 key={s.key}
                 onClick={() => changeScale(s.key)}
-                className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
-                style={active ? {
-                  backgroundColor: "#fff",
-                  color:           "#1A1A1B",
-                  boxShadow:       "0 1px 3px rgba(0,0,0,0.08)",
-                } : {
-                  backgroundColor: "transparent",
-                  color:           "#717171",
-                }}
+                className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150 ${
+                  active
+                    ? "bg-linear-surface text-linear-text shadow-btn-active"
+                    : "bg-transparent text-linear-textSecondary"
+                }`}
               >
                 {s.label}
               </button>
@@ -243,26 +221,22 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
           {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
             const active = statusFilter === f;
             const count  = counts[f];
-            const cfg    = f !== "all" ? RELEASE_STATUS_CFG[f] : null;
+            const cfg    = f !== "all" ? RELEASE_STATUS_CONFIG[f] : null;
             return (
               <button
                 key={f}
                 onClick={() => setStatusFilter(f)}
-                className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
-                style={active ? {
-                  backgroundColor: cfg ? cfg.bg   : "hsl(43 96% 56%)",
-                  color:           cfg ? cfg.text : "#fff",
-                  border:          cfg ? `1px solid ${cfg.border}` : "1px solid hsl(43 96% 46%)",
-                  boxShadow:       "0 1px 3px rgba(0,0,0,0.06)",
-                } : {
-                  backgroundColor: "#fff",
-                  color:           "#717171",
-                  border:          "1px solid #E8E8EF",
-                }}
+                className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 border ${
+                  active
+                    ? cfg
+                      ? `${cfg.bg} ${cfg.text} ${cfg.border} shadow-linear-xs`
+                      : "bg-linear-accent text-white border-linear-accentHover shadow-linear-xs"
+                    : "bg-linear-surface text-linear-textSecondary border-linear-border"
+                }`}
               >
                 {f === "all"
                   ? `All (${count})`
-                  : `${RELEASE_STATUS_CFG[f].label} (${count})`}
+                  : `${RELEASE_STATUS_CONFIG[f].label} (${count})`}
               </button>
             );
           })}
@@ -270,10 +244,7 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
           {!todayVisible && (
             <button
               onClick={goToToday}
-              className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150"
-              style={{ backgroundColor: "hsl(43 96% 56%)", color: "#fff", border: "1px solid hsl(43 96% 46%)", boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)"; }}
+              className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 bg-linear-accent text-white border border-linear-accentHover shadow-accent-glow hover:bg-linear-accentHover"
             >
               → Today
             </button>
@@ -281,10 +252,10 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
         </div>
       </div>
 
-      {/* ── Loading / Error / Empty ────────────────────────────────────────── */}
+      {/* Loading / Error / Empty */}
       {loading && (
         <div className="flex-1 flex items-center justify-center">
-          <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-[#A0A0A8]">
+          <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-linear-textDim">
             Fetching releases…
           </span>
         </div>
@@ -292,10 +263,7 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
 
       {error && (
         <div className="flex-1 flex items-center justify-center px-8">
-          <div
-            className="p-4 rounded-xl text-sm font-semibold"
-            style={{ border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2", color: "#B91C1C" }}
-          >
+          <div className="p-4 rounded-xl text-sm font-semibold border border-red-300 bg-red-50 text-red-700">
             {error}
           </div>
         </div>
@@ -303,19 +271,19 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
 
       {!loading && !error && filteredProjects.length === 0 && (
         <div className="flex-1 flex items-center justify-center">
-          <span className="text-xs font-semibold uppercase tracking-widest text-[#A0A0A8]">
+          <span className="text-xs font-semibold uppercase tracking-widest text-linear-textDim">
             No releases found
           </span>
         </div>
       )}
 
-      {/* ── Timeline body ─────────────────────────────────────────────────── */}
+      {/* Timeline body */}
       {!loading && !error && filteredProjects.length > 0 && (
         <div className="flex flex-1 overflow-hidden">
 
           {/* Fixed label column */}
-          <div className="w-56 flex-shrink-0 flex flex-col bg-white" style={{ borderRight: "1px solid #E8E8EF" }}>
-            <div className="h-10 flex-shrink-0 bg-white" style={{ borderBottom: "1px solid #E8E8EF" }} />
+          <div className="w-56 flex-shrink-0 flex flex-col bg-linear-surface border-r border-linear-border">
+            <div className="h-10 flex-shrink-0 bg-linear-surface border-b border-linear-border" />
             <div
               ref={labelsScrollRef}
               className="flex-1 overflow-y-auto overflow-x-hidden"
@@ -324,21 +292,16 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
               {filteredProjects.map((project, i) => (
                 <div
                   key={project.projectKey}
-                  className="flex flex-col justify-center px-4 py-4 transition-colors cursor-default"
-                  style={{ minHeight: `${laneHeights[i]}px`, borderBottom: "1px solid #E8E8EF" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F8F8FB"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                  className="flex flex-col justify-center px-4 py-4 transition-colors cursor-default border-b border-linear-border hover:bg-linear-surfaceHover"
+                  style={{ minHeight: `${laneHeights[i]}px` }}
                 >
-                  <span
-                    className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start mb-1"
-                    style={{ backgroundColor: "#1A1A1B", color: "#fff" }}
-                  >
+                  <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start mb-1 bg-linear-text text-white">
                     {project.projectKey}
                   </span>
-                  <span className="text-[12px] font-semibold text-[#1A1A1B] break-words leading-snug mb-0.5">
+                  <span className="text-[12px] font-semibold text-linear-text break-words leading-snug mb-0.5">
                     {project.projectName}
                   </span>
-                  <span className="text-[11px] text-[#A0A0A8] font-medium tabular-nums">
+                  <span className="text-[11px] text-linear-textDim font-medium tabular-nums">
                     {project.releases.length}{" "}
                     {project.releases.length === 1 ? "release" : "releases"}
                   </span>
@@ -349,7 +312,7 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
 
           {/* Timeline area */}
           <div className="flex-1 flex flex-col overflow-hidden" ref={containerRef}>
-            <div className="flex-shrink-0 bg-white z-10" style={{ borderBottom: "1px solid #E8E8EF" }}>
+            <div className="flex-shrink-0 bg-linear-surface z-10 border-b border-linear-border">
               <div className="overflow-hidden" ref={headerScrollRef} style={{ pointerEvents: "none" }}>
                 <TimelineHeader
                   scale={scale}
@@ -368,23 +331,17 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
               onScroll={onContentScroll}
             >
               <div className="relative" style={{ width: `${totalTimelineWidth}px` }}>
-                <TodayMarker
-                  scrollOrigin={scrollOrigin}
-                  pxPerDay={config.pxPerDay}
-                  today={today}
-                />
+                <TodayMarker scrollOrigin={scrollOrigin} pxPerDay={config.pxPerDay} today={today} />
                 <div className="flex flex-col">
                   {filteredProjects.map((project, i) => {
                     const positions = calculateReleasePositions(
-                      project.releases,
-                      dateToPosition,
-                      config.pxPerDay,
+                      project.releases, dateToPosition, config.pxPerDay,
                     );
                     return (
                       <div
                         key={project.projectKey}
-                        className="relative"
-                        style={{ minHeight: `${laneHeights[i]}px`, borderBottom: "1px solid #E8E8EF" }}
+                        className="relative border-b border-linear-border"
+                        style={{ minHeight: `${laneHeights[i]}px` }}
                       >
                         {project.releases.map((release) => {
                           const pos = positions.get(release.id);
@@ -412,7 +369,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
       )}
     </div>
 
-    {/* Side panel */}
     {selectedRelease && (
       <ReleaseIssuesPanel
         release={selectedRelease}

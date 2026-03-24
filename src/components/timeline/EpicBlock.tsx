@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Epic, StoryStats } from "@/types";
+import { STATUS_COLORS } from "@/lib/utils/status-config";
 import { EpicTooltip } from "./EpicTooltip";
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
@@ -13,16 +14,11 @@ export const BLOCK_HEIGHT = INFO_HEIGHT + GAP + BAR_H; // 56px
 export const BAR_HEIGHT   = 0; // legacy export
 export const BLOCK_MARGIN = 14;
 
-// ─── HD Mango status colors ───────────────────────────────────────────────────
-export const DOT_DONE        = "#22C55E"; // clean green
-export const DOT_IN_PROGRESS = "hsl(43 96% 56%)"; // mango orange
-export const DOT_TODO        = "#E5E7EB"; // light gray
-
 function buildSegments(stats: StoryStats): string[] {
   const segs: string[] = [];
-  for (let i = 0; i < stats.done;       i++) segs.push(DOT_DONE);
-  for (let i = 0; i < stats.inProgress; i++) segs.push(DOT_IN_PROGRESS);
-  for (let i = 0; i < stats.todo;       i++) segs.push(DOT_TODO);
+  for (let i = 0; i < stats.done;       i++) segs.push(STATUS_COLORS.done);
+  for (let i = 0; i < stats.inProgress; i++) segs.push(STATUS_COLORS.inProgress);
+  for (let i = 0; i < stats.todo;       i++) segs.push(STATUS_COLORS.todo);
   return segs;
 }
 
@@ -33,20 +29,20 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
   return (
     <div className="flex items-center gap-1.5 shrink-0">
       {stats.done > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-semibold leading-none" style={{ color: "#1A1A1B" }}>
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: DOT_DONE }} />
+        <span className="flex items-center gap-1 text-[10px] font-semibold leading-none text-linear-text">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-done" />
           {stats.done}
         </span>
       )}
       {stats.inProgress > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-semibold leading-none" style={{ color: "#1A1A1B" }}>
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: DOT_IN_PROGRESS }} />
+        <span className="flex items-center gap-1 text-[10px] font-semibold leading-none text-linear-text">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-accent" />
           {stats.inProgress}
         </span>
       )}
       {stats.todo > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-semibold leading-none" style={{ color: "#A0A0A8" }}>
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: DOT_TODO }} />
+        <span className="flex items-center gap-1 text-[10px] font-semibold leading-none text-linear-textDim">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-todo" />
           {stats.todo}
         </span>
       )}
@@ -90,7 +86,7 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
           className="flex items-center gap-2 overflow-hidden"
           style={{ height: `${INFO_HEIGHT}px`, marginBottom: `${GAP}px` }}
         >
-          <div className="text-[12px] font-semibold leading-none tracking-tight truncate min-w-0" style={{ color: "#1A1A1B" }}>
+          <div className="text-[12px] font-semibold leading-none tracking-tight truncate min-w-0 text-linear-text">
             {epic.summary}
           </div>
           {hasStats && <StoryCounts stats={epic.storyStats!} />}
@@ -98,14 +94,12 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
 
         {/* Segments bar */}
         <div
-          className="relative w-full rounded-lg overflow-hidden transition-all duration-150"
+          className={`relative w-full rounded-lg overflow-hidden transition-all duration-150 ${
+            selected ? "shadow-linear-hover -translate-y-px" : "shadow-linear-sm"
+          }`}
           style={{
             height:          `${BAR_H}px`,
             backgroundColor: hasStats ? "#1A1A1B" : "#E5E7EB",
-            boxShadow: selected
-              ? "0 4px 16px rgba(0,0,0,0.14), 0 2px 6px rgba(0,0,0,0.08)"
-              : "0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
-            transform: selected ? "translateY(-1px)" : undefined,
           }}
         >
           {hasStats && (
@@ -117,14 +111,11 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
           )}
 
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
-            <span
-              className="inline-block text-[9px] font-semibold px-1.5 py-0.5 rounded-md leading-none shrink-0"
-              style={{ backgroundColor: "rgba(255,255,255,0.18)", color: "#fff" }}
-            >
+            <span className="inline-block text-[9px] font-semibold px-1.5 py-0.5 rounded-md leading-none shrink-0 bg-white/18 text-white">
               {epic.key}
             </span>
             {epic.dueDate && (
-              <span className="text-[9px] font-medium opacity-60 shrink-0" style={{ color: "#fff" }}>
+              <span className="text-[9px] font-medium opacity-60 shrink-0 text-white">
                 {new Date(epic.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               </span>
             )}

@@ -14,16 +14,13 @@ export function TodayMarker({ scrollOrigin, pxPerDay, today: todayProp }: TodayM
 
   return (
     <div
-      className="absolute top-0 h-full pointer-events-none"
-      style={{ left: `${left}px`, width: "2px", backgroundColor: "hsl(43 96% 56%)", zIndex: 20, opacity: 0.9 }}
+      className="absolute top-0 h-full pointer-events-none z-20 opacity-90"
+      style={{ left: `${left}px`, width: "2px", backgroundColor: "#EC4899" }}
     >
       <div
-        className="absolute text-[9px] font-semibold whitespace-nowrap px-2 py-0.5 rounded-md"
-        style={{
-          top: "-26px", left: "50%", transform: "translateX(-50%)",
-          backgroundColor: "hsl(43 96% 56%)", color: "#fff",
-          boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.4)",
-        }}
+        className="absolute text-[9px] font-semibold whitespace-nowrap px-2 py-0.5 rounded-md text-white"
+          style={{ backgroundColor: "#EC4899" }}
+        style={{ top: "-26px", left: "50%", transform: "translateX(-50%)" }}
       >
         Today
       </div>

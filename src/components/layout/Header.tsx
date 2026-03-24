@@ -22,53 +22,29 @@ export function Header({
 
   return (
     <>
-      <header
-        className="flex items-center justify-between px-6 py-4 bg-white flex-shrink-0"
-        style={{
-          borderBottom: "1px solid #E8E8EF",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-        }}
-      >
+      <header className="flex items-center justify-between px-6 py-4 bg-linear-surface flex-shrink-0 border-b border-linear-border shadow-linear-sm">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: "#FEF3E8" }}
-          >
-            <span
-              className="text-lg leading-none"
-              style={{ color: "hsl(43 96% 56%)" }}
-            >
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-linear-accentLight">
+            <span className="text-lg leading-none text-linear-accent">
               ◈
             </span>
           </div>
 
           <div className="flex flex-col gap-0">
             <div className="flex items-center gap-2">
-              <h1
-                className="text-[15px] font-bold tracking-tight"
-                style={{ color: "#1A1A1B" }}
-              >
+              <h1 className="text-[15px] font-bold tracking-tight text-linear-text">
                 Jira Epics Cross-Space
               </h1>
               {cacheHit && (
-                <span
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-md"
-                  style={{
-                    backgroundColor: "#F4F4F7",
-                    color: "#A0A0A8",
-                    border: "1px solid #E8E8EF",
-                  }}
-                >
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-linear-bg text-linear-textDim border border-linear-border">
                   Cached ✓
                 </span>
               )}
             </div>
-            <p className="text-[12px]" style={{ color: "#717171" }}>
+            <p className="text-[12px] text-linear-textSecondary">
               All epics tagged{" "}
-              <span className="font-semibold" style={{ color: "#1A1A1B" }}>
-                P0
-              </span>{" "}
+              <span className="font-semibold text-linear-text">P0</span>{" "}
               across every Jira space, visualised on a single timeline.
             </p>
           </div>
@@ -77,10 +53,7 @@ export function Header({
         {/* Actions */}
         <div className="flex items-center gap-2">
           {/* Epics / Releases view toggle */}
-          <div
-            className="flex gap-1 p-1 rounded-lg mr-1"
-            style={{ backgroundColor: "#F4F4F7" }}
-          >
+          <div className="flex gap-1 p-1 rounded-lg mr-1 bg-linear-bg">
             {(["epics", "releases"] as const).map((mode) => {
               const active = viewMode === mode;
               const label = mode === "epics" ? "Epics" : "Releases";
@@ -88,19 +61,11 @@ export function Header({
                 <button
                   key={mode}
                   onClick={() => onViewModeChange(mode)}
-                  className="px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150"
-                  style={
+                  className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150 ${
                     active
-                      ? {
-                          backgroundColor: "#fff",
-                          color: "#1A1A1B",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                        }
-                      : {
-                          backgroundColor: "transparent",
-                          color: "#717171",
-                        }
-                  }
+                      ? "bg-linear-surface text-linear-text shadow-btn-active"
+                      : "bg-transparent text-linear-textSecondary"
+                  }`}
                 >
                   {label}
                 </button>
@@ -110,42 +75,15 @@ export function Header({
 
           <button
             onClick={() => setShowReleases(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-150"
-            style={{
-              border: "1px solid #E8E8EF",
-              backgroundColor: "#fff",
-              color: "#4A4A4A",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#FEF3E8";
-              e.currentTarget.style.borderColor = "#FDBA74";
-              e.currentTarget.style.color = "#C2590A";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#fff";
-              e.currentTarget.style.borderColor = "#E8E8EF";
-              e.currentTarget.style.color = "#4A4A4A";
-            }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-150 border border-linear-border bg-linear-surface text-linear-textMuted hover:bg-linear-accentLight hover:border-orange-300 hover:text-orange-700"
           >
-            <span style={{ color: "hsl(43 96% 56%)" }}>◈</span> Status Releases
+            <span className="text-linear-accent">◈</span> Status Releases
           </button>
 
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
             className="flex bg-[#0b1c3b] text-white hover:bg-[#1e395c] items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-            // style={{
-            //   backgroundColor: "#0b1c3b",
-            //   color: "#fff",
-            //   boxShadow: "0 1px 4px hsla(43, 96%, 56%, 0.30)",
-            // }}
-            // onMouseEnter={(e) => {
-            //   if (!isRefreshing)
-            //     e.currentTarget.style.backgroundColor = "hsl(43 96% 46%)";
-            // }}
-            // onMouseLeave={(e) => {
-            //   e.currentTarget.style.backgroundColor = "hsl(43 96% 56%)";
-            // }}
           >
             {isRefreshing ? (
               <>

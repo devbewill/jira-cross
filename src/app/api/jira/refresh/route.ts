@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
-import { epicsCache, releasesCache, releaseIssuesCache } from '@/lib/cache/memory-cache';
+import {
+  epicsCache,
+  releasesCache,
+  releaseIssuesCache,
+  storiesCache,
+  versionIssuesCache,
+} from '@/lib/cache/memory-cache';
 
 export async function POST(): Promise<NextResponse> {
   try {
     epicsCache.clear();
     releasesCache.clear();
     releaseIssuesCache.clear();
+    storiesCache.clear();
+    versionIssuesCache.clear();
     return NextResponse.json(
       { success: true, message: 'Cache cleared' },
       { status: 200 }
