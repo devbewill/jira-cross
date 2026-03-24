@@ -1,6 +1,7 @@
 // ─── Centralized release/issue status configuration ──────────────────────────
 // Single source of truth for status colors, labels, and helpers.
 // Used by: ReleaseBlock, ReleaseTimeline, ReleasesOverlay, EpicPanel, ReleasePanel
+// Design System: Fluid & Disruptive - Based on #FABD22 (Gold) and #1C2F54 (Dark Blue)
 
 import { JiraRelease, StoryFixVersion } from "@/types";
 
@@ -10,42 +11,43 @@ import { JiraRelease, StoryFixVersion } from "@/types";
 // dynamic segment bars, etc.)
 
 export const STATUS_COLORS = {
-  done:       "#22C55E",
-  inProgress: "hsl(43 96% 56%)",
-  todo:       "#E5E7EB",
+  done: "#1C2F54", // Dark blue - completed (primary brand color)
+  inProgress: "#FABD22", // Gold - active work (main accent)
+  todo: "#1E293B", // Dark gray - neutral for pending
 } as const;
 
 // ─── Release status types & config ───────────────────────────────────────────
+// Using the gold (#FABD22) and dark blue (#1C2F54) palette
 
 export type ReleaseStatus = "released" | "overdue" | "upcoming";
 
 export const RELEASE_STATUS_CONFIG = {
   released: {
     label: "Released",
-    bg: "bg-emerald-100",
-    text: "text-emerald-700",
-    border: "border-emerald-300",
-    bgHex: "#DCFCE7",
-    textHex: "#15803D",
-    borderHex: "#86EFAC",
+    bg: "bg-linear-secondaryLight",
+    text: "text-linear-secondaryDark",
+    border: "border-linear-secondary",
+    bgHex: "#1C2F54",
+    textHex: "#FFFFFF",
+    borderHex: "#3D5A8A",
   },
   overdue: {
     label: "Overdue",
-    bg: "bg-red-100",
-    text: "text-red-700",
-    border: "border-red-300",
-    bgHex: "#FEE2E2",
-    textHex: "#B91C1C",
-    borderHex: "#FCA5A5",
+    bg: "bg-linear-dangerLight",
+    text: "text-linear-dangerDark",
+    border: "border-linear-danger",
+    bgHex: "#DC2626",
+    textHex: "#FFFFFF",
+    borderHex: "#EF4444",
   },
   upcoming: {
     label: "Upcoming",
-    bg: "bg-linear-accentLight",
-    text: "text-orange-700",
-    border: "border-orange-300",
-    bgHex: "#FEF3E8",
-    textHex: "#C2590A",
-    borderHex: "#FDBA74",
+    bg: "bg-linear-primaryLight",
+    text: "text-linear-primaryDark",
+    border: "border-linear-primary",
+    bgHex: "#FABD22",
+    textHex: "#FFFFFF",
+    borderHex: "#FFD700",
   },
 } as const;
 

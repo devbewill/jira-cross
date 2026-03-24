@@ -81,7 +81,7 @@ export function Header({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="flex bg-[#0b1c3b] text-white hover:bg-[#1e395c] items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex bg-linear-secondary text-white hover:bg-linear-secondaryHover items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isRefreshing ? (
               <>

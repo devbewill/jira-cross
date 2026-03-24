@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { ProjectReleases, JiraRelease, IssueStats } from "@/types";
-import { releaseStatusOf, RELEASE_STATUS_CONFIG, STATUS_COLORS } from "@/lib/utils/status-config";
+import {
+  releaseStatusOf,
+  RELEASE_STATUS_CONFIG,
+  STATUS_COLORS,
+} from "@/lib/utils/status-config";
 import { formatDate, daysUntilDate } from "@/lib/utils/format-utils";
 
 interface ReleasesOverlayProps {
@@ -13,7 +17,13 @@ interface ReleasesOverlayProps {
 
 // ─── Issue Stats Bar ──────────────────────────────────────────────────────────
 
-function IssueStatsBar({ stats, loading }: { stats?: IssueStats; loading: boolean }) {
+function IssueStatsBar({
+  stats,
+  loading,
+}: {
+  stats?: IssueStats;
+  loading: boolean;
+}) {
   if (loading) {
     return (
       <div className="mt-2 pt-2 border-t border-linear-border">
@@ -31,10 +41,22 @@ function IssueStatsBar({ stats, loading }: { stats?: IssueStats; loading: boolea
     <div className="mt-2 pt-2 border-t border-linear-border">
       <div className="w-full h-[6px] rounded-full overflow-hidden flex bg-linear-todo">
         {stats.done > 0 && (
-          <div style={{ width: pct(stats.done), backgroundColor: STATUS_COLORS.done, flexShrink: 0 }} />
+          <div
+            style={{
+              width: pct(stats.done),
+              backgroundColor: STATUS_COLORS.done,
+              flexShrink: 0,
+            }}
+          />
         )}
         {stats.inProgress > 0 && (
-          <div style={{ width: pct(stats.inProgress), backgroundColor: STATUS_COLORS.inProgress, flexShrink: 0 }} />
+          <div
+            style={{
+              width: pct(stats.inProgress),
+              backgroundColor: STATUS_COLORS.inProgress,
+              flexShrink: 0,
+            }}
+          />
         )}
       </div>
 
@@ -86,7 +108,11 @@ function ReleaseCard({
         </span>
         <span
           className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none flex-shrink-0"
-          style={{ backgroundColor: cfg.bgHex, color: cfg.textHex, border: `1px solid ${cfg.borderHex}` }}
+          style={{
+            backgroundColor: cfg.bgHex,
+            color: cfg.textHex,
+            border: `1px solid ${cfg.borderHex}`,
+          }}
         >
           {cfg.label}
         </span>
@@ -116,19 +142,31 @@ function ReleaseCard({
       {/* Dates grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1">
         <div>
-          <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">Start</span>
-          <span className="text-[11px] font-semibold text-linear-text">{formatDate(release.startDate)}</span>
+          <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">
+            Start
+          </span>
+          <span className="text-[11px] font-semibold text-linear-text">
+            {formatDate(release.startDate)}
+          </span>
         </div>
         <div>
-          <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">Release</span>
-          <span className="text-[11px] font-semibold text-linear-text">{formatDate(release.releaseDate)}</span>
+          <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">
+            Release
+          </span>
+          <span className="text-[11px] font-semibold text-linear-text">
+            {formatDate(release.releaseDate)}
+          </span>
         </div>
       </div>
 
       {/* Countdown / delay */}
       {status === "upcoming" && days !== null && (
         <div className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md bg-linear-bg text-linear-textMuted">
-          {days > 0 ? `${days}d to release` : days === 0 ? "Due today" : `${Math.abs(days)}d overdue`}
+          {days > 0
+            ? `${days}d to release`
+            : days === 0
+              ? "Due today"
+              : `${Math.abs(days)}d overdue`}
         </div>
       )}
       {status === "overdue" && days !== null && (
@@ -152,7 +190,9 @@ export function ReleasesOverlay({
   const [projects, setProjects] = useState<ProjectReleases[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"all" | "released" | "overdue" | "upcoming">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "released" | "overdue" | "upcoming"
+  >("all");
   const [search, setSearch] = useState("");
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"byProject" | "byDate">("byProject");
@@ -192,7 +232,9 @@ export function ReleasesOverlay({
       uniqueKeys.map((key) =>
         fetch(`/api/jira/release-issues?projectKey=${key}`)
           .then((r) => (r.ok ? r.json() : { stats: {} }))
-          .then((data: { stats: Record<string, IssueStats> }) => data.stats ?? {}),
+          .then(
+            (data: { stats: Record<string, IssueStats> }) => data.stats ?? {},
+          ),
       ),
     )
       .then((results) => {
@@ -208,7 +250,9 @@ export function ReleasesOverlay({
   }, [projects]);
 
   const handleKey = useCallback(
-    (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); },
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
     [onClose],
   );
   useEffect(() => {
@@ -217,12 +261,19 @@ export function ReleasesOverlay({
   }, [handleKey]);
 
   const total = projects.reduce((s, p) => s + p.releases.length, 0);
-  const released = projects.reduce((s, p) => s + p.releases.filter((r) => r.released).length, 0);
-  const overdue = projects.reduce((s, p) => s + p.releases.filter((r) => r.overdue && !r.released).length, 0);
+  const released = projects.reduce(
+    (s, p) => s + p.releases.filter((r) => r.released).length,
+    0,
+  );
+  const overdue = projects.reduce(
+    (s, p) => s + p.releases.filter((r) => r.overdue && !r.released).length,
+    0,
+  );
   const upcoming = total - released - overdue;
 
   const projectOptions = useMemo(
-    () => [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
+    () =>
+      [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
     [projects],
   );
 
@@ -232,22 +283,35 @@ export function ReleasesOverlay({
       .flatMap((p) =>
         p.releases
           .filter((r) => {
-            const matchStatus = statusFilter === "all" || releaseStatusOf(r) === statusFilter;
-            const matchSearch = search.trim() === "" || r.name.toLowerCase().includes(search.trim().toLowerCase());
+            const matchStatus =
+              statusFilter === "all" || releaseStatusOf(r) === statusFilter;
+            const matchSearch =
+              search.trim() === "" ||
+              r.name.toLowerCase().includes(search.trim().toLowerCase());
             return matchStatus && matchSearch;
           })
-          .map((r) => ({ ...r, projectKey: p.projectKey, projectName: p.projectName })),
+          .map((r) => ({
+            ...r,
+            projectKey: p.projectKey,
+            projectName: p.projectName,
+          })),
       );
     return all.sort((a, b) => {
       if (!a.releaseDate && !b.releaseDate) return 0;
       if (!a.releaseDate) return 1;
       if (!b.releaseDate) return -1;
-      return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+      return (
+        new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+      );
     });
   }, [projects, statusFilter, search, projectFilter]);
 
   const byMonth = useMemo(() => {
-    const groups: { key: string; label: string; releases: typeof flatByDate }[] = [];
+    const groups: {
+      key: string;
+      label: string;
+      releases: typeof flatByDate;
+    }[] = [];
     const seen = new Map<string, number>();
     for (const r of flatByDate) {
       let key: string;
@@ -255,7 +319,10 @@ export function ReleasesOverlay({
       if (r.releaseDate) {
         const d = new Date(r.releaseDate);
         key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        label = d.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+        label = d.toLocaleDateString("it-IT", {
+          month: "long",
+          year: "numeric",
+        });
         label = label.charAt(0).toUpperCase() + label.slice(1);
       } else {
         key = "no-date";
@@ -273,12 +340,17 @@ export function ReleasesOverlay({
   const filtered = useMemo(
     () =>
       projects
-        .filter((p) => projectFilter === "all" || p.projectKey === projectFilter)
+        .filter(
+          (p) => projectFilter === "all" || p.projectKey === projectFilter,
+        )
         .map((p) => ({
           ...p,
           releases: p.releases.filter((r) => {
-            const matchStatus = statusFilter === "all" || releaseStatusOf(r) === statusFilter;
-            const matchSearch = search.trim() === "" || r.name.toLowerCase().includes(search.trim().toLowerCase());
+            const matchStatus =
+              statusFilter === "all" || releaseStatusOf(r) === statusFilter;
+            const matchSearch =
+              search.trim() === "" ||
+              r.name.toLowerCase().includes(search.trim().toLowerCase());
             return matchStatus && matchSearch;
           }),
         }))
@@ -350,7 +422,14 @@ export function ReleasesOverlay({
 
             {/* Status pills */}
             {(["all", "upcoming", "overdue", "released"] as const).map((f) => {
-              const count = f === "all" ? total : f === "released" ? released : f === "overdue" ? overdue : upcoming;
+              const count =
+                f === "all"
+                  ? total
+                  : f === "released"
+                    ? released
+                    : f === "overdue"
+                      ? overdue
+                      : upcoming;
               const active = statusFilter === f;
               const cfg = f !== "all" ? RELEASE_STATUS_CONFIG[f] : null;
               return (
@@ -365,7 +444,9 @@ export function ReleasesOverlay({
                       : "bg-linear-surface text-linear-textSecondary border-linear-border"
                   }`}
                 >
-                  {f === "all" ? `All (${count})` : `${RELEASE_STATUS_CONFIG[f].label} (${count})`}
+                  {f === "all"
+                    ? `All (${count})`
+                    : `${RELEASE_STATUS_CONFIG[f].label} (${count})`}
                 </button>
               );
             })}
@@ -378,7 +459,7 @@ export function ReleasesOverlay({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed bg-[#0b1c3b] text-white shadow-accent-glow hover:bg-[#1e395c]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed bg-linear-secondary text-white shadow-primary-glow hover:bg-linear-secondaryHover"
             >
               {isRefreshing ? (
                 <>
@@ -415,63 +496,88 @@ export function ReleasesOverlay({
           </div>
         )}
 
-        {!loading && !error && (viewMode === "byProject" ? filtered.length === 0 : flatByDate.length === 0) && (
-          <div className="flex items-center justify-center h-48">
-            <span className="text-xs font-semibold uppercase tracking-widest text-linear-textDim">
-              No releases found
-            </span>
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          (viewMode === "byProject"
+            ? filtered.length === 0
+            : flatByDate.length === 0) && (
+            <div className="flex items-center justify-center h-48">
+              <span className="text-xs font-semibold uppercase tracking-widest text-linear-textDim">
+                No releases found
+              </span>
+            </div>
+          )}
 
         {/* By Project view */}
-        {!loading && !error && viewMode === "byProject" && filtered.length > 0 && (
-          <div className="space-y-10">
-            {filtered.map((project) => (
-              <section key={project.projectKey}>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-linear-text text-white">
-                    {project.projectKey}
-                  </span>
-                  <h3 className="text-sm font-semibold text-linear-text">{project.projectName}</h3>
-                  <span className="text-[10px] font-medium text-linear-textDim">
-                    {project.releases.length} {project.releases.length === 1 ? "release" : "releases"}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {project.releases.map((release) => (
-                    <ReleaseCard key={release.id} release={release} issueStats={statsMap[release.id]} statsLoading={statsLoading} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          viewMode === "byProject" &&
+          filtered.length > 0 && (
+            <div className="space-y-10">
+              {filtered.map((project) => (
+                <section key={project.projectKey}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-linear-text text-white">
+                      {project.projectKey}
+                    </span>
+                    <h3 className="text-sm font-semibold text-linear-text">
+                      {project.projectName}
+                    </h3>
+                    <span className="text-[10px] font-medium text-linear-textDim">
+                      {project.releases.length}{" "}
+                      {project.releases.length === 1 ? "release" : "releases"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {project.releases.map((release) => (
+                      <ReleaseCard
+                        key={release.id}
+                        release={release}
+                        issueStats={statsMap[release.id]}
+                        statsLoading={statsLoading}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
 
         {/* By Date view */}
-        {!loading && !error && viewMode === "byDate" && flatByDate.length > 0 && (
-          <div className="space-y-10">
-            {byMonth.map((group) => (
-              <section key={group.key}>
-                <div className="flex items-center gap-4 mb-4 pb-3 border-b border-linear-border">
-                  <h3 className="text-base font-semibold text-linear-text">{group.label}</h3>
-                  <span className="text-[10px] font-medium text-linear-textDim">
-                    {group.releases.length} {group.releases.length === 1 ? "release" : "releases"}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {group.releases.map((release) => (
-                    <div key={release.id} className="flex flex-col gap-1.5">
-                      <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start bg-linear-text text-white">
-                        {release.projectKey}
-                      </span>
-                      <ReleaseCard release={release} issueStats={statsMap[release.id]} statsLoading={statsLoading} />
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          viewMode === "byDate" &&
+          flatByDate.length > 0 && (
+            <div className="space-y-10">
+              {byMonth.map((group) => (
+                <section key={group.key}>
+                  <div className="flex items-center gap-4 mb-4 pb-3 border-b border-linear-border">
+                    <h3 className="text-base font-semibold text-linear-text">
+                      {group.label}
+                    </h3>
+                    <span className="text-[10px] font-medium text-linear-textDim">
+                      {group.releases.length}{" "}
+                      {group.releases.length === 1 ? "release" : "releases"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {group.releases.map((release) => (
+                      <div key={release.id} className="flex flex-col gap-1.5">
+                        <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start bg-linear-text text-white">
+                          {release.projectKey}
+                        </span>
+                        <ReleaseCard
+                          release={release}
+                          issueStats={statsMap[release.id]}
+                          statsLoading={statsLoading}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
       </div>
     </div>
   );

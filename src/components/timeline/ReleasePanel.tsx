@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { JiraRelease, Story } from "@/types";
-import { STATUS_COLORS, releaseStatusOf, RELEASE_STATUS_CONFIG, statusDotColor } from "@/lib/utils/status-config";
+import {
+  STATUS_COLORS,
+  releaseStatusOf,
+  RELEASE_STATUS_CONFIG,
+  statusDotColor,
+} from "@/lib/utils/status-config";
 import { formatDate, daysLabel } from "@/lib/utils/format-utils";
 
 // ─── Story row ────────────────────────────────────────────────────────────────
@@ -58,7 +63,9 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
     setError(null);
     setStories([]);
 
-    fetch(`/api/jira/version-issues?versionId=${encodeURIComponent(release.id)}`)
+    fetch(
+      `/api/jira/version-issues?versionId=${encodeURIComponent(release.id)}`,
+    )
       .then((r) => {
         if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
         return r.json();
@@ -71,7 +78,9 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
   const stats = useMemo(() => {
     const done = stories.filter((s) => s.statusCategory === "done").length;
     const inProgress = stories.filter(
-      (s) => s.statusCategory === "in-progress" || s.statusCategory === ("indeterminate" as string),
+      (s) =>
+        s.statusCategory === "in-progress" ||
+        s.statusCategory === ("indeterminate" as string),
     ).length;
     const todo = stories.filter((s) => s.statusCategory === "todo").length;
     return { done, inProgress, todo, total: stories.length };
@@ -83,7 +92,11 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-[200]" onClick={onClose} aria-hidden="true" />
+      <div
+        className="fixed inset-0 z-[200]"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       <div className="fixed right-0 top-0 h-full z-[201] flex flex-col w-[450px] bg-linear-surface border-l border-linear-border shadow-panel animate-slide-in-right overflow-hidden">
         {/* Header */}
@@ -96,7 +109,11 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
                 </span>
                 <span
                   className="text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none"
-                  style={{ backgroundColor: cfg.bgHex, color: cfg.textHex, border: `1px solid ${cfg.borderHex}` }}
+                  style={{
+                    backgroundColor: cfg.bgHex,
+                    color: cfg.textHex,
+                    border: `1px solid ${cfg.borderHex}`,
+                  }}
                 >
                   {cfg.label}
                 </span>
@@ -123,20 +140,32 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
           {/* Dates + countdown */}
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-3">
             <div>
-              <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">Start</span>
-              <span className="text-[11px] font-semibold text-linear-text">{formatDate(release.startDate)}</span>
+              <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">
+                Start
+              </span>
+              <span className="text-[11px] font-semibold text-linear-text">
+                {formatDate(release.startDate)}
+              </span>
             </div>
             <div>
-              <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">Release</span>
-              <span className="text-[11px] font-semibold text-linear-text">{formatDate(release.releaseDate)}</span>
+              <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">
+                Release
+              </span>
+              <span className="text-[11px] font-semibold text-linear-text">
+                {formatDate(release.releaseDate)}
+              </span>
             </div>
           </div>
           {label && (
             <div
               className="inline-block text-[9px] font-semibold uppercase tracking-widest px-2 py-1 rounded-md mb-3"
               style={{
-                backgroundColor: status === "overdue" ? "#FEE2E2" : "var(--color-linear-bg)",
-                color: status === "overdue" ? "#B91C1C" : "var(--color-linear-textMuted)",
+                backgroundColor:
+                  status === "overdue" ? "#FEE2E2" : "var(--color-linear-bg)",
+                color:
+                  status === "overdue"
+                    ? "#B91C1C"
+                    : "var(--color-linear-textMuted)",
               }}
             >
               {label}
@@ -146,31 +175,63 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
           {/* Progress bar */}
           {!loading && stats.total > 0 && (
             <div>
-              <div className="flex w-full h-[6px] rounded-full overflow-hidden mb-2 bg-linear-todo">
+              <div className="flex w-full h-[8px] rounded-full overflow-hidden mb-2.5 bg-linear-todo shadow-inner">
                 {stats.done > 0 && (
-                  <div style={{ width: `${(stats.done / stats.total) * 100}%`, backgroundColor: STATUS_COLORS.done }} />
+                  <div
+                    style={{
+                      width: `${(stats.done / stats.total) * 100}%`,
+                      backgroundColor: STATUS_COLORS.done,
+                    }}
+                  />
                 )}
                 {stats.inProgress > 0 && (
-                  <div style={{ width: `${(stats.inProgress / stats.total) * 100}%`, backgroundColor: STATUS_COLORS.inProgress }} />
+                  <div
+                    style={{
+                      width: `${(stats.inProgress / stats.total) * 100}%`,
+                      backgroundColor: STATUS_COLORS.inProgress,
+                    }}
+                  />
                 )}
               </div>
               <div className="flex gap-3 text-[10px] font-semibold flex-wrap">
                 {stats.done > 0 && (
                   <span className="flex items-center gap-1">
-                    <span className="w-[8px] h-[8px] rounded-full flex-shrink-0 bg-linear-done" />
+                    <span
+                      className="w-[8px] h-[8px] rounded-full flex-shrink-0 shadow-sm"
+                      style={{
+                        backgroundColor: STATUS_COLORS.done,
+                        boxShadow: "0 1px 2px rgba(28, 47, 84, 0.3)",
+                      }}
+                    />
                     <span className="text-linear-text">{stats.done} done</span>
                   </span>
                 )}
                 {stats.inProgress > 0 && (
                   <span className="flex items-center gap-1">
-                    <span className="w-[8px] h-[8px] rounded-full flex-shrink-0 bg-linear-accent" />
-                    <span className="text-linear-text">{stats.inProgress} in progress</span>
+                    <span
+                      className="w-[8px] h-[8px] rounded-full flex-shrink-0 shadow-sm"
+                      style={{
+                        backgroundColor: STATUS_COLORS.inProgress,
+                        boxShadow: "0 1px 2px rgba(61, 90, 138, 0.4)",
+                      }}
+                    />
+                    <span className="text-linear-text">
+                      {stats.inProgress} in progress
+                    </span>
                   </span>
                 )}
                 {stats.todo > 0 && (
                   <span className="flex items-center gap-1">
-                    <span className="w-[8px] h-[8px] rounded-full flex-shrink-0 bg-linear-todo" />
-                    <span className="text-linear-textDim">{stats.todo} to do</span>
+                    <span
+                      className="w-[8px] h-[8px] rounded-full flex-shrink-0 shadow-sm"
+                      style={{
+                        backgroundColor: STATUS_COLORS.todo,
+                        boxShadow: "0 1px 2px rgba(226, 232, 240, 0.3)",
+                      }}
+                    />
+                    <span className="text-linear-textDim">
+                      {stats.todo} to do
+                    </span>
                   </span>
                 )}
               </div>
@@ -185,10 +246,18 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
         </div>
 
         {/* Issue list */}
-        <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#E0E0E0 transparent" }}>
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "#CBD5E1 transparent",
+          }}
+        >
           {loading && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-linear-textDim">Loading…</span>
+              <span className="text-xs font-semibold uppercase tracking-widest animate-pulse text-linear-textDim">
+                Loading…
+              </span>
             </div>
           )}
           {error && (
@@ -198,13 +267,19 @@ export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
           )}
           {!loading && !error && stories.length === 0 && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-semibold uppercase tracking-widest text-linear-textDim">No issues found</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-linear-textDim">
+                No issues found
+              </span>
             </div>
           )}
           {!loading && !error && stories.length > 0 && (
             <ul>
               {stories.map((story, i) => (
-                <StoryRow key={story.key} story={story} isLast={i === stories.length - 1} />
+                <StoryRow
+                  key={story.key}
+                  story={story}
+                  isLast={i === stories.length - 1}
+                />
               ))}
             </ul>
           )}
