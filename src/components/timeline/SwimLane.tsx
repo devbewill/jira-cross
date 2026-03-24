@@ -2,14 +2,15 @@
 
 import { useMemo } from "react";
 import { Epic, BoardData, TimelinePosition } from "@/types";
-import { EpicBlock, BLOCK_HEIGHT, BAR_HEIGHT, BLOCK_MARGIN } from "./EpicBlock";
+import { EpicBlock, BLOCK_HEIGHT, BAR_HEIGHT, BLOCK_MARGIN_BASE, BLOCK_MARGIN_RELEASES } from "./EpicBlock";
 
 interface SwimLaneProps {
-  board: BoardData;
-  height: number;
-  dateToPosition: (date: string | null) => number | null;
-  onSelectEpic: (epic: Epic) => void;
-  selectedEpic: Epic | null;
+  board:            BoardData;
+  height:           number;
+  dateToPosition:   (date: string | null) => number | null;
+  onSelectEpic:     (epic: Epic) => void;
+  selectedEpic:     Epic | null;
+  showReleaseBars?: boolean;
 }
 
 function calculateEpicPositions(
@@ -59,14 +60,15 @@ function calculateEpicPositions(
 export function computeSwimLaneHeight(
   epics: Epic[],
   dateToPosition: (date: string | null) => number | null,
+  showReleaseBars = true,
 ): number {
   const positions = calculateEpicPositions(epics, dateToPosition);
   const maxLaneIndex = Math.max(
     0,
     ...Array.from(positions.values()).map((p) => p.laneIndex),
   );
-  // BLOCK_HEIGHT + BAR_HEIGHT + BLOCK_MARGIN per lane + top padding
-  return (maxLaneIndex + 1) * (BLOCK_HEIGHT + BAR_HEIGHT + BLOCK_MARGIN) + BLOCK_MARGIN;
+  const margin = showReleaseBars ? BLOCK_MARGIN_RELEASES : BLOCK_MARGIN_BASE;
+  return (maxLaneIndex + 1) * (BLOCK_HEIGHT + BAR_HEIGHT + margin) + margin;
 }
 
 export function SwimLane({
@@ -75,6 +77,7 @@ export function SwimLane({
   dateToPosition,
   onSelectEpic,
   selectedEpic,
+  showReleaseBars = true,
 }: SwimLaneProps) {
   const positions = useMemo(
     () => calculateEpicPositions(board.epics, dateToPosition),
@@ -100,6 +103,7 @@ export function SwimLane({
             onClick={onSelectEpic}
             selected={selectedEpic?.key === epic.key}
             dateToPosition={dateToPosition}
+            showReleaseBars={showReleaseBars}
           />
         );
       })}

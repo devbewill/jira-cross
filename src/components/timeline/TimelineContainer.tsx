@@ -33,8 +33,9 @@ export function TimelineContainer({
   };
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [viewportWidth, setViewportWidth] = useState(0);
-  const [todayVisible, setTodayVisible] = useState(true);
+  const [viewportWidth, setViewportWidth]     = useState(0);
+  const [todayVisible, setTodayVisible]       = useState(true);
+  const [showReleaseBars, setShowReleaseBars] = useState(true);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -58,8 +59,8 @@ export function TimelineContainer({
   const totalTimelineWidth = totalScrollDays * config.pxPerDay;
 
   const swimlaneHeights = useMemo(
-    () => boards.map((board) => computeSwimLaneHeight(board.epics, dateToPosition)),
-    [boards, dateToPosition],
+    () => boards.map((board) => computeSwimLaneHeight(board.epics, dateToPosition, showReleaseBars)),
+    [boards, dateToPosition, showReleaseBars],
   );
 
   const headerScrollRef = useRef<HTMLDivElement>(null);
@@ -79,20 +80,46 @@ export function TimelineContainer({
     <div className="flex flex-col h-full bg-linear-bg w-full">
       {/* Scale Controls */}
       <div className="flex items-center justify-between px-5 py-3 bg-linear-surface flex-shrink-0 border-b border-linear-border">
-        <div className="flex gap-1 p-1 rounded-lg bg-linear-bg">
-          {SCALES.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => changeScale(s.key)}
-              className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150 ${
-                scale === s.key
-                  ? "bg-linear-surface text-linear-text shadow-btn-active"
-                  : "bg-transparent text-linear-textSecondary"
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1 p-1 rounded-lg bg-linear-bg">
+            {SCALES.map((s) => (
+              <button
+                key={s.key}
+                onClick={() => changeScale(s.key)}
+                className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150 ${
+                  scale === s.key
+                    ? "bg-linear-surface text-linear-text shadow-btn-active"
+                    : "bg-transparent text-linear-textSecondary"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Release bars toggle */}
+          <button
+            onClick={() => setShowReleaseBars((v) => !v)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 border ${
+              showReleaseBars
+                ? "bg-linear-surface border-linear-border text-linear-text shadow-btn-active"
+                : "bg-transparent border-transparent text-linear-textSecondary"
+            }`}
+          >
+            {/* Toggle pill */}
+            <span
+              className={`relative inline-flex w-7 h-4 rounded-full transition-colors duration-200 flex-shrink-0 ${
+                showReleaseBars ? "bg-linear-accent" : "bg-linear-border"
               }`}
             >
-              {s.label}
-            </button>
-          ))}
+              <span
+                className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform duration-200 ${
+                  showReleaseBars ? "translate-x-3.5" : "translate-x-0.5"
+                }`}
+              />
+            </span>
+            Releases
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -196,6 +223,7 @@ export function TimelineContainer({
                     dateToPosition={dateToPosition}
                     onSelectEpic={handleSelectEpic}
                     selectedEpic={selectedEpic}
+                    showReleaseBars={showReleaseBars}
                   />
                 ))}
               </div>

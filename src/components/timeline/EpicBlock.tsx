@@ -13,11 +13,15 @@ const BAR_H             = 30;
 export const BLOCK_HEIGHT = INFO_HEIGHT + GAP + BAR_H; // 56px
 export const BAR_HEIGHT   = 0; // legacy export
 
-// Space below each block: gap (3px) + up to 3 release rows (each 11px = 10px bar + 1px gap)
-const REL_BAR_H    = 10;
-const REL_BAR_GAP  = 2;
+// Space below each block: gap (3px) + up to 3 release rows (each 10px bar + 2px gap)
+const REL_BAR_H      = 10;
+const REL_BAR_GAP    = 2;
 const REL_BAR_OFFSET = 3; // gap between block bottom and first release row
-export const BLOCK_MARGIN = REL_BAR_OFFSET + 3 * (REL_BAR_H + REL_BAR_GAP) + 4; // ≈ 43px
+
+export const BLOCK_MARGIN_BASE     = 14;  // no release bars
+export const BLOCK_MARGIN_RELEASES = REL_BAR_OFFSET + 3 * (REL_BAR_H + REL_BAR_GAP) + 4; // ≈ 43px
+/** @deprecated use BLOCK_MARGIN_BASE or BLOCK_MARGIN_RELEASES */
+export const BLOCK_MARGIN = BLOCK_MARGIN_RELEASES;
 
 function buildSegments(stats: StoryStats): string[] {
   const segs: string[] = [];
@@ -88,16 +92,17 @@ function packReleaseBars(bars: RelBar[]): PackedBar[] {
 // ─── Epic block ───────────────────────────────────────────────────────────────
 
 interface EpicBlockProps {
-  epic:            Epic;
-  left:            number;
-  width:           number;
-  laneIndex:       number;
-  onClick?:        (epic: Epic) => void;
-  selected?:       boolean;
-  dateToPosition?: (date: string | null) => number | null;
+  epic:             Epic;
+  left:             number;
+  width:            number;
+  laneIndex:        number;
+  onClick?:         (epic: Epic) => void;
+  selected?:        boolean;
+  dateToPosition?:  (date: string | null) => number | null;
+  showReleaseBars?: boolean;
 }
 
-export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = false, dateToPosition }: EpicBlockProps) {
+export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = false, dateToPosition, showReleaseBars = true }: EpicBlockProps) {
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const [mounted,    setMounted]    = useState(false);
   useEffect(() => setMounted(true), []);
@@ -177,7 +182,7 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
         </div>
 
         {/* Release span bars — packed into rows so non-overlapping bars share a row */}
-        {releaseBars.map(({ rel, barLeft, barWidth, rowIndex }) => {
+        {showReleaseBars && releaseBars.map(({ rel, barLeft, barWidth, rowIndex }) => {
           const cfg   = releaseBarColors(rel);
           const topPx = BLOCK_HEIGHT + REL_BAR_OFFSET + rowIndex * (REL_BAR_H + REL_BAR_GAP);
           return (
