@@ -77,14 +77,18 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
   const hasStats  = !!(epic.storyStats && epic.storyStats.total > 0);
   const segments  = hasStats ? buildSegments(epic.storyStats!) : [];
 
-  // Release markers: compute position relative to the bar's left edge
-  const releaseMarkers = (epic.releases ?? []).flatMap((rel) => {
+  // Release span bars below the epic block
+  const releaseBars = (epic.releases ?? []).flatMap((rel) => {
     if (!rel.releaseDate || !dateToPosition) return [];
-    const absX = dateToPosition(rel.releaseDate);
-    if (absX === null) return [];
-    const relX = absX - left;
-    if (relX < 2 || relX > dispWidth - 2) return [];
-    return [{ rel, relX }];
+    const endAbsX   = dateToPosition(rel.releaseDate);
+    if (endAbsX === null) return [];
+    // startDate: use release's own startDate, fallback to epic startDate, fallback to bar left
+    const startAbsX = rel.startDate
+      ? (dateToPosition(rel.startDate) ?? left)
+      : (epic.startDate ? (dateToPosition(epic.startDate) ?? left) : left);
+    const barLeft  = startAbsX - left;
+    const barWidth = Math.max(endAbsX - startAbsX, 40);
+    return [{ rel, barLeft, barWidth }];
   });
 
   return (
@@ -125,34 +129,6 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
             </div>
           )}
 
-          {/* Release markers */}
-          {releaseMarkers.map(({ rel, relX }) => {
-            const color = releaseMarkerColor(rel);
-            const label = rel.name.length > 12 ? rel.name.slice(0, 11) + "…" : rel.name;
-            return (
-              <div
-                key={rel.id}
-                className="absolute top-0 h-full pointer-events-none z-20"
-                style={{ left: `${relX}px` }}
-              >
-                {/* Vertical line */}
-                <div className="absolute top-0 bottom-0 w-px" style={{ backgroundColor: color, opacity: 0.9 }} />
-                {/* Dot at top */}
-                <div
-                  className="absolute w-2 h-2 rounded-full -translate-x-[3px]"
-                  style={{ top: "4px", backgroundColor: color }}
-                />
-                {/* Release name label */}
-                <div
-                  className="absolute text-[8px] font-bold leading-none whitespace-nowrap px-1 py-0.5 rounded"
-                  style={{ top: "16px", left: "4px", backgroundColor: color, color: "#fff", opacity: 0.95 }}
-                >
-                  {label}
-                </div>
-              </div>
-            );
-          })}
-
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
             <span className="inline-block text-[9px] font-semibold px-1.5 py-0.5 rounded-md leading-none shrink-0 bg-white/18 text-white">
               {epic.key}
@@ -164,6 +140,36 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
             )}
           </div>
         </div>
+
+        {/* Release span bars — rendered below the main bar, same row */}
+        {releaseBars.map(({ rel, barLeft, barWidth }) => {
+          const color = releaseMarkerColor(rel);
+          return (
+            <div
+              key={rel.id}
+              className="absolute flex items-center justify-center overflow-hidden pointer-events-none"
+              style={{
+                top:             `${BLOCK_HEIGHT + 3}px`,
+                left:            `${barLeft}px`,
+                width:           `${barWidth}px`,
+                height:          "10px",
+                borderLeft:      `2px solid ${color}`,
+                borderRight:     `2px solid ${color}`,
+                borderTop:       `1px solid ${color}`,
+                borderBottom:    `1px solid ${color}`,
+                borderRadius:    "2px",
+                backgroundColor: `${color}22`,
+              }}
+            >
+              <span
+                className="text-[8px] font-bold leading-none truncate px-1"
+                style={{ color }}
+              >
+                {rel.name}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {tooltipPos && mounted && createPortal(

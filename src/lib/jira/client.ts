@@ -116,6 +116,7 @@ export class JiraClient {
             data.releases.push({
               id:          fv.id,
               name:        fv.name,
+              startDate:   fv.startDate ?? null,
               releaseDate,
               released:    fv.released ?? false,
               overdue:     !fv.released && !!releaseDate && new Date(releaseDate) < new Date(),

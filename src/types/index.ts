@@ -56,6 +56,7 @@ export interface Story {
 export interface EpicRelease {
   id: string;
   name: string;
+  startDate: string | null;
   releaseDate: string | null;
   released: boolean;
   overdue: boolean;
