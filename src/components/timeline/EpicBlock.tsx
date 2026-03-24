@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Epic, EpicRelease, StoryStats } from "@/types";
-import { STATUS_COLORS } from "@/lib/utils/status-config";
+import { STATUS_COLORS, RELEASE_STATUS_CONFIG } from "@/lib/utils/status-config";
 import { EpicTooltip } from "./EpicTooltip";
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
@@ -55,9 +55,11 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
   );
 }
 
-// ─── Release marker colors ─────────────────────────────────────────────────────
-const releaseMarkerColor = (r: EpicRelease) =>
-  r.released ? "#22C55E" : r.overdue ? "#EF4444" : "#EC4899";
+// ─── Release bar colors — same palette as the side panel ──────────────────────
+const releaseBarColors = (r: EpicRelease) => {
+  const key = r.released ? "released" : r.overdue ? "overdue" : "upcoming";
+  return RELEASE_STATUS_CONFIG[key];
+};
 
 // ─── Release bar lane-packing ──────────────────────────────────────────────────
 // Assigns each bar to the first row where it doesn't overlap with existing bars.
@@ -176,8 +178,8 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
 
         {/* Release span bars — packed into rows so non-overlapping bars share a row */}
         {releaseBars.map(({ rel, barLeft, barWidth, rowIndex }) => {
-          const color  = releaseMarkerColor(rel);
-          const topPx  = BLOCK_HEIGHT + REL_BAR_OFFSET + rowIndex * (REL_BAR_H + REL_BAR_GAP);
+          const cfg   = releaseBarColors(rel);
+          const topPx = BLOCK_HEIGHT + REL_BAR_OFFSET + rowIndex * (REL_BAR_H + REL_BAR_GAP);
           return (
             <div
               key={rel.id}
@@ -187,17 +189,16 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
                 left:            `${barLeft}px`,
                 width:           `${barWidth}px`,
                 height:          `${REL_BAR_H}px`,
-                borderLeft:      `2px solid ${color}`,
-                borderRight:     `2px solid ${color}`,
-                borderTop:       `1px solid ${color}`,
-                borderBottom:    `1px solid ${color}`,
+                border:          `1px solid ${cfg.borderHex}`,
+                borderLeft:      `2px solid ${cfg.borderHex}`,
+                borderRight:     `2px solid ${cfg.borderHex}`,
                 borderRadius:    "2px",
-                backgroundColor: `${color}22`,
+                backgroundColor: cfg.bgHex,
               }}
             >
               <span
                 className="text-[8px] font-bold leading-none truncate px-1"
-                style={{ color }}
+                style={{ color: cfg.textHex }}
               >
                 {rel.name}
               </span>
