@@ -158,8 +158,8 @@ export function pixelsToDate(px: number, scrollOrigin: Date, pxPerDay: number): 
 }
 
 // ─── ScrollLeft for "Go to Today" ───────────────────────────────────
-// Computes the scrollLeft that places today at its natural position
-// within the default visible range.
+// Computes the scrollLeft that places today at 55% from the left edge
+// of the viewport, giving more visibility of the past.
 
 export function getScrollLeftForToday(
   scale: TimeScale,
@@ -167,9 +167,9 @@ export function getScrollLeftForToday(
   scrollOrigin: Date,
   today: Date = new Date(),
 ): number {
-  const { start } = getVisibleRange(scale, today);
   const pxPerDay = getPxPerDay(scale, viewportWidth, today);
-  return differenceInDays(startOfDay(start), startOfDay(scrollOrigin)) * pxPerDay;
+  const todayPx = differenceInDays(startOfDay(today), startOfDay(scrollOrigin)) * pxPerDay;
+  return todayPx - viewportWidth * 0.55;
 }
 
 // ─── Clamp scroll within bounds ─────────────────────────────────────

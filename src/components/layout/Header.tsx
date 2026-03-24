@@ -26,15 +26,13 @@ export function Header({
         {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-linear-accentLight">
-            <span className="text-lg leading-none text-linear-accent">
-              ◈
-            </span>
+            <span className="text-lg leading-none text-linear-accent">◈</span>
           </div>
 
           <div className="flex flex-col gap-0">
             <div className="flex items-center gap-2">
               <h1 className="text-[15px] font-bold tracking-tight text-linear-text">
-                Jira Epics Cross-Space
+                Jira HD Cross-Space
               </h1>
               {cacheHit && (
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-linear-bg text-linear-textDim border border-linear-border">
@@ -44,8 +42,8 @@ export function Header({
             </div>
             <p className="text-[12px] text-linear-textSecondary">
               All epics tagged{" "}
-              <span className="font-semibold text-linear-text">P0</span>{" "}
-              across every Jira space, visualised on a single timeline.
+              <span className="font-semibold text-linear-text">P0</span> across
+              every Jira space, visualised on a single timeline.
             </p>
           </div>
         </div>
