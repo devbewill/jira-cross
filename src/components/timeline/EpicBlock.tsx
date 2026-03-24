@@ -113,6 +113,14 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
   const hasStats  = !!(epic.storyStats && epic.storyStats.total > 0);
   const segments  = hasStats ? buildSegments(epic.storyStats!) : [];
 
+  // Overdue: dueDate is in the past AND there are incomplete tasks
+  const isOverdue = !!(
+    epic.dueDate &&
+    new Date(epic.dueDate) < new Date() &&
+    epic.storyStats &&
+    (epic.storyStats.inProgress + epic.storyStats.todo) > 0
+  );
+
   // Release span bars below the epic block — pack into rows to avoid overlap
   const releaseBars: PackedBar[] = useMemo(() => {
     if (!dateToPosition) return [];
@@ -159,6 +167,8 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
           style={{
             height:          `${BAR_H}px`,
             backgroundColor: hasStats ? "#1A1A1B" : "#E5E7EB",
+            border:          isOverdue ? "2px solid #EF4444" : "none",
+            boxSizing:       "border-box",
           }}
         >
           {hasStats && (
@@ -174,7 +184,7 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
               {epic.key}
             </span>
             {epic.dueDate && (
-              <span className="text-[9px] font-medium opacity-60 shrink-0 text-white">
+              <span className={`text-[9px] leading-none shrink-0 ${isOverdue ? "font-bold text-red-400" : "font-bold text-white"}`}>
                 {new Date(epic.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               </span>
             )}
