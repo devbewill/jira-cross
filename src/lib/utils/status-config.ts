@@ -1,6 +1,6 @@
 // ─── Centralized release/issue status configuration ──────────────────────────
 // Single source of truth for status colors, labels, and helpers.
-// Used by: ReleaseBlock, ReleaseTimeline, ReleasesOverlay, StoryPanel, ReleaseIssuesPanel
+// Used by: ReleaseBlock, ReleaseTimeline, ReleasesOverlay, EpicPanel, ReleasePanel
 
 import { JiraRelease, StoryFixVersion } from "@/types";
 

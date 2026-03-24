@@ -7,7 +7,7 @@ import { getScrollBounds } from "@/lib/utils/date-utils";
 import { TimelineHeader } from "./TimelineHeader";
 import { SwimLane, computeSwimLaneHeight } from "./SwimLane";
 import { TodayMarker } from "./TodayMarker";
-import { StoryPanel } from "./StoryPanel";
+import { EpicPanel } from "./EpicPanel";
 import { differenceInDays } from "date-fns";
 
 interface TimelineContainerProps {
@@ -206,7 +206,7 @@ export function TimelineContainer({
     </div>
 
     {selectedEpic && (
-      <StoryPanel
+      <EpicPanel
         epic={selectedEpic}
         onClose={() => onSelectEpic(null as unknown as Epic)}
       />

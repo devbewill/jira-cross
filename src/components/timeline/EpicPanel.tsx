@@ -5,7 +5,7 @@ import { Epic, Story, StoryFixVersion } from "@/types";
 import { STATUS_COLORS, fixVersionStatusOf, RELEASE_STATUS_CONFIG, statusDotColor } from "@/lib/utils/status-config";
 import { formatDate } from "@/lib/utils/format-utils";
 
-interface StoryPanelProps {
+interface EpicPanelProps {
   epic: Epic;
   onClose: () => void;
 }
@@ -185,7 +185,7 @@ function StoryRow({ story, isLast }: { story: Story; isLast: boolean }) {
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-export function StoryPanel({ epic, onClose }: StoryPanelProps) {
+export function EpicPanel({ epic, onClose }: EpicPanelProps) {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

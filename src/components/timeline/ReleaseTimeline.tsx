@@ -11,7 +11,7 @@ import { releaseStatusOf, RELEASE_STATUS_CONFIG } from "@/lib/utils/status-confi
 import { TimelineHeader } from "./TimelineHeader";
 import { TodayMarker } from "./TodayMarker";
 import { ReleaseBlock, REL_BLOCK_HEIGHT, REL_BLOCK_MARGIN } from "./ReleaseBlock";
-import { ReleaseIssuesPanel } from "./ReleaseIssuesPanel";
+import { ReleasePanel } from "./ReleasePanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -370,7 +370,7 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     </div>
 
     {selectedRelease && (
-      <ReleaseIssuesPanel
+      <ReleasePanel
         release={selectedRelease}
         onClose={() => setSelectedRelease(null)}
       />

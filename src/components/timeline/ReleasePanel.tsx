@@ -43,12 +43,12 @@ function StoryRow({ story, isLast }: { story: Story; isLast: boolean }) {
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-interface ReleaseIssuesPanelProps {
+interface ReleasePanelProps {
   release: JiraRelease;
   onClose: () => void;
 }
 
-export function ReleaseIssuesPanel({ release, onClose }: ReleaseIssuesPanelProps) {
+export function ReleasePanel({ release, onClose }: ReleasePanelProps) {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
