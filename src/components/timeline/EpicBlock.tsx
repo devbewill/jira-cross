@@ -1,18 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Epic, EpicRelease, StoryStats } from "@/types";
 import { STATUS_COLORS } from "@/lib/utils/status-config";
 import { EpicTooltip } from "./EpicTooltip";
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
-const INFO_HEIGHT = 22;
-const GAP         = 4;
-const BAR_H       = 30;
+const INFO_HEIGHT       = 22;
+const GAP               = 4;
+const BAR_H             = 30;
 export const BLOCK_HEIGHT = INFO_HEIGHT + GAP + BAR_H; // 56px
 export const BAR_HEIGHT   = 0; // legacy export
-export const BLOCK_MARGIN = 14;
+
+// Space below each block: gap (3px) + up to 3 release rows (each 11px = 10px bar + 1px gap)
+const REL_BAR_H    = 10;
+const REL_BAR_GAP  = 2;
+const REL_BAR_OFFSET = 3; // gap between block bottom and first release row
+export const BLOCK_MARGIN = REL_BAR_OFFSET + 3 * (REL_BAR_H + REL_BAR_GAP) + 4; // ≈ 43px
 
 function buildSegments(stats: StoryStats): string[] {
   const segs: string[] = [];
@@ -54,6 +59,30 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
 const releaseMarkerColor = (r: EpicRelease) =>
   r.released ? "#22C55E" : r.overdue ? "#EF4444" : "#EC4899";
 
+// ─── Release bar lane-packing ──────────────────────────────────────────────────
+// Assigns each bar to the first row where it doesn't overlap with existing bars.
+interface RelBar { rel: EpicRelease; barLeft: number; barWidth: number }
+interface PackedBar extends RelBar { rowIndex: number }
+
+function packReleaseBars(bars: RelBar[]): PackedBar[] {
+  // row → array of [left, right] intervals already placed
+  const rowIntervals: Array<Array<[number, number]>> = [];
+
+  return bars.map((bar) => {
+    const l = bar.barLeft;
+    const r = bar.barLeft + bar.barWidth;
+    const rowIdx = rowIntervals.findIndex((intervals) =>
+      intervals.every(([a, b]) => r <= a || l >= b)   // no overlap with any in this row
+    );
+    if (rowIdx === -1) {
+      rowIntervals.push([[l, r]]);
+      return { ...bar, rowIndex: rowIntervals.length - 1 };
+    }
+    rowIntervals[rowIdx].push([l, r]);
+    return { ...bar, rowIndex: rowIdx };
+  });
+}
+
 // ─── Epic block ───────────────────────────────────────────────────────────────
 
 interface EpicBlockProps {
@@ -77,19 +106,23 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
   const hasStats  = !!(epic.storyStats && epic.storyStats.total > 0);
   const segments  = hasStats ? buildSegments(epic.storyStats!) : [];
 
-  // Release span bars below the epic block
-  const releaseBars = (epic.releases ?? []).flatMap((rel) => {
-    if (!rel.releaseDate || !dateToPosition) return [];
-    const endAbsX   = dateToPosition(rel.releaseDate);
-    if (endAbsX === null) return [];
-    // startDate: use release's own startDate, fallback to epic startDate, fallback to bar left
-    const startAbsX = rel.startDate
-      ? (dateToPosition(rel.startDate) ?? left)
-      : (epic.startDate ? (dateToPosition(epic.startDate) ?? left) : left);
-    const barLeft  = startAbsX - left;
-    const barWidth = Math.max(endAbsX - startAbsX, 40);
-    return [{ rel, barLeft, barWidth }];
-  });
+  // Release span bars below the epic block — pack into rows to avoid overlap
+  const releaseBars: PackedBar[] = useMemo(() => {
+    if (!dateToPosition) return [];
+    const raw: RelBar[] = (epic.releases ?? []).flatMap((rel) => {
+      if (!rel.releaseDate) return [];
+      const endAbsX = dateToPosition(rel.releaseDate);
+      if (endAbsX === null) return [];
+      // startDate: prefer release's own startDate → epic's startDate → bar left edge
+      const startAbsX = rel.startDate
+        ? (dateToPosition(rel.startDate) ?? left)
+        : (epic.startDate ? (dateToPosition(epic.startDate) ?? left) : left);
+      const barLeft  = startAbsX - left;
+      const barWidth = Math.max(endAbsX - startAbsX, 40);
+      return [{ rel, barLeft, barWidth }];
+    });
+    return packReleaseBars(raw);
+  }, [epic.releases, epic.startDate, dateToPosition, left]);
 
   return (
     <>
@@ -141,18 +174,19 @@ export function EpicBlock({ epic, left, width, laneIndex, onClick, selected = fa
           </div>
         </div>
 
-        {/* Release span bars — rendered below the main bar, same row */}
-        {releaseBars.map(({ rel, barLeft, barWidth }) => {
-          const color = releaseMarkerColor(rel);
+        {/* Release span bars — packed into rows so non-overlapping bars share a row */}
+        {releaseBars.map(({ rel, barLeft, barWidth, rowIndex }) => {
+          const color  = releaseMarkerColor(rel);
+          const topPx  = BLOCK_HEIGHT + REL_BAR_OFFSET + rowIndex * (REL_BAR_H + REL_BAR_GAP);
           return (
             <div
               key={rel.id}
               className="absolute flex items-center justify-center overflow-hidden pointer-events-none"
               style={{
-                top:             `${BLOCK_HEIGHT + 3}px`,
+                top:             `${topPx}px`,
                 left:            `${barLeft}px`,
                 width:           `${barWidth}px`,
-                height:          "10px",
+                height:          `${REL_BAR_H}px`,
                 borderLeft:      `2px solid ${color}`,
                 borderRight:     `2px solid ${color}`,
                 borderTop:       `1px solid ${color}`,
