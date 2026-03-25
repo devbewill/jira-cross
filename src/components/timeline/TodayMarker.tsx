@@ -19,13 +19,12 @@ export function TodayMarker({
 
   return (
     <div
-      className="absolute top-0 h-full pointer-events-none z-20 opacity-90"
-      style={{ left: `${left}px`, width: "2px", backgroundColor: "#FABD22" }}
+      className="absolute top-0 h-full pointer-events-none z-20 opacity-90 w-[2px] bg-linear-accent"
+      style={{ left: `${left}px` }}
     >
       <div
-        className="absolute text-[9px] font-semibold whitespace-nowrap px-2 py-0.5 rounded-md text-white"
+        className="absolute text-[9px] font-semibold whitespace-nowrap px-2 py-0.5 rounded-md text-white bg-linear-accent"
         style={{
-          backgroundColor: "#FABD22",
           top: "-26px",
           left: "50%",
           transform: "translateX(-50%)",

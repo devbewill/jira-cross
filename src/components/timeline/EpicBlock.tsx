@@ -3,16 +3,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Epic, EpicRelease, StoryStats } from "@/types";
-import {
-  STATUS_COLORS,
-  RELEASE_STATUS_CONFIG,
-} from "@/lib/utils/status-config";
+import { RELEASE_STATUS_CONFIG } from "@/lib/utils/status-config";
 import { EpicTooltip } from "./EpicTooltip";
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const INFO_HEIGHT = 22;
 const GAP = 4;
-const BAR_H = 30;
+const BAR_H = 40;
 export const BLOCK_HEIGHT = INFO_HEIGHT + GAP + BAR_H; // 56px
 export const BAR_HEIGHT = 0; // legacy export
 
@@ -29,10 +26,9 @@ export const BLOCK_MARGIN = BLOCK_MARGIN_RELEASES;
 
 function buildSegments(stats: StoryStats): string[] {
   const segs: string[] = [];
-  for (let i = 0; i < stats.done; i++) segs.push(STATUS_COLORS.done);
-  for (let i = 0; i < stats.inProgress; i++)
-    segs.push(STATUS_COLORS.inProgress);
-  for (let i = 0; i < stats.todo; i++) segs.push(STATUS_COLORS.todo);
+  for (let i = 0; i < stats.done; i++) segs.push("bg-linear-done");
+  for (let i = 0; i < stats.inProgress; i++) segs.push("bg-linear-inProgress");
+  for (let i = 0; i < stats.todo; i++) segs.push("bg-linear-todo");
   return segs;
 }
 
@@ -43,38 +39,20 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
   return (
     <div className="flex items-center gap-1.5 shrink-0">
       {stats.done > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-text">
-          <span
-            className="w-2 h-2 rounded-full shrink-0 shadow-sm"
-            style={{
-              backgroundColor: STATUS_COLORS.done,
-              boxShadow: "0 1px 2px rgba(28, 47, 84, 0.3)",
-            }}
-          />
+        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-secondary">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-done" />
           {stats.done}
         </span>
       )}
       {stats.inProgress > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-text">
-          <span
-            className="w-2 h-2 rounded-full shrink-0 shadow-sm"
-            style={{
-              backgroundColor: STATUS_COLORS.inProgress,
-              boxShadow: "0 1px 2px rgba(61, 90, 138, 0.4)",
-            }}
-          />
+        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-secondary ">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-inProgress " />
           {stats.inProgress}
         </span>
       )}
       {stats.todo > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-textDim">
-          <span
-            className="w-2 h-2 rounded-full shrink-0 shadow-sm"
-            style={{
-              backgroundColor: STATUS_COLORS.todo,
-              boxShadow: "0 1px 2px rgba(226, 232, 240, 0.3)",
-            }}
-          />
+        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-secondary">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-todo" />
           {stats.todo}
         </span>
       )}
@@ -83,7 +61,7 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
 }
 
 // ─── Release bar colors — same palette as the side panel ──────────────────────
-const releaseBarColors = (r: EpicRelease) => {
+const releaseBarCfg = (r: EpicRelease) => {
   const key = r.released ? "released" : r.overdue ? "overdue" : "upcoming";
   return RELEASE_STATUS_CONFIG[key];
 };
@@ -201,7 +179,7 @@ export function EpicBlock({
           className="flex items-center gap-2 overflow-hidden"
           style={{ height: `${INFO_HEIGHT}px`, marginBottom: `${GAP}px` }}
         >
-          <div className="text-[12px] font-semibold leading-none tracking-tight truncate min-w-0 text-linear-text">
+          <div className="text-[12px] font-semibold leading-none tracking-tight truncate min-w-0 text-linear-secondary">
             {epic.summary}
           </div>
           {hasStats && <StoryCounts stats={epic.storyStats!} />}
@@ -209,28 +187,18 @@ export function EpicBlock({
 
         {/* Segments bar */}
         <div
-          className={`relative w-full rounded-xl overflow-hidden transition-all duration-300 ${
-            selected
-              ? "shadow-primary-glow -translate-y-0.5 scale-[1.02]"
-              : "shadow-linear-sm hover:shadow-linear-hover hover:-translate-y-px"
+          className={`relative w-full rounded-lg overflow-hidden transition-all duration-300 bg-white box-border ${
+            isOverdue ? "border-2 border-linear-danger" : ""
           }`}
-          style={{
-            height: `${BAR_H}px`,
-            backgroundColor: hasStats
-              ? "var(--color-linear-secondary)"
-              : "var(--color-linear-todo)",
-            border: isOverdue ? "2px solid var(--color-linear-danger)" : "none",
-            boxSizing: "border-box",
-          }}
+          style={{ height: `${BAR_H}px` }}
         >
           {hasStats && (
-            <div className="absolute inset-0 flex" style={{ gap: "1px" }}>
-              {segments.map((color, i) => (
+            <div className="absolute inset-0 flex" style={{ gap: "0" }}>
+              {segments.map((className, i) => (
                 <div
                   key={i}
-                  className="h-full flex-1"
+                  className={`h-full flex-1 ${className}`}
                   style={{
-                    backgroundColor: color,
                     minWidth: 0,
                   }}
                 />
@@ -239,7 +207,7 @@ export function EpicBlock({
           )}
 
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
-            <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full leading-none shrink-0 bg-white/20 backdrop-blur-sm text-white shadow-sm">
+            <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full leading-none shrink-0 bg-white/80 backdrop-blur-sm text-linear-secondary">
               {epic.key}
             </span>
             {epic.dueDate && (
@@ -247,7 +215,7 @@ export function EpicBlock({
                 className={`text-[9px] leading-none shrink-0 font-bold px-2 py-0.5 rounded-full ${
                   isOverdue
                     ? "bg-red-500/90 text-white"
-                    : "bg-white/20 backdrop-blur-sm text-white"
+                    : "bg-white/80 backdrop-blur-sm text-linear-secondary"
                 }`}
               >
                 {new Date(epic.dueDate).toLocaleDateString("en-US", {
@@ -262,7 +230,7 @@ export function EpicBlock({
         {/* Release span bars — packed into rows so non-overlapping bars share a row */}
         {showReleaseBars &&
           releaseBars.map(({ rel, barLeft, barWidth, rowIndex }) => {
-            const cfg = releaseBarColors(rel);
+            const cfg = releaseBarCfg(rel);
             const topPx =
               BLOCK_HEIGHT +
               REL_BAR_OFFSET +
@@ -271,24 +239,16 @@ export function EpicBlock({
             return (
               <div
                 key={rel.id}
-                className="absolute flex items-center justify-center overflow-hidden pointer-events-none transition-all duration-200 hover:scale-105"
+                className={`absolute flex items-center justify-center overflow-hidden pointer-events-none transition-all duration-200 hover:scale-105 rounded border border-l-2 border-r-2 ${cfg.solidBg} ${cfg.solidBorder}`}
                 style={{
                   top: `${topPx}px`,
                   left: `${barLeft}px`,
                   width: `${barWidth}px`,
                   height: `${REL_BAR_H}px`,
-                  border: `1px solid ${cfg.borderHex}`,
-                  borderLeft: `2px solid ${cfg.borderHex}`,
-                  borderRight: `2px solid ${cfg.borderHex}`,
-                  borderRadius: "4px",
-                  backgroundColor: cfg.bgHex,
-                  boxShadow:
-                    "0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)",
                 }}
               >
                 <span
-                  className="text-[8px] font-bold leading-none truncate px-1 relative z-10"
-                  style={{ color: cfg.textHex }}
+                  className={`text-[8px] font-bold leading-none truncate px-1 relative z-10 ${cfg.solidText}`}
                 >
                   {rel.name}
                 </span>

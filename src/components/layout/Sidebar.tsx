@@ -28,7 +28,7 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
         {onClose && (
           <button
             onClick={onClose}
-            className="text-linear-textMuted hover:text-linear-text transition-colors duration-100 p-1 font-black text-lg leading-none"
+            className="text-linear-text hover:text-linear-text transition-colors duration-100 p-1 font-black text-lg leading-none"
           >
             ✕
           </button>
@@ -78,13 +78,13 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
             <div className="text-sm space-y-2">
               {epic.startDate && (
                 <div className="flex justify-between">
-                  <span className="text-linear-textMuted font-bold text-xs">Start</span>
+                  <span className="text-linear-text font-bold text-xs">Start</span>
                   <span className="font-black text-xs">{epic.startDate}</span>
                 </div>
               )}
               {epic.dueDate && (
                 <div className="flex justify-between">
-                  <span className="text-linear-textMuted font-bold text-xs">Due</span>
+                  <span className="text-linear-text font-bold text-xs">Due</span>
                   <span className="font-black text-xs">{epic.dueDate}</span>
                 </div>
               )}
@@ -133,7 +133,7 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
             href={epic.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-full px-4 py-2.5 bg-linear-text text-linear-bg font-black text-xs uppercase tracking-widest rounded-[3px] hover:bg-linear-textMuted transition-colors shadow-linear-sm hover:shadow-linear-hover"
+            className="flex items-center justify-center w-full px-4 py-2.5 bg-linear-text text-linear-bg font-black text-xs uppercase tracking-widest rounded-[3px] hover:bg-linear-text transition-colors shadow-linear-sm hover:shadow-linear-hover"
           >
             Open in Jira ↗
           </a>

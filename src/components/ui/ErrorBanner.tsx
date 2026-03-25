@@ -28,7 +28,7 @@ export function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
       </div>
       <button
         onClick={handleDismiss}
-        className="text-linear-textMuted hover:text-linear-text p-1 transition-colors"
+        className="text-linear-text hover:text-linear-text p-1 transition-colors"
       >
         ✕
       </button>

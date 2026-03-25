@@ -5,7 +5,6 @@ import { ProjectReleases, JiraRelease, IssueStats } from "@/types";
 import {
   releaseStatusOf,
   RELEASE_STATUS_CONFIG,
-  STATUS_COLORS,
 } from "@/lib/utils/status-config";
 import { formatDate, daysUntilDate } from "@/lib/utils/format-utils";
 
@@ -42,18 +41,18 @@ function IssueStatsBar({
       <div className="w-full h-[6px] rounded-full overflow-hidden flex bg-linear-todo">
         {stats.done > 0 && (
           <div
+            className="bg-linear-done"
             style={{
               width: pct(stats.done),
-              backgroundColor: STATUS_COLORS.done,
               flexShrink: 0,
             }}
           />
         )}
         {stats.inProgress > 0 && (
           <div
+            className="bg-linear-inProgress"
             style={{
               width: pct(stats.inProgress),
-              backgroundColor: STATUS_COLORS.inProgress,
               flexShrink: 0,
             }}
           />
@@ -62,13 +61,13 @@ function IssueStatsBar({
 
       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
         {stats.done > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-textMuted">
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-text">
             <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-done" />
             {stats.done} done
           </span>
         )}
         {stats.inProgress > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-textMuted">
+          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-text">
             <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-accent" />
             {stats.inProgress} in progress
           </span>
@@ -100,19 +99,14 @@ function ReleaseCard({
   const days = daysUntilDate(release.releaseDate);
 
   return (
-    <div className="bg-linear-surface rounded-xl p-4 flex flex-col gap-2 border border-linear-border shadow-linear-sm">
+    <div className="bg-linear-surface rounded-xl p-4 flex flex-col gap-2 border border-linear-border">
       {/* Name + status badge */}
       <div className="flex items-start justify-between gap-2">
         <span className="text-[13px] font-semibold text-linear-text leading-snug">
           {release.name}
         </span>
         <span
-          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none flex-shrink-0"
-          style={{
-            backgroundColor: cfg.bgHex,
-            color: cfg.textHex,
-            border: `1px solid ${cfg.borderHex}`,
-          }}
+          className={`text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md leading-none flex-shrink-0 border ${cfg.solidBg} ${cfg.solidText} ${cfg.solidBorder}`}
         >
           {cfg.label}
         </span>
@@ -131,7 +125,7 @@ function ReleaseCard({
           {issueStats.components.map((component) => (
             <span
               key={component}
-              className="text-[9px] font-medium px-2 py-0.5 rounded-md bg-linear-bg text-linear-textMuted border border-linear-border"
+              className="text-[9px] font-medium px-2 py-0.5 rounded-md bg-linear-surface text-linear-accent border border-linear-accent"
             >
               {component}
             </span>
@@ -161,7 +155,7 @@ function ReleaseCard({
 
       {/* Countdown / delay */}
       {status === "upcoming" && days !== null && (
-        <div className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md bg-linear-bg text-linear-textMuted">
+        <div className="text-[9px] font-semibold uppercase tracking-widest mt-1 px-2 py-1 rounded-md bg-linear-bg text-linear-text">
           {days > 0
             ? `${days}d to release`
             : days === 0
@@ -408,7 +402,7 @@ export function ReleasesOverlay({
                     onClick={() => setViewMode(mode)}
                     className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150 ${
                       active
-                        ? "bg-linear-surface text-linear-text shadow-btn-active"
+                        ? "bg-linear-surface text-linear-text"
                         : "bg-transparent text-linear-textSecondary"
                     }`}
                   >
@@ -440,7 +434,7 @@ export function ReleasesOverlay({
                     active
                       ? cfg
                         ? `${cfg.bg} ${cfg.text} ${cfg.border} shadow-linear-xs`
-                        : "bg-linear-accent text-white border-linear-accentHover shadow-linear-xs"
+                        : "bg-linear-accent text-white border-linear-accentHover"
                       : "bg-linear-surface text-linear-textSecondary border-linear-border"
                   }`}
                 >
@@ -459,7 +453,7 @@ export function ReleasesOverlay({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed bg-linear-secondary text-white shadow-primary-glow hover:bg-linear-secondaryHover"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed bg-linear-accent text-linear-secondary hover:bg-linear-accentHover"
             >
               {isRefreshing ? (
                 <>
@@ -517,10 +511,10 @@ export function ReleasesOverlay({
               {filtered.map((project) => (
                 <section key={project.projectKey}>
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-linear-text text-white">
+                    <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-linear-secondary text-white">
                       {project.projectKey}
                     </span>
-                    <h3 className="text-sm font-semibold text-linear-text">
+                    <h3 className="text-sm font-semibold text-linear-secondary">
                       {project.projectName}
                     </h3>
                     <span className="text-[10px] font-medium text-linear-textDim">
@@ -552,7 +546,7 @@ export function ReleasesOverlay({
               {byMonth.map((group) => (
                 <section key={group.key}>
                   <div className="flex items-center gap-4 mb-4 pb-3 border-b border-linear-border">
-                    <h3 className="text-base font-semibold text-linear-text">
+                    <h3 className="text-base font-semibold text-linear-textDim">
                       {group.label}
                     </h3>
                     <span className="text-[10px] font-medium text-linear-textDim">
@@ -563,7 +557,7 @@ export function ReleasesOverlay({
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {group.releases.map((release) => (
                       <div key={release.id} className="flex flex-col gap-1.5">
-                        <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start bg-linear-text text-white">
+                        <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start bg-linear-secondary text-white">
                           {release.projectKey}
                         </span>
                         <ReleaseCard

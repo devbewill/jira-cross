@@ -5,66 +5,53 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/lib/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
         linear: {
-          // ─── Background & Surface (Fluid Disruptive Theme) ───────────────
-          bg: "#0A0E1A", // Ultra dark blue - almost black
-          surface: "#0F172A", // Deep dark blue for panels
-          surfaceHover: "#1E293B", // Lighter dark for hover
-          surfaceActive: "#1F2937", // Active states
+          // ─── Background & Surface ──────────────────────────────────────────
+          bg: "#ffffff",
+          surface: "#1a2747",
+          surfaceHover: "#243157",
+          surfaceActive: "#192542",
 
-          // ─── Borders ─────────────────────────────────────────────────────────────
-          border: "#1E293B",
+          // ─── Borders ───────────────────────────────────────────────────────
+          border: "#394c6b",
           borderHover: "#334155",
 
-          // ─── Text ───────────────────────────────────────────────────────────────
-          text: "#FFFFFF", // Pure white for maximum contrast
-          textMuted: "#94A3B8", // Light gray for muted text
-          textDim: "#64748B", // Medium gray for dim text
-          textSecondary: "#CBD5E1", // Lighter gray for secondary text
+          // ─── Text ──────────────────────────────────────────────────────────
+          text: "#fafafa",
+          textDim: "#64748B",
+          textSecondary: "#8c8d8e",
 
-          // ─── Primary Brand Colors (Gold #fabd22 & Dark Blue #1c2f54) ───────────
-          primary: "#FABD22", // Gold - main accent
-          primaryHover: "#FCD34D", // Lighter gold for hover
-          primaryLight: "#FEF3C7", // Very light gold for backgrounds
-          primaryDark: "#D97706", // Darker gold for contrast
-
-          secondary: "#1C2F54", // Dark blue - main brand
-          secondaryHover: "#2D4A7A", // Lighter dark blue for hover
-          secondaryLight: "#3D5A8A", // Even lighter dark blue
-          secondaryDark: "#0F1F38", // Darker dark blue for contrast
-
-          // ─── Accent (Gold-based) ────────────────────────────────────────────────
+          // ─── Accent (Gold #FABD22) ─────────────────────────────────────────
           accent: "#FABD22",
           accentHover: "#FCD34D",
           accentLight: "#FEF3C7",
+          accentDark: "#D97706",
 
-          // ─── Status Colors (Vibrant & Disruptive) ─────────────────────────
-          success: "#10B981", // Vibrant emerald green
-          successLight: "#34D399",
-          successDark: "#059669",
+          // ─── Secondary (Dark Blue #1C2F54) ─────────────────────────────────
+          secondary: "#1C2F54",
+          secondaryHover: "#2D4A7A",
+          secondaryLight: "#3D5A8A",
+          secondaryDark: "#0F1F38",
 
-          warning: "#F59E0B",
-          warningLight: "#FBBF24",
-          warningDark: "#B45309",
-
+          // ─── Danger ────────────────────────────────────────────────────────
           danger: "#EF4444",
           dangerLight: "#F87171",
           dangerDark: "#B91C1C",
 
-          // ─── Status Colors (Solid & Vibrant) ───────────────────────────────
-          successSolid: "#059669", // Solid emerald green
-          warningSolid: "#B45309", // Solid amber
-          dangerSolid: "#DC2626", // Solid red
+          // ─── Story Status ──────────────────────────────────────────────────
+          todo: "#e8e8e8",
+          inProgress: "#7985b8",
+          done: "#22c55e",
 
-          // ─── Story Status Colors ────────────────────────────────────────────────
-          todo: "#1E293B", // Dark gray for pending
-          todoHover: "#334155", // Slightly lighter for hover
-          inProgress: "#FABD22", // Gold for active work
-          done: "#1C2F54", // Dark blue for completed
+          // ─── Release Status ────────────────────────────────────────────────
+          overdueSolid: "#DC2626",
+          upcomingGold: "#FFD700",
+          overdueLight: "#FEE2E2",
         },
       },
       boxShadow: {

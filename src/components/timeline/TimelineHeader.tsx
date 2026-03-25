@@ -50,7 +50,7 @@ export function TimelineHeader({
           <span
             className={`font-black uppercase tracking-widest leading-none ${
               isDayScale ? "text-[9px]" : "text-[10px]"
-            } text-linear-textMuted`}
+            } text-linear-text`}
           >
             {tick.label}
           </span>
