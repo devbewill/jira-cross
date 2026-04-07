@@ -5,12 +5,13 @@ import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TimelineContainer } from "@/components/timeline/TimelineContainer";
 import { ReleaseTimeline } from "@/components/timeline/ReleaseTimeline";
+import { PSPDashboard } from "@/components/psp/PSPDashboard";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { useEpics } from "@/hooks/useEpics";
 import { useSelectedEpic } from "@/hooks/useSelectedEpic";
 
-type ViewMode = "epics" | "releases";
+type ViewMode = "epics" | "releases" | "psp";
 
 export default function Page() {
   const { data, loading, error, cacheHit, refetch } = useEpics();
@@ -94,6 +95,9 @@ export default function Page() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
+        {/* ── PSP dashboard view ────────────────────────────────────────── */}
+        {viewMode === "psp" && <PSPDashboard />}
+
         {/* ── Releases timeline view ────────────────────────────────────── */}
         {viewMode === "releases" && (
           <div className="flex-1 overflow-hidden">

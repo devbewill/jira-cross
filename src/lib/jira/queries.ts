@@ -27,6 +27,9 @@ export const getEpicFieldsList = (
   ].join(",");
 };
 
+// PSP – SA Service Desk: all open work items
+export const PSP_OPEN_JQL = `project = SA AND statusCategory != Done ORDER BY created DESC`;
+
 // Default pagination
 export const DEFAULT_PAGE_SIZE = 50;
 export const MAX_RESULTS = 1000;

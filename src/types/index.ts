@@ -91,6 +91,51 @@ export interface EpicsApiResponse {
   cacheHit: boolean;
 }
 
+// PSP (Service Desk) Types
+
+export interface PSPSla {
+  breachTime: string;       // ISO 8601
+  breached: boolean;
+  paused: boolean;
+  remainingMs: number;
+  remainingFriendly: string;
+  goalFriendly: string;
+}
+
+export interface PSPIssue {
+  key: string;
+  summary: string;
+  status: string;
+  statusCategory: "todo" | "in-progress" | "done";
+  issueType: string;
+  requestType: string | null;
+  priority: string;
+  assignee: { displayName: string; avatarUrl: string } | null;
+  reporter: { displayName: string; avatarUrl: string } | null;
+  created: string;
+  sla: PSPSla | null;
+  url: string;
+}
+
+export interface PSPRequestType {
+  id: string;
+  name: string;
+  groupId: string;
+}
+
+export interface PSPRequestTypeGroup {
+  id: string;
+  name: string;
+  requestTypes: PSPRequestType[];
+}
+
+export interface PSPApiResponse {
+  issues: PSPIssue[];
+  groups: PSPRequestTypeGroup[];
+  fetchedAt: string;
+  cacheHit: boolean;
+}
+
 // Timeline Scale & Config
 export type TimeScale = "today" | "weeks" | "months" | "quarters";
 

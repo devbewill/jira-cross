@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ReleasesOverlay } from "./ReleasesOverlay";
 
-type ViewMode = "epics" | "releases";
+type ViewMode = "epics" | "releases" | "psp";
 
 export function Header({
   onRefresh,
@@ -52,9 +52,9 @@ export function Header({
         <div className="flex items-center gap-2">
           {/* Epics / Releases view toggle */}
           <div className="flex gap-1 p-1 rounded-lg mr-1 bg-linear-bg">
-            {(["epics", "releases"] as const).map((mode) => {
+            {(["epics", "releases", "psp"] as const).map((mode) => {
               const active = viewMode === mode;
-              const label = mode === "epics" ? "Epics" : "Releases";
+              const label = mode === "epics" ? "Epics" : mode === "releases" ? "Releases" : "PSP";
               return (
                 <button
                   key={mode}
