@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { JiraClient } from '@/lib/jira/client';
 import { PSP_OPEN_JQL } from '@/lib/jira/queries';
-import { epicsCache } from '@/lib/cache/memory-cache';
+import { pspCache } from '@/lib/cache/memory-cache';
 import { PSPIssue, PSPSla, PSPApiResponse, PSPRequestType, PSPRequestTypeGroup } from '@/types';
 import { JiraIssueRaw } from '@/lib/jira/types';
 
@@ -94,7 +94,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const cached = epicsCache.get(PSP_CACHE_KEY);
+  const cached = pspCache.get(PSP_CACHE_KEY);
   if (cached) {
     return NextResponse.json({ ...cached, cacheHit: true }, { status: 200 });
   }
@@ -120,7 +120,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       cacheHit: false,
     };
 
-    epicsCache.set(PSP_CACHE_KEY, response);
+    pspCache.set(PSP_CACHE_KEY, response);
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error('Error fetching PSP issues:', error);

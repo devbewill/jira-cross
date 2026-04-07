@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { EpicsApiResponse } from '@/types';
+import { useRefresh } from '@/contexts/RefreshContext';
 
 interface UseEpicsState {
   data: EpicsApiResponse | null;
@@ -13,6 +14,7 @@ interface UseEpicsState {
 export function useEpics(): UseEpicsState & {
   refetch: () => Promise<void>;
 } {
+  const { refreshKey } = useRefresh();
   const [state, setState] = useState<UseEpicsState>({
     data: null,
     loading: true,
@@ -55,7 +57,7 @@ export function useEpics(): UseEpicsState & {
 
   useEffect(() => {
     fetchEpics();
-  }, []);
+  }, [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     ...state,

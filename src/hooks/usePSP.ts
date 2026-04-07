@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PSPApiResponse } from '@/types';
+import { useRefresh } from '@/contexts/RefreshContext';
 
 interface UsePSPState {
   data: PSPApiResponse | null;
@@ -11,6 +12,7 @@ interface UsePSPState {
 }
 
 export function usePSP(): UsePSPState & { refetch: () => Promise<void> } {
+  const { refreshKey } = useRefresh();
   const [state, setState] = useState<UsePSPState>({
     data: null,
     loading: true,
@@ -37,7 +39,7 @@ export function usePSP(): UsePSPState & { refetch: () => Promise<void> } {
     }
   };
 
-  useEffect(() => { fetchPSP(); }, []);
+  useEffect(() => { fetchPSP(); }, [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { ...state, refetch: fetchPSP };
 }
