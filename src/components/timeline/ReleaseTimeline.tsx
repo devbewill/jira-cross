@@ -199,6 +199,12 @@ export function ReleaseTimeline({
     setTodayVisible(checkTodayVisible());
   }, [checkTodayVisible, scrollContainerRef]);
 
+  const onLabelsScroll = useCallback(() => {
+    const l = labelsScrollRef.current;
+    if (l && scrollContainerRef.current)
+      scrollContainerRef.current.scrollTop = l.scrollTop;
+  }, []);
+
   const filteredProjects = useMemo(
     () =>
       allProjects
@@ -330,6 +336,7 @@ export function ReleaseTimeline({
                 ref={labelsScrollRef}
                 className="flex-1 overflow-y-auto overflow-x-hidden"
                 style={{ scrollbarWidth: "none" }}
+                onScroll={onLabelsScroll}
               >
                 {filteredProjects.map((project, i) => (
                   <div
