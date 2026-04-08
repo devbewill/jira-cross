@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { usePSP } from "@/hooks/usePSP";
+import { useRefresh } from "@/contexts/RefreshContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { PSPIssue, PSPRequestTypeGroup, PSPSla } from "@/types";
 
@@ -14,6 +26,16 @@ const BAR_COLOR = {
   pending: "#94A3B8", // In risoluzione
   reopened: "#EF4444", // Riaperto
   solved: "#10B981", // Risolto
+};
+
+// ─── Colori criticità SLA ─────────────────────────────────────────────────────
+
+const CRIT_COLOR = {
+  breached:   "#EF4444", // SLA scaduto — rosso
+  atRisk:     "#F59E0B", // SLA < 8h   — ambra
+  ok:         "#10B981", // SLA in tempo — verde
+  reopened:   "#F97316", // Riaperto   — arancione
+  unassigned: "#94A3B8", // Non assegnato — grigio
 };
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -96,6 +118,80 @@ function statusCounts(issues: PSPIssue[]): Record<string, number> {
     return acc;
   }, {});
 }
+
+// ─── CriticalityPanel ─────────────────────────────────────────────────────────
+
+const TOOLTIP_STYLE = {
+  border: "1px solid #E8E8E8",
+  borderRadius: 10,
+  fontSize: 11,
+  fontWeight: 700,
+  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+};
+
+function DonutChart({
+  data,
+  centerValue,
+  centerLabel,
+}: {
+  data: { name: string; value: number; color: string }[];
+  centerValue: number | string;
+  centerLabel: string;
+}) {
+  const filled = data.filter((d) => d.value > 0);
+  return (
+    <div style={{ position: "relative", width: 148, height: 148, flexShrink: 0 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={filled.length > 0 ? filled : [{ name: "—", value: 1, color: "#F0F0F0" }]}
+            cx="50%"
+            cy="50%"
+            innerRadius={44}
+            outerRadius={68}
+            dataKey="value"
+            strokeWidth={2}
+            stroke="#fff"
+            startAngle={90}
+            endAngle={-270}
+          >
+            {(filled.length > 0 ? filled : [{ color: "#F0F0F0" }]).map(
+              (d, i) => <Cell key={i} fill={d.color} />,
+            )}
+          </Pie>
+          <Tooltip
+            contentStyle={TOOLTIP_STYLE}
+            labelStyle={{ color: "#111111", marginBottom: 4 }}
+            itemStyle={{ color: "#555555" }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      {/* Center label */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+          gap: 2,
+        }}
+      >
+        <span style={{ fontSize: 24, fontWeight: 800, color: "#111111", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+          {centerValue}
+        </span>
+        <span style={{ fontSize: 9, fontWeight: 700, color: "#767676", textTransform: "uppercase", letterSpacing: 1 }}>
+          {centerLabel}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── StackedBar ───────────────────────────────────────────────────────────────
+
 
 // ─── StackedBar ───────────────────────────────────────────────────────────────
 
@@ -282,7 +378,7 @@ function RequestTypeChart({
   onSelect: (rt: string | null) => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden w-full h-full">
       {/* Legend */}
       <div className="flex items-center gap-5 px-5 py-2 border-b border-[#F0F0F0]">
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676] mr-1">
@@ -420,6 +516,134 @@ function RequestTypeChart({
   );
 }
 
+// ─── PeopleStats ──────────────────────────────────────────────────────────────
+
+// tutti gli stati incluso Risolto
+const PEOPLE_STATUSES = STATUS_ORDER;
+
+function buildPeopleData(
+  issues: PSPIssue[],
+  key: "reporter" | "assignee",
+  top = 10,
+) {
+  const map: Record<string, Record<string, number>> = {};
+
+  issues.forEach((i) => {
+    const person = i[key]?.displayName ?? "Non assegnato";
+    if (!map[person]) map[person] = {};
+    const s = STATUS[i.status] ? i.status : i.statusCategory === "done" ? "Risolto" : i.status;
+    map[person][s] = (map[person][s] ?? 0) + 1;
+  });
+
+  return Object.entries(map)
+    .map(([name, counts]) => {
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      const entry: Record<string, string | number> = {
+        name,
+        full: name,
+        _total: total,
+      };
+      PEOPLE_STATUSES.forEach((s) => { entry[s] = counts[s] ?? 0; });
+      return entry as Record<string, string | number> & { _total: number };
+    })
+    .sort((a, b) => b._total - a._total)
+    .slice(0, top);
+}
+
+function PeopleChart({
+  data,
+  title,
+}: {
+  data: ReturnType<typeof buildPeopleData>;
+  title: string;
+}) {
+  return (
+    <div className="flex-1 min-w-0 flex flex-col">
+      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676] mb-3">
+        {title}
+      </p>
+      <ResponsiveContainer width="100%" height={data.length * 34 + 8}>
+        <BarChart
+          data={data}
+          layout="vertical"
+          barSize={12}
+          margin={{ left: 0, right: 36, top: 0, bottom: 0 }}
+        >
+          <XAxis type="number" hide />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={180}
+            tick={{ fontSize: 11, fontWeight: 700, fill: "#555555", fontFamily: "inherit" }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip
+            cursor={{ fill: "rgba(0,0,0,0.03)" }}
+            contentStyle={TOOLTIP_STYLE}
+            labelFormatter={(_, payload) => payload?.[0]?.payload?.full ?? ""}
+            labelStyle={{ color: "#111111", marginBottom: 4 }}
+            itemStyle={{ color: "#555555" }}
+          />
+          {PEOPLE_STATUSES.map((s, i) => (
+            <Bar
+              key={s}
+              dataKey={s}
+              stackId="p"
+              fill={STATUS[s].dot}
+              name={STATUS[s].label}
+              radius={i === PEOPLE_STATUSES.length - 1 ? [0, 3, 3, 0] : [0, 0, 0, 0]}
+              label={i === PEOPLE_STATUSES.length - 1 ? {
+                position: "right",
+                fontSize: 11,
+                fontWeight: 700,
+                fill: "#555555",
+                formatter: (_: unknown, entry: { payload?: { _total?: number } }) =>
+                  entry?.payload?._total ?? "",
+              } : undefined}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function PeopleStatsBox({ issues }: { issues: PSPIssue[] }) {
+  const reporterData = buildPeopleData(issues, "reporter");
+  const assigneeData = buildPeopleData(issues, "assignee");
+
+  const legendStatuses = PEOPLE_STATUSES.filter((s) =>
+    [...reporterData, ...assigneeData].some((d) => (d[s] as number) > 0),
+  );
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-[#F0F0F0]">
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676]">
+          Persone
+        </span>
+        <div className="flex items-center gap-4">
+          {legendStatuses.map((s) => (
+            <span key={s} className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-[3px]" style={{ backgroundColor: STATUS[s].dot }} />
+              <span className="text-[10px] font-extrabold text-[#767676]">{STATUS[s].label}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 divide-x divide-[#F0F0F0]">
+        <div className="px-5 pt-4 pb-2">
+          <PeopleChart data={reporterData} title="Chi apre i ticket" />
+        </div>
+        <div className="px-5 pt-4 pb-2">
+          <PeopleChart data={assigneeData} title="A chi sono assegnati" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── IssueRow ─────────────────────────────────────────────────────────────────
 
 function IssueRow({ issue }: { issue: PSPIssue }) {
@@ -480,6 +704,11 @@ function IssueRow({ issue }: { issue: PSPIssue }) {
         </span>
       </td>
       <td className="py-2 px-4 whitespace-nowrap">
+        <span className="text-[11px] font-extrabold text-[#555555]">
+          {issue.reporter?.displayName ?? "—"}
+        </span>
+      </td>
+      <td className="py-2 px-4 whitespace-nowrap">
         <span className="text-[11px] font-extrabold tabular-nums text-[#767676]">
           {timeAgo(issue.created)}
         </span>
@@ -494,10 +723,13 @@ function IssueRow({ issue }: { issue: PSPIssue }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function PSPDashboard() {
-  const { data, loading, error } = usePSP();
+  const { data, loading, error, cacheHit } = usePSP();
+  const { isRefreshing } = useRefresh();
   const [selectedRT, setSelectedRT] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<string>("Apertura");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const issuesByRT = useMemo(() => {
     if (!data) return {} as Record<string, PSPIssue[]>;
@@ -526,22 +758,39 @@ export function PSPDashboard() {
     );
   }, [data, issuesByRT]);
 
+  const PRIORITY_ORDER: Record<string, number> = {
+    Highest: 0, High: 1, Medium: 2, Low: 3, Lowest: 4,
+  };
+
+  const SORT_FN: Record<string, (a: PSPIssue, b: PSPIssue) => number> = {
+    Chiave:        (a, b) => a.key.localeCompare(b.key),
+    Titolo:        (a, b) => a.summary.localeCompare(b.summary),
+    "Request Type":(a, b) => (a.requestType ?? a.issueType).localeCompare(b.requestType ?? b.issueType),
+    Stato:         (a, b) => a.status.localeCompare(b.status),
+    Priorità:      (a, b) => (PRIORITY_ORDER[a.priority] ?? 9) - (PRIORITY_ORDER[b.priority] ?? 9),
+    "Assegnato a": (a, b) => (a.assignee?.displayName ?? "").localeCompare(b.assignee?.displayName ?? ""),
+    "Aperto da":   (a, b) => (a.reporter?.displayName ?? "").localeCompare(b.reporter?.displayName ?? ""),
+    Apertura:      (a, b) => new Date(a.created).getTime() - new Date(b.created).getTime(),
+    "Time to Res.":(a, b) => (a.sla?.remainingMs ?? Infinity) - (b.sla?.remainingMs ?? Infinity),
+  };
+
   const filtered = useMemo(() => {
     if (!data) return [];
-    return data.issues.filter((i) => {
+    const base = data.issues.filter((i) => {
       if (i.statusCategory === "done") return false;
-      if (selectedRT && (i.requestType ?? i.issueType) !== selectedRT)
-        return false;
+      if (selectedRT && (i.requestType ?? i.issueType) !== selectedRT) return false;
       if (selectedStatus && i.status !== selectedStatus) return false;
       if (search) {
         const q = search.toLowerCase();
-        return (
-          i.summary.toLowerCase().includes(q) || i.key.toLowerCase().includes(q)
-        );
+        return i.summary.toLowerCase().includes(q) || i.key.toLowerCase().includes(q);
       }
       return true;
     });
-  }, [data, selectedRT, selectedStatus, search]);
+    const fn = SORT_FN[sortKey];
+    if (!fn) return base;
+    const sorted = [...base].sort(fn);
+    return sortDir === "desc" ? sorted.reverse() : sorted;
+  }, [data, selectedRT, selectedStatus, search, sortKey, sortDir]);
 
   if (loading)
     return (
@@ -574,19 +823,32 @@ export function PSPDashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] font-extrabold text-[#767676]">
-              sync{" "}
-              {new Date(data.fetchedAt).toLocaleTimeString("it-IT", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}{" "}
-              · ultimi 90g
-            </span>
+            {isRefreshing ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-[#767676]">
+                <span className="w-3 h-3 border-2 border-[#AAAAAA] border-t-transparent rounded-full animate-spin" />
+                Syncing…
+              </span>
+            ) : (
+              <span className="text-[11px] font-extrabold text-[#767676]">
+                {cacheHit ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                    Cache · {new Date(data.fetchedAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
+                    Aggiornato · {new Date(data.fetchedAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                )}
+                {" · ultimi 90g"}
+              </span>
+            )}
             <a
               href="https://hd-group.atlassian.net/jira/servicedesk/projects/SA/queues/custom/218"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold bg-[#111111] text-white hover:bg-[#333333] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold bg-[#0b1d7b] text-white hover:bg-[#0d2494] transition-colors"
             >
               ↗ Apri in Jira
             </a>
@@ -602,7 +864,7 @@ export function PSPDashboard() {
           onSelect={setSelectedStatus}
         />
 
-        {/* Chart */}
+        {/* Supporto piattaforme */}
         {(data.groups ?? []).length > 0 && (
           <RequestTypeChart
             groups={data.groups}
@@ -612,6 +874,9 @@ export function PSPDashboard() {
             onSelect={setSelectedRT}
           />
         )}
+
+        {/* Persone */}
+        <PeopleStatsBox issues={data.issues} />
 
         {/* Table */}
         <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
@@ -633,7 +898,7 @@ export function PSPDashboard() {
             {selectedRT && (
               <button
                 onClick={() => setSelectedRT(null)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-[#111111] text-white"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-[#0b1d7b] text-white"
               >
                 {selectedRT} <span className="opacity-50">×</span>
               </button>
@@ -679,23 +944,44 @@ export function PSPDashboard() {
                     "Stato",
                     "Priorità",
                     "Assegnato a",
+                    "Aperto da",
                     "Apertura",
                     "Time to Res.",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="py-2 px-4 text-[10px] font-extrabold uppercase tracking-wider text-[#767676] whitespace-nowrap"
-                    >
-                      {h}
-                    </th>
-                  ))}
+                  ].map((h) => {
+                    const sortable = h in SORT_FN;
+                    const active   = sortKey === h;
+                    return (
+                      <th
+                        key={h}
+                        onClick={() => {
+                          if (!sortable) return;
+                          if (active) setSortDir((d) => d === "asc" ? "desc" : "asc");
+                          else { setSortKey(h); setSortDir("asc"); }
+                        }}
+                        className="py-2 px-4 text-[10px] font-extrabold uppercase tracking-wider whitespace-nowrap select-none"
+                        style={{
+                          color: active ? "#111111" : "#767676",
+                          cursor: sortable ? "pointer" : "default",
+                        }}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {h}
+                          {sortable && (
+                            <span style={{ opacity: active ? 1 : 0.25, fontSize: 9 }}>
+                              {active && sortDir === "desc" ? "↓" : "↑"}
+                            </span>
+                          )}
+                        </span>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="py-16 text-center text-[13px] font-extrabold text-[#767676]"
                     >
                       Nessun risultato.

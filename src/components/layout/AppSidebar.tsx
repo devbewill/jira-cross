@@ -13,8 +13,10 @@ const S = {
   textMuted:   "#767676",   // 4.5:1 su bianco — minimo WCAG AA
   divider:     "#E8E8E8",
   hover:       "#F5F5F5",
-  activeBg:    "#111111",
+  activeBg:    "#0b1d7b",
   activeText:  "#FFFFFF",
+  syncBg:      "#f4aafe",
+  syncText:    "#1a1a1a",
 };
 
 function IconTimeline() {
@@ -204,7 +206,7 @@ export function AppSidebar({ collapsed, onToggle, onOpenReleases }: AppSidebarPr
             height: 36, padding: collapsed ? "0 13px" : "0 12px",
             justifyContent: collapsed ? "center" : undefined,
             borderRadius: 8, border: "none", cursor: isRefreshing ? "not-allowed" : "pointer",
-            backgroundColor: S.activeBg, color: S.activeText,
+            backgroundColor: S.syncBg, color: S.syncText,
             fontSize: 13, fontWeight: 700,
             opacity: isRefreshing ? 0.5 : 1,
             width: "100%",
