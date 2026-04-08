@@ -116,7 +116,7 @@ export function ReleaseBlock({
               )}
               {release.releaseDate && (
                 <span
-                  className={`text-[9px] font-medium opacity-70 ${cfg.solidText}`}
+                  className={`text-[9px] font-medium ${cfg.solidText}`}
                 >
                   {formatDateCompact(release.releaseDate)}
                 </span>

@@ -39,19 +39,19 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
   return (
     <div className="flex items-center gap-1.5 shrink-0">
       {stats.done > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-secondary">
+        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-linear-text">
           <span className="w-2 h-2 rounded-full shrink-0 bg-linear-done" />
           {stats.done}
         </span>
       )}
       {stats.inProgress > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-secondary ">
-          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-inProgress " />
+        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-linear-text">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-inProgress" />
           {stats.inProgress}
         </span>
       )}
       {stats.todo > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-bold leading-none text-linear-secondary">
+        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-linear-text">
           <span className="w-2 h-2 rounded-full shrink-0 bg-linear-todo" />
           {stats.todo}
         </span>
@@ -179,7 +179,7 @@ export function EpicBlock({
           className="flex items-center gap-2 overflow-hidden"
           style={{ height: `${INFO_HEIGHT}px`, marginBottom: `${GAP}px` }}
         >
-          <div className="text-[12px] font-semibold leading-none tracking-tight truncate min-w-0 text-linear-secondary">
+          <div className="text-[12px] font-extrabold leading-none tracking-tight truncate min-w-0 text-linear-text">
             {epic.summary}
           </div>
           {hasStats && <StoryCounts stats={epic.storyStats!} />}
@@ -207,7 +207,7 @@ export function EpicBlock({
           )}
 
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
-            <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full leading-none shrink-0 bg-white/80 backdrop-blur-sm text-linear-secondary">
+            <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full leading-none shrink-0 bg-white/90 text-linear-text">
               {epic.key}
             </span>
             {epic.dueDate && (
@@ -215,7 +215,7 @@ export function EpicBlock({
                 className={`text-[9px] leading-none shrink-0 font-bold px-2 py-0.5 rounded-full ${
                   isOverdue
                     ? "bg-red-500/90 text-white"
-                    : "bg-white/80 backdrop-blur-sm text-linear-secondary"
+                    : "bg-white/90 text-linear-text"
                 }`}
               >
                 {new Date(epic.dueDate).toLocaleDateString("en-US", {

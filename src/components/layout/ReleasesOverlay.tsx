@@ -61,19 +61,19 @@ function IssueStatsBar({
 
       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
         {stats.done > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-text">
+          <span className="flex items-center gap-1 text-[9px] font-extrabold text-linear-text">
             <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-done" />
             {stats.done} done
           </span>
         )}
         {stats.inProgress > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-text">
+          <span className="flex items-center gap-1 text-[9px] font-extrabold text-linear-text">
             <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-accent" />
             {stats.inProgress} in progress
           </span>
         )}
         {stats.todo > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-semibold text-linear-textDim">
+          <span className="flex items-center gap-1 text-[9px] font-extrabold text-linear-text">
             <span className="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-linear-todo" />
             {stats.todo} to do
           </span>
@@ -102,7 +102,7 @@ function ReleaseCard({
     <div className="bg-linear-surface rounded-xl p-4 flex flex-col gap-2 border border-linear-border">
       {/* Name + status badge */}
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[13px] font-semibold text-linear-text leading-snug">
+        <span className="text-[13px] font-extrabold text-linear-text leading-snug">
           {release.name}
         </span>
         <span
@@ -139,7 +139,7 @@ function ReleaseCard({
           <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">
             Start
           </span>
-          <span className="text-[11px] font-semibold text-linear-text">
+          <span className="text-[11px] font-extrabold text-linear-text">
             {formatDate(release.startDate)}
           </span>
         </div>
@@ -147,7 +147,7 @@ function ReleaseCard({
           <span className="block text-[9px] font-semibold uppercase tracking-widest text-linear-textDim">
             Release
           </span>
-          <span className="text-[11px] font-semibold text-linear-text">
+          <span className="text-[11px] font-extrabold text-linear-text">
             {formatDate(release.releaseDate)}
           </span>
         </div>
@@ -358,7 +358,7 @@ export function ReleasesOverlay({
       <div className="flex-shrink-0 flex items-center justify-between px-8 py-4 gap-6 border-b border-linear-border bg-linear-surface">
         {/* Title */}
         <div className="flex-shrink-0">
-          <h2 className="text-lg font-bold text-linear-text">Release Status</h2>
+          <h2 className="text-lg font-extrabold text-linear-text">Release Status</h2>
           <p className="text-[11px] text-linear-textDim font-medium mt-0.5">
             All versions across every Jira project — excluding archived
           </p>
@@ -453,7 +453,7 @@ export function ReleasesOverlay({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed bg-linear-accent text-linear-secondary hover:bg-linear-accentHover"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed bg-linear-accent text-white hover:bg-linear-accentHover"
             >
               {isRefreshing ? (
                 <>
@@ -511,10 +511,10 @@ export function ReleasesOverlay({
               {filtered.map((project) => (
                 <section key={project.projectKey}>
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-linear-secondary text-white">
+                    <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-linear-inProgress text-white">
                       {project.projectKey}
                     </span>
-                    <h3 className="text-sm font-semibold text-linear-secondary">
+                    <h3 className="text-sm font-extrabold text-linear-text">
                       {project.projectName}
                     </h3>
                     <span className="text-[10px] font-medium text-linear-textDim">
@@ -546,7 +546,7 @@ export function ReleasesOverlay({
               {byMonth.map((group) => (
                 <section key={group.key}>
                   <div className="flex items-center gap-4 mb-4 pb-3 border-b border-linear-border">
-                    <h3 className="text-base font-semibold text-linear-textDim">
+                    <h3 className="text-base font-extrabold text-linear-text">
                       {group.label}
                     </h3>
                     <span className="text-[10px] font-medium text-linear-textDim">
@@ -557,7 +557,7 @@ export function ReleasesOverlay({
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {group.releases.map((release) => (
                       <div key={release.id} className="flex flex-col gap-1.5">
-                        <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start bg-linear-secondary text-white">
+                        <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md self-start bg-linear-inProgress text-white">
                           {release.projectKey}
                         </span>
                         <ReleaseCard

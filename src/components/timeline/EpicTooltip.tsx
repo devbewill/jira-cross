@@ -44,16 +44,16 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
     >
       {/* Key + Status */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md leading-none bg-linear-text ">
+        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md leading-none bg-linear-text text-white">
           {epic.key}
         </span>
-        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-linear-bg text-linear-textSecondary">
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-linear-bg text-linear-text">
           {epic.status}
         </span>
       </div>
 
       {/* Summary */}
-      <div className="mb-4 text-[13px] font-semibold leading-snug text-linear-text">
+      <div className="mb-4 text-[13px] font-extrabold leading-snug text-linear-text">
         {epic.summary}
       </div>
 

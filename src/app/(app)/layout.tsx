@@ -12,7 +12,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const { isRefreshing, triggerRefresh } = useRefresh();
 
   return (
-    <div className="h-screen flex bg-white font-sans text-linear-text overflow-hidden selection:bg-linear-accent selection:text-white">
+    <div className="h-screen flex bg-linear-bg font-sans text-linear-text overflow-hidden selection:bg-linear-accent/20 selection:text-linear-accent">
       <AppSidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((c) => !c)}

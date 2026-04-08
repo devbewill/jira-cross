@@ -4,45 +4,81 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRefresh } from "@/contexts/RefreshContext";
 
-const NAV_ITEMS = [
-  {
-    href: "/",
-    label: "Epics",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="4" width="9" height="2.5" rx="1.25" fill="currentColor" opacity=".9"/>
-        <rect x="1" y="8" width="14" height="2.5" rx="1.25" fill="currentColor" opacity=".9"/>
-        <rect x="1" y="12" width="6" height="2.5" rx="1.25" fill="currentColor" opacity=".9"/>
-      </svg>
-    ),
-  },
-  {
-    href: "/releases",
-    label: "Releases",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="1" width="14" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.5"/>
-        <rect x="4" y="1" width="1.5" height="4" rx=".75" fill="currentColor"/>
-        <rect x="10.5" y="1" width="1.5" height="4" rx=".75" fill="currentColor"/>
-        <rect x="1" y="6" width="14" height="1.5" fill="currentColor" opacity=".4"/>
-        <rect x="3.5" y="9" width="2" height="2" rx=".5" fill="currentColor"/>
-        <rect x="7" y="9" width="2" height="2" rx=".5" fill="currentColor"/>
-        <rect x="10.5" y="9" width="2" height="2" rx=".5" fill="currentColor"/>
-      </svg>
-    ),
-  },
-  {
-    href: "/psp",
-    label: "PSP",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity=".9"/>
-        <rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity=".5"/>
-        <rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".5"/>
-        <rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".9"/>
-      </svg>
-    ),
-  },
+// ─── Colori sidebar (light, alto contrasto) ───────────────────────────────────
+const S = {
+  bg:          "#FFFFFF",
+  border:      "#E0E0E0",
+  text:        "#111111",   // 18:1 su bianco
+  textSub:     "#555555",   // 7:1 su bianco
+  textMuted:   "#767676",   // 4.5:1 su bianco — minimo WCAG AA
+  divider:     "#E8E8E8",
+  hover:       "#F5F5F5",
+  activeBg:    "#111111",
+  activeText:  "#FFFFFF",
+};
+
+function IconTimeline() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <rect x="1" y="3.5" width="8"  height="2" rx="1" fill="currentColor"/>
+      <rect x="1" y="7"   width="13" height="2" rx="1" fill="currentColor" opacity=".5"/>
+      <rect x="1" y="10.5" width="5" height="2" rx="1" fill="currentColor" opacity=".3"/>
+    </svg>
+  );
+}
+function IconCalendar() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <rect x="1.5" y="2.5" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.3"/>
+      <rect x="4"   y="1"   width="1.2" height="3.5" rx=".6" fill="currentColor"/>
+      <rect x="9.8" y="1"   width="1.2" height="3.5" rx=".6" fill="currentColor"/>
+      <rect x="1.5" y="6"   width="12" height="1.2" fill="currentColor" opacity=".25"/>
+      <rect x="3.5" y="8.5" width="2"  height="2"   rx=".5" fill="currentColor" opacity=".6"/>
+      <rect x="6.5" y="8.5" width="2"  height="2"   rx=".5" fill="currentColor" opacity=".6"/>
+    </svg>
+  );
+}
+function IconGrid() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <rect x="1"   y="1"   width="5.5" height="5.5" rx="1.5" fill="currentColor"/>
+      <rect x="8.5" y="1"   width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4"/>
+      <rect x="1"   y="8.5" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4"/>
+      <rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1.5" fill="currentColor"/>
+    </svg>
+  );
+}
+function IconClock() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <circle cx="7.5" cy="7.5" r="5.75" stroke="currentColor" strokeWidth="1.3"/>
+      <path d="M7.5 4.5v3.25l2 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconSync({ spinning }: { spinning: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+      className={spinning ? "animate-spin" : ""}
+      style={spinning ? { animationDuration: "0.8s" } : {}}>
+      <path d="M11.5 7A4.5 4.5 0 1 1 9.1 3.1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+      <path d="M9 1l2.5 2.5-2.5 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconChevron({ flipped }: { flipped: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+      className={`transition-transform duration-300 ${flipped ? "rotate-180" : ""}`}>
+      <path d="M9 2.5L5 7l4 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+const NAV = [
+  { href: "/",         label: "Epics",    icon: <IconTimeline /> },
+  { href: "/releases", label: "Releases", icon: <IconCalendar /> },
+  { href: "/psp",      label: "PSP",      icon: <IconGrid />     },
 ] as const;
 
 interface AppSidebarProps {
@@ -51,103 +87,151 @@ interface AppSidebarProps {
   onOpenReleases: () => void;
 }
 
+function NavBtn({
+  active, collapsed, title, onClick, children,
+}: {
+  active?: boolean;
+  collapsed: boolean;
+  title?: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      title={title}
+      style={{
+        display: "flex", alignItems: "center", gap: 10,
+        height: 36,
+        padding: collapsed ? "0 13px" : "0 12px",
+        justifyContent: collapsed ? "center" : undefined,
+        borderRadius: 8,
+        cursor: "pointer",
+        backgroundColor: active ? S.activeBg : "transparent",
+        color: active ? S.activeText : S.text,
+        fontSize: 13,
+        fontWeight: active ? 600 : 500,
+        userSelect: "none",
+        transition: "background-color 120ms, color 120ms",
+      }}
+      onMouseEnter={e => {
+        if (!active) {
+          (e.currentTarget as HTMLDivElement).style.backgroundColor = S.hover;
+        }
+      }}
+      onMouseLeave={e => {
+        if (!active) {
+          (e.currentTarget as HTMLDivElement).style.backgroundColor = "transparent";
+        }
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function AppSidebar({ collapsed, onToggle, onOpenReleases }: AppSidebarProps) {
   const pathname = usePathname();
   const { isRefreshing, triggerRefresh } = useRefresh();
 
   return (
     <aside
-      className={`flex flex-col h-full bg-linear-surface border-r border-linear-border flex-shrink-0 transition-all duration-200 ${
-        collapsed ? "w-14" : "w-52"
-      }`}
+      className="flex flex-col h-full flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+      style={{
+        width: collapsed ? 56 : 250,
+        backgroundColor: S.bg,
+        borderRight: `1px solid ${S.border}`,
+      }}
     >
-      {/* Logo */}
-      <div className={`flex items-center gap-2.5 px-3.5 h-14 border-b border-linear-border flex-shrink-0 overflow-hidden`}>
-        <span className="text-[18px] text-linear-accent flex-shrink-0">◈</span>
-        {!collapsed && (
-          <div className="overflow-hidden">
-            <p className="text-[13px] font-bold text-linear-text whitespace-nowrap truncate leading-tight">
-              Jira Cross-Space
-            </p>
-            <p className="text-[10px] text-linear-textSecondary whitespace-nowrap truncate leading-tight">
-              HD Group
-            </p>
+      {/* ── Logo ─────────────────────────────────────────────────────── */}
+      <div style={{
+        display: "flex", alignItems: "center", height: 56, flexShrink: 0,
+        padding: collapsed ? "0 16px" : "0 16px",
+        justifyContent: collapsed ? "center" : undefined,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+            backgroundColor: S.text,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <span style={{ fontSize: 11, color: "#FFFFFF", fontWeight: 700, lineHeight: 1 }}>◈</span>
           </div>
-        )}
+          {!collapsed && (
+            <div style={{ overflow: "hidden", lineHeight: "1.25" }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: S.text, whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>Jira Cross</p>
+              <p style={{ fontSize: 11, color: S.textMuted, whiteSpace: "nowrap" }}>HD Group</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 flex flex-col gap-0.5 p-2 pt-3 overflow-hidden">
-        {NAV_ITEMS.map(({ href, label, icon }) => {
+      <div style={{ margin: "0 12px", height: 1, backgroundColor: S.divider, flexShrink: 0 }} />
+
+      {/* ── Navigation ───────────────────────────────────────────────── */}
+      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, padding: "10px 8px", overflow: "hidden" }}>
+        {NAV.map(({ href, label, icon }) => {
           const active = pathname === href;
           return (
-            <Link
-              key={href}
-              href={href}
-              title={collapsed ? label : undefined}
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium transition-all duration-100 whitespace-nowrap overflow-hidden ${
-                active
-                  ? "bg-linear-accentLight/15 text-linear-accent"
-                  : "text-linear-textSecondary hover:bg-linear-surfaceHover hover:text-linear-text"
-              }`}
-            >
-              <span className="flex-shrink-0">{icon}</span>
-              {!collapsed && <span className="truncate">{label}</span>}
+            <Link key={href} href={href} style={{ textDecoration: "none" }}>
+              <NavBtn active={active} collapsed={collapsed} title={collapsed ? label : undefined}>
+                <span style={{ flexShrink: 0 }}>{icon}</span>
+                {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>}
+              </NavBtn>
             </Link>
           );
         })}
 
-        {/* Divider */}
-        <div className="my-1 h-px bg-linear-border/50 mx-1" />
+        <div style={{ margin: "6px 4px", height: 1, backgroundColor: S.divider }} />
 
-        {/* Status Releases */}
-        <button
-          onClick={onOpenReleases}
-          title={collapsed ? "Status Releases" : undefined}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-linear-textSecondary hover:bg-linear-surfaceHover hover:text-linear-text transition-all duration-100 whitespace-nowrap overflow-hidden w-full text-left"
-        >
-          <span className="flex-shrink-0">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M8 4.5v4l2.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </span>
-          {!collapsed && <span className="truncate">Status Releases</span>}
-        </button>
+        <NavBtn collapsed={collapsed} title={collapsed ? "Status Releases" : undefined} onClick={onOpenReleases}>
+          <span style={{ flexShrink: 0, color: S.textSub }}><IconClock /></span>
+          {!collapsed && <span style={{ color: S.textSub, fontSize: 13, fontWeight: 500 }}>Status Releases</span>}
+        </NavBtn>
       </nav>
 
-      {/* Bottom: Sync + Collapse */}
-      <div className="p-2 border-t border-linear-border flex flex-col gap-0.5">
+      {/* ── Bottom ───────────────────────────────────────────────────── */}
+      <div style={{ padding: "8px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ margin: "0 4px 4px", height: 1, backgroundColor: S.divider }} />
+
+        {/* Sync */}
         <button
           onClick={triggerRefresh}
           disabled={isRefreshing}
           title={collapsed ? "Sync Jira" : undefined}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-semibold bg-linear-accent text-linear-secondary hover:bg-linear-accentHover disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-100 whitespace-nowrap overflow-hidden w-full"
+          style={{
+            display: "flex", alignItems: "center", gap: 10,
+            height: 36, padding: collapsed ? "0 13px" : "0 12px",
+            justifyContent: collapsed ? "center" : undefined,
+            borderRadius: 8, border: "none", cursor: isRefreshing ? "not-allowed" : "pointer",
+            backgroundColor: S.activeBg, color: S.activeText,
+            fontSize: 13, fontWeight: 700,
+            opacity: isRefreshing ? 0.5 : 1,
+            width: "100%",
+          }}
         >
-          <span className="flex-shrink-0">
-            {isRefreshing ? (
-              <span className="w-4 h-4 border-2 border-linear-secondary border-t-transparent rounded-full animate-spin block" />
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M8 1l3 2-3 2" fill="currentColor"/>
-              </svg>
-            )}
-          </span>
+          <span style={{ flexShrink: 0 }}><IconSync spinning={isRefreshing} /></span>
           {!collapsed && <span>{isRefreshing ? "Syncing…" : "Sync Jira"}</span>}
         </button>
 
+        {/* Collapse */}
         <button
           onClick={onToggle}
-          title={collapsed ? "Espandi sidebar" : "Comprimi sidebar"}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] text-linear-textSecondary hover:bg-linear-surfaceHover hover:text-linear-text transition-all duration-100 w-full"
+          title={collapsed ? "Espandi" : "Comprimi"}
+          style={{
+            display: "flex", alignItems: "center", gap: 10,
+            height: 36, padding: collapsed ? "0 13px" : "0 12px",
+            justifyContent: collapsed ? "center" : undefined,
+            borderRadius: 8, border: "none", cursor: "pointer",
+            backgroundColor: "transparent", color: S.textMuted,
+            fontSize: 13, fontWeight: 500, width: "100%",
+            transition: "background-color 120ms",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = S.hover)}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
         >
-          <span className={`flex-shrink-0 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L6 8l4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-          {!collapsed && <span className="truncate">Comprimi</span>}
+          <span style={{ flexShrink: 0 }}><IconChevron flipped={collapsed} /></span>
+          {!collapsed && <span>Comprimi</span>}
         </button>
       </div>
     </aside>

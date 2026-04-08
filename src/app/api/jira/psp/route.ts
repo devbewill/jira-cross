@@ -5,7 +5,7 @@ import { pspCache } from '@/lib/cache/memory-cache';
 import { PSPIssue, PSPSla, PSPApiResponse, PSPRequestType, PSPRequestTypeGroup } from '@/types';
 import { JiraIssueRaw } from '@/lib/jira/types';
 
-const PSP_CACHE_KEY = 'psp:sa-open-v3';
+const PSP_CACHE_KEY = 'psp:sa-all-v1';
 const SERVICE_DESK_ID = '30';
 
 function mapSla(raw: any): PSPSla | null {
