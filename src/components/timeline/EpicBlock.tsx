@@ -9,7 +9,7 @@ import { EpicTooltip } from "./EpicTooltip";
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const INFO_HEIGHT = 22;
 const GAP = 4;
-const BAR_H = 40;
+const BAR_H = 30;
 export const BLOCK_HEIGHT = INFO_HEIGHT + GAP + BAR_H; // 56px
 export const BAR_HEIGHT = 0; // legacy export
 

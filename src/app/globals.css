@@ -1,13 +1,18 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
 
-html, body {
+html,
+body {
   height: 100%;
   padding: 0;
   margin: 0;
-  background-color: #F2F2F7;
-  color: #0C0C1E;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: #f2f2f7;
+  color: #0c0c1e;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-weight: 800;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -22,19 +27,28 @@ html, body {
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 
-::-webkit-scrollbar        { width: 4px; height: 4px; }
-::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-corner { background: transparent; }
-::-webkit-scrollbar-thumb  {
-  background-color: #D0D0E8;
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #d0d0e8;
   border-radius: 99px;
 }
-::-webkit-scrollbar-thumb:hover { background-color: #B0B0D0; }
+::-webkit-scrollbar-thumb:hover {
+  background-color: #b0b0d0;
+}
 
 /* ─── Timeline grid ──────────────────────────────────────────────────────── */
 
 .bg-timeline-grid {
-  background-color: #F2F2F7;
+  background-color: #f2f2f7;
   background-image: linear-gradient(
     90deg,
     rgba(91, 79, 232, 0.05) 1px,
