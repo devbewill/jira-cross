@@ -17,21 +17,21 @@ export default function EpicsPage() {
 
   if (isConfigMissing) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-timeline-grid p-6">
-        <div className="bg-linear-surface border border-linear-border rounded-[12px] p-8 max-w-md w-full">
-          <h2 className="text-xl font-semibold mb-3 text-linear-text">Configuration Missing</h2>
-          <p className="text-linear-text text-sm mb-6 leading-relaxed">
+      <div className="flex-1 flex items-center justify-center bg-slate-50/50 p-6">
+        <div className="bg-card border border-border rounded-[12px] p-8 max-w-md w-full">
+          <h2 className="text-xl font-semibold mb-3 text-foreground">Configuration Missing</h2>
+          <p className="text-foreground text-sm mb-6 leading-relaxed">
             Jira credentials are not configured. Please ensure the following environment variables are set in{" "}
-            <code className="bg-linear-surfaceActive px-1 py-0.5 rounded">.env.local</code>:
+            <code className="bg-muted px-1 py-0.5 rounded">.env.local</code>:
           </p>
-          <ul className="text-left bg-linear-surfaceHover p-4 rounded-[6px] border border-linear-border font-mono text-xs text-linear-text space-y-2">
+          <ul className="text-left hover:bg-muted/50 bg-transparent p-4 rounded-[6px] border border-border font-mono text-xs text-foreground space-y-2">
             {["JIRA_BASE_URL", "JIRA_EMAIL", "JIRA_API_TOKEN"].map((v) => (
               <li key={v} className="flex items-center gap-2">
-                <span className="text-linear-accent">→</span> {v}
+                <span className="text-primary">→</span> {v}
               </li>
             ))}
           </ul>
-          <p className="text-linear-textDim text-xs pt-4 border-t border-linear-border mt-4">
+          <p className="text-muted-foreground/60 text-xs pt-4 border-t border-border mt-4">
             After updating .env.local, restart the dev server.
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function EpicsPage() {
               />
             </div>
             <div
-              className={`transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden h-full shrink-0 border-l border-linear-border z-30 ${
+              className={`transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden h-full shrink-0 border-l border-border z-30 ${
                 selectedEpic ? "w-80 opacity-100" : "w-0 opacity-0 border-none"
               }`}
             >
@@ -69,8 +69,8 @@ export default function EpicsPage() {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-white">
-            <div className="text-center bg-linear-surface border border-linear-border rounded-[12px] p-8 max-w-sm">
-              <p className="text-linear-text font-medium mb-6">
+            <div className="text-center bg-card border border-border rounded-[12px] p-8 max-w-sm">
+              <p className="text-foreground font-medium mb-6">
                 No epics found in this project view.
               </p>
             </div>

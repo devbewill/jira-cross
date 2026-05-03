@@ -89,19 +89,19 @@ export function TimelineContainer({
 
   return (
     <>
-      <div className="flex flex-col h-full bg-linear-bg w-full">
+      <div className="flex flex-col h-full bg-background w-full">
         {/* Scale Controls */}
-        <div className="flex items-center justify-between px-5 py-3 bg-linear-surface flex-shrink-0 border-b border-linear-border">
+        <div className="flex items-center justify-between px-5 py-3 bg-card flex-shrink-0 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="flex gap-1 p-1 rounded-lg bg-linear-bg">
+            <div className="flex gap-1 p-1 rounded-lg bg-background">
               {SCALES.map((s) => (
                 <button
                   key={s.key}
                   onClick={() => changeScale(s.key)}
                   className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-all duration-150 ${
                     scale === s.key
-                      ? "bg-linear-surface text-linear-text"
-                      : "bg-transparent text-linear-textSecondary"
+                      ? "bg-card text-foreground"
+                      : "bg-transparent text-muted-foreground"
                   }`}
                 >
                   {s.label}
@@ -114,14 +114,14 @@ export function TimelineContainer({
               onClick={() => setShowReleaseBars((v) => !v)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 border ${
                 showReleaseBars
-                  ? "bg-linear-surface border-linear-border text-linear-text"
-                  : "bg-transparent border-transparent text-linear-textSecondary"
+                  ? "bg-card border-border text-foreground"
+                  : "bg-transparent border-transparent text-muted-foreground"
               }`}
             >
               {/* Toggle pill */}
               <span
                 className={`relative inline-flex w-7 h-4 rounded-full transition-colors duration-200 flex-shrink-0 ${
-                  showReleaseBars ? "bg-linear-accent" : "bg-linear-border"
+                  showReleaseBars ? "bg-primary" : "bg-border"
                 }`}
               >
                 <span
@@ -136,15 +136,15 @@ export function TimelineContainer({
 
           <div className="flex items-center gap-4">
             {/* Legend */}
-            <div className="flex items-center gap-3 pl-4 border-l border-linear-border">
+            <div className="flex items-center gap-3 pl-4 border-l border-border">
               {[
-                { className: "bg-linear-done", label: "Done" },
-                { className: "bg-linear-inProgress", label: "In Progress" },
-                { className: "bg-linear-todo", label: "Todo" },
+                { className: "bg-emerald-500", label: "Done" },
+                { className: "bg-amber-500", label: "In Progress" },
+                { className: "bg-slate-400", label: "Todo" },
               ].map(({ className, label }) => (
                 <span
                   key={label}
-                  className="flex items-center gap-1.5 text-[11px] font-medium text-linear-textSecondary"
+                  className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground"
                 >
                   <span
                     className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${className}`}
@@ -157,7 +157,7 @@ export function TimelineContainer({
             {!todayVisible && (
               <button
                 onClick={goToToday}
-                className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 bg-linear-accent text-white hover:bg-linear-accentHover"
+                className="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 bg-primary text-white hover:hover:bg-primary/90 bg-primary"
               >
                 → Today
               </button>
@@ -168,8 +168,8 @@ export function TimelineContainer({
         {/* Main layout */}
         <div className="flex flex-1 overflow-hidden">
           {/* Fixed Label Column */}
-          <div className="w-56 flex-shrink-0 flex flex-col bg-linear-secondary border-r border-linear-border">
-            <div className="h-10 flex-shrink-0 bg-linear-secondary border-b border-linear-border" />
+          <div className="w-56 flex-shrink-0 flex flex-col bg-slate-50 border-r border-border">
+            <div className="h-10 flex-shrink-0 bg-slate-50 border-b border-border" />
             <div
               className="flex-1 overflow-y-auto overflow-x-hidden"
               ref={labelsScrollRef}
@@ -178,13 +178,13 @@ export function TimelineContainer({
               {boards.map((board, i) => (
                 <div
                   key={board.key}
-                  className="flex flex-col justify-center px-4 py-4 transition-colors cursor-default border-b border-linear-border hover:bg-linear-surfaceHover"
+                  className="flex flex-col justify-center px-4 py-4 transition-colors cursor-default border-b border-border hover:hover:bg-muted/50 bg-transparent"
                   style={{ minHeight: `${swimlaneHeights[i]}px` }}
                 >
-                  <span className="text-[12px] font-black break-words mb-0.5 text-linear-text">
+                  <span className="text-[12px] font-black break-words mb-0.5 text-foreground">
                     {board.name || board.key}
                   </span>
-                  <span className="text-[11px] font-medium tabular-nums mb-2 text-linear-text">
+                  <span className="text-[11px] font-medium tabular-nums mb-2 text-foreground">
                     {board.epics.length}{" "}
                     {board.epics.length === 1 ? "epic" : "epics"}
                   </span>
@@ -195,10 +195,10 @@ export function TimelineContainer({
                         className="flex items-start gap-1.5 cursor-pointer group"
                         onClick={() => handleSelectEpic(epic)}
                       >
-                        <span className="text-[9px] font-semibold flex-shrink-0 mt-[1px] transition-colors text-linear-text">
+                        <span className="text-[9px] font-semibold flex-shrink-0 mt-[1px] transition-colors text-foreground">
                           {epic.key}
                         </span>
-                        <span className="text-[10px] font-medium leading-tight truncate transition-colors text-linear-text">
+                        <span className="text-[10px] font-medium leading-tight truncate transition-colors text-foreground">
                           {epic.summary}
                         </span>
                       </li>
@@ -214,7 +214,7 @@ export function TimelineContainer({
             className="flex-1 flex flex-col overflow-hidden"
             ref={containerRef}
           >
-            <div className="flex-shrink-0 bg-linear-surface z-10 border-b border-linear-border">
+            <div className="flex-shrink-0 bg-card z-10 border-b border-border">
               <div
                 className="overflow-hidden"
                 ref={headerScrollRef}

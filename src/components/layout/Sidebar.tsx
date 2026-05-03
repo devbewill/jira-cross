@@ -10,8 +10,8 @@ interface SidebarProps {
 export function Sidebar({ epic, onClose }: SidebarProps) {
   if (!epic) {
     return (
-      <aside className="w-80 bg-linear-surface border-l-2 border-linear-border flex flex-col items-center justify-center p-8 text-center z-20 transition-all duration-300">
-        <div className="text-xs font-black uppercase tracking-widest text-linear-textDim">
+      <aside className="w-80 bg-card border-l-2 border-border flex flex-col items-center justify-center p-8 text-center z-20 transition-all duration-300">
+        <div className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">
           Select an epic
         </div>
       </aside>
@@ -19,16 +19,16 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
   }
 
   return (
-    <aside className="w-80 bg-linear-surface border-l-2 border-linear-text flex flex-col h-full overflow-hidden z-20 relative transition-all duration-300">
+    <aside className="w-80 bg-card border-l-2 border-linear-text flex flex-col h-full overflow-hidden z-20 relative transition-all duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-b-2 border-linear-border flex-shrink-0 bg-linear-surfaceHover">
-        <h2 className="font-black text-base tracking-tighter text-linear-text uppercase w-full truncate">
+      <div className="flex items-center justify-between px-6 py-5 border-b-2 border-border flex-shrink-0 hover:bg-muted/50 bg-transparent">
+        <h2 className="font-black text-base tracking-tighter text-foreground uppercase w-full truncate">
           {epic.key}
         </h2>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-linear-text hover:text-linear-text transition-colors duration-100 p-1 font-black text-lg leading-none"
+            className="text-foreground hover:text-foreground transition-colors duration-100 p-1 font-black text-lg leading-none"
           >
             ✕
           </button>
@@ -39,17 +39,17 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {/* Summary */}
         <div>
-          <h3 className="text-[9px] font-black uppercase tracking-widest text-linear-textDim mb-2">
+          <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">
             Summary
           </h3>
-          <p className="text-sm font-bold text-linear-text leading-snug tracking-tight">
+          <p className="text-sm font-bold text-foreground leading-snug tracking-tight">
             {epic.summary}
           </p>
         </div>
 
         {/* Status */}
         <div className="flex justify-between items-center">
-          <h3 className="text-[9px] font-black uppercase tracking-widest text-linear-textDim">
+          <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
             Status
           </h3>
           <Badge
@@ -61,10 +61,10 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
 
         {/* Board */}
         <div className="flex justify-between items-center">
-          <h3 className="text-[9px] font-black uppercase tracking-widest text-linear-textDim">
+          <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
             Project
           </h3>
-          <span className="text-[10px] font-black uppercase tracking-widest text-linear-text bg-linear-surfaceActive px-2 py-0.5 rounded-[2px] border border-linear-border">
+          <span className="text-[10px] font-black uppercase tracking-widest text-foreground bg-muted px-2 py-0.5 rounded-[2px] border border-border">
             {epic.boardKey}
           </span>
         </div>
@@ -72,19 +72,19 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
         {/* Dates */}
         {(epic.startDate || epic.dueDate) && (
           <div className="space-y-3">
-            <h3 className="text-[9px] font-black uppercase tracking-widest text-linear-textDim">
+            <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
               Timeline
             </h3>
             <div className="text-sm space-y-2">
               {epic.startDate && (
                 <div className="flex justify-between">
-                  <span className="text-linear-text font-bold text-xs">Start</span>
+                  <span className="text-foreground font-bold text-xs">Start</span>
                   <span className="font-black text-xs">{epic.startDate}</span>
                 </div>
               )}
               {epic.dueDate && (
                 <div className="flex justify-between">
-                  <span className="text-linear-text font-bold text-xs">Due</span>
+                  <span className="text-foreground font-bold text-xs">Due</span>
                   <span className="font-black text-xs">{epic.dueDate}</span>
                 </div>
               )}
@@ -95,10 +95,10 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
         {/* Story Points */}
         {epic.storyPoints !== null && (
           <div className="flex justify-between items-center">
-            <h3 className="text-[9px] font-black uppercase tracking-widest text-linear-textDim">
+            <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
               Estimate
             </h3>
-            <span className="text-xs font-black bg-linear-todo text-linear-text px-2.5 py-0.5 rounded-[2px]">
+            <span className="text-xs font-black bg-slate-400 text-foreground px-2.5 py-0.5 rounded-[2px]">
               {epic.storyPoints} pts
             </span>
           </div>
@@ -107,7 +107,7 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
         {/* Assignee */}
         {epic.assignee && (
           <div>
-            <h3 className="text-[9px] font-black uppercase tracking-widest text-linear-textDim mb-3">
+            <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-3">
               Assignee
             </h3>
             <div className="flex items-center gap-3">
@@ -115,12 +115,12 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
                 <img
                   src={epic.assignee.avatarUrl}
                   alt={epic.assignee.displayName}
-                  className="w-7 h-7 rounded-full border-2 border-linear-border"
+                  className="w-7 h-7 rounded-full border-2 border-border"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full border-2 border-linear-border bg-linear-surfaceActive" />
+                <div className="w-7 h-7 rounded-full border-2 border-border bg-muted" />
               )}
-              <p className="text-sm font-black tracking-tight text-linear-text">
+              <p className="text-sm font-black tracking-tight text-foreground">
                 {epic.assignee.displayName}
               </p>
             </div>
@@ -128,12 +128,12 @@ export function Sidebar({ epic, onClose }: SidebarProps) {
         )}
 
         {/* Link */}
-        <div className="pt-4 mt-auto border-t-2 border-linear-border">
+        <div className="pt-4 mt-auto border-t-2 border-border">
           <a
             href={epic.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-full px-4 py-2.5 bg-linear-text text-linear-bg font-black text-xs uppercase tracking-widest rounded-[3px] hover:bg-linear-text transition-colors shadow-linear-sm hover:shadow-linear-hover"
+            className="flex items-center justify-center w-full px-4 py-2.5 bg-foreground text-background font-black text-xs uppercase tracking-widest rounded-[3px] hover:bg-foreground transition-colors shadow-sm hover:shadow-md"
           >
             Open in Jira ↗
           </a>

@@ -34,7 +34,7 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
   return (
     <div
       ref={ref}
-      className="fixed z-[9999] pointer-events-none rounded-xl text-sm bg-linear-surface border border-linear-border p-4"
+      className="fixed z-[9999] pointer-events-none rounded-xl text-sm bg-card border border-border p-4"
       style={{
         visibility: pos ? "visible" : "hidden",
         top: pos ? `${pos.top}px` : `${y}px`,
@@ -44,58 +44,58 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
     >
       {/* Key + Status */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md leading-none bg-linear-text text-white">
+        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md leading-none bg-foreground text-white">
           {epic.key}
         </span>
-        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-linear-bg text-linear-text">
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-background text-foreground">
           {epic.status}
         </span>
       </div>
 
       {/* Summary */}
-      <div className="mb-4 text-[13px] font-extrabold leading-snug text-linear-text">
+      <div className="mb-4 text-[13px] font-extrabold leading-snug text-foreground">
         {epic.summary}
       </div>
 
       {/* Meta */}
-      <div className="text-xs space-y-2 border-t border-linear-border pt-3">
+      <div className="text-xs space-y-2 border-t border-border pt-3">
         {epic.startDate && (
           <div className="flex justify-between items-center">
-            <span className="text-linear-textSecondary">Start</span>
-            <span className="font-semibold text-linear-text">
+            <span className="text-muted-foreground">Start</span>
+            <span className="font-semibold text-foreground">
               {epic.startDate}
             </span>
           </div>
         )}
         {epic.dueDate && (
           <div className="flex justify-between items-center">
-            <span className="text-linear-textSecondary">Due</span>
-            <span className="font-semibold text-linear-text">
+            <span className="text-muted-foreground">Due</span>
+            <span className="font-semibold text-foreground">
               {epic.dueDate}
             </span>
           </div>
         )}
         {epic.storyPoints && (
           <div className="flex justify-between items-center">
-            <span className="text-linear-textSecondary">Estimate</span>
-            <span className="font-semibold text-linear-text">
+            <span className="text-muted-foreground">Estimate</span>
+            <span className="font-semibold text-foreground">
               {epic.storyPoints} pts
             </span>
           </div>
         )}
 
         {epic.storyStats && epic.storyStats.total > 0 && (
-          <div className="border-t border-linear-border pt-2.5 mt-1.5">
+          <div className="border-t border-border pt-2.5 mt-1.5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-linear-textSecondary">Stories</span>
-              <span className="font-semibold text-linear-text">
+              <span className="text-muted-foreground">Stories</span>
+              <span className="font-semibold text-foreground">
                 {epic.storyStats.total} total
               </span>
             </div>
-            <div className="flex w-full h-[6px] rounded-full overflow-hidden mb-2 bg-linear-todo">
+            <div className="flex w-full h-[6px] rounded-full overflow-hidden mb-2 bg-slate-400">
               {epic.storyStats.done > 0 && (
                 <div
-                  className="bg-linear-done"
+                  className="bg-emerald-500"
                   style={{
                     width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`,
                   }}
@@ -103,7 +103,7 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
               )}
               {epic.storyStats.inProgress > 0 && (
                 <div
-                  className="bg-linear-inProgress"
+                  className="bg-amber-500"
                   style={{
                     width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`,
                   }}
@@ -112,20 +112,20 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
             </div>
             <div className="flex gap-3 text-[10px] font-medium">
               <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-linear-done" />
-                <span className="text-linear-text">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-foreground">
                   {epic.storyStats.done} done
                 </span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-linear-inProgress" />
-                <span className="text-linear-text">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span className="text-foreground">
                   {epic.storyStats.inProgress} in progress
                 </span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-linear-todo" />
-                <span className="text-linear-textDim">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                <span className="text-muted-foreground/60">
                   {epic.storyStats.todo} todo
                 </span>
               </span>
@@ -134,9 +134,9 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
         )}
 
         {epic.assignee && (
-          <div className="flex justify-between items-center border-t border-linear-border pt-2 mt-1">
-            <span className="text-linear-textSecondary">Assignee</span>
-            <span className="font-medium flex items-center gap-1.5 text-linear-text">
+          <div className="flex justify-between items-center border-t border-border pt-2 mt-1">
+            <span className="text-muted-foreground">Assignee</span>
+            <span className="font-medium flex items-center gap-1.5 text-foreground">
               <img
                 src={epic.assignee.avatarUrl}
                 alt=""
@@ -151,22 +151,22 @@ export function EpicTooltip({ epic, x, y }: EpicTooltipProps) {
       {/* Arrow */}
       {pos && (
         <div
-          className="absolute w-2.5 h-2.5 bg-linear-surface"
+          className="absolute w-2.5 h-2.5 bg-card"
           style={
             pos.below
               ? {
                   top: "-6px",
                   left: `${x - pos.left}px`,
                   transform: "rotate(45deg)",
-                  borderLeft: "1px solid var(--color-linear-border)",
-                  borderTop: "1px solid var(--color-linear-border)",
+                  borderLeft: "1px solid var(--border)",
+                  borderTop: "1px solid var(--border)",
                 }
               : {
                   bottom: "-6px",
                   left: `${x - pos.left}px`,
                   transform: "rotate(45deg)",
-                  borderRight: "1px solid var(--color-linear-border)",
-                  borderBottom: "1px solid var(--color-linear-border)",
+                  borderRight: "1px solid var(--border)",
+                  borderBottom: "1px solid var(--border)",
                 }
           }
         />

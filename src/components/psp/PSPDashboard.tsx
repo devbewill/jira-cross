@@ -1,298 +1,252 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import { usePSP } from "@/hooks/usePSP";
-import { useRefresh } from "@/contexts/RefreshContext";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { PSPIssue, PSPRequestTypeGroup, PSPSla } from "@/types";
+import { useState, useMemo } from 'react';
+import { ExternalLink, RefreshCw } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { usePSP } from '@/hooks/usePSP';
+import { useRefresh } from '@/contexts/RefreshContext';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { PSPIssue, PSPRequestTypeGroup, PSPSla } from '@/types';
 
-// ─── Colori delle barre per stato ─────────────────────────────────────────────
-// Modifica qui per cambiare il colore delle barre nei grafici e nei badge.
-
-const BAR_COLOR = {
-  open: "#3B82F6", // Aperto
-  waiting: "#F59E0B", // In attesa di risposta
-  pending: "#94A3B8", // In risoluzione
-  reopened: "#EF4444", // Riaperto
-  solved: "#10B981", // Risolto
-};
-
-// ─── Colori criticità SLA ─────────────────────────────────────────────────────
-
-const CRIT_COLOR = {
-  breached:   "#EF4444", // SLA scaduto — rosso
-  atRisk:     "#F59E0B", // SLA < 8h   — ambra
-  ok:         "#10B981", // SLA in tempo — verde
-  reopened:   "#F97316", // Riaperto   — arancione
-  unassigned: "#94A3B8", // Non assegnato — grigio
-};
-
-// ─── Status config ────────────────────────────────────────────────────────────
+const ISSUE_COLORS = {
+  done: {
+    dot: '#10B981', // emerald-500
+    text: '#047857', // emerald-700
+    tagBg: 'rgba(16,185,129,0.10)',
+    border: 'rgba(16,185,129,0.25)',
+    outline: 'rgba(16,185,129,0.6)',
+  },
+  inProgress: {
+    dot: '#F59E0B', // amber-500
+    text: '#B45309', // amber-700
+    tagBg: 'rgba(245,158,11,0.10)',
+    border: 'rgba(245,158,11,0.25)',
+    outline: 'rgba(245,158,11,0.6)',
+  },
+  todo: {
+    dot: '#94A3B8', // slate-400
+    text: '#475569', // slate-600
+    tagBg: 'rgba(148,163,184,0.12)',
+    border: 'rgba(148,163,184,0.25)',
+    outline: 'rgba(148,163,184,0.6)',
+  },
+  open: {
+    dot: '#3B82F6', // blue-500
+    text: '#1D4ED8', // blue-700
+    tagBg: 'rgba(59,130,246,0.10)',
+    border: 'rgba(59,130,246,0.25)',
+    outline: 'rgba(59,130,246,0.6)',
+  },
+  blocked: {
+    dot: '#EF4444', // red-500
+    text: '#B91C1C', // red-700
+    tagBg: 'rgba(239,68,68,0.10)',
+    border: 'rgba(239,68,68,0.25)',
+    outline: 'rgba(239,68,68,0.6)',
+  },
+} as const;
 
 const STATUS: Record<
-  string,
-  { label: string; dot: string; text: string; tagBg: string }
+  {
+    label: string
+    dot: string
+    text: string
+    tagBg: string
+    fill: string
+    trackBg: string
+  }
 > = {
   Aperto: {
-    label: "Aperto",
-    dot: BAR_COLOR.open,
-    text: "#1D4ED8",
-    tagBg: "rgba(59,130,246,0.10)",
+    label: 'Aperto',
+    dot: '#3B82F6',
+    text: '#1D4ED8',
+    tagBg: 'rgba(59,130,246,0.10)',
+    fill: 'rgba(59,130,246,0.5)',
+    trackBg: 'rgba(59,130,246,0.08)',
   },
-  "in attesa di risposta": {
-    label: "In attesa",
-    dot: BAR_COLOR.waiting,
-    text: "#B45309",
-    tagBg: "rgba(245,158,11,0.10)",
+  'in attesa di risposta': {
+    label: 'In attesa',
+    dot: '#F59E0B',
+    text: '#B45309',
+    tagBg: 'rgba(245,158,11,0.10)',
+    fill: 'rgba(245,158,11,0.5)',
+    trackBg: 'rgba(245,158,11,0.08)',
   },
-  "in risoluzione": {
-    label: "In risoluzione",
-    dot: BAR_COLOR.pending,
-    text: "#475569",
-    tagBg: "rgba(148,163,184,0.12)",
+  'in risoluzione': {
+    label: 'In risoluzione',
+    dot: '#94A3B8',
+    text: 'rgb(202 40 186)',
+    tagBg: 'rgba(255,184,247,0.15)',
+    fill: 'rgba(255,184,247,0.5)',
+    trackBg: 'rgba(255,184,247,0.12)',
   },
   Riaperto: {
-    label: "Riaperto",
-    dot: BAR_COLOR.reopened,
-    text: "#B91C1C",
-    tagBg: "rgba(239,68,68,0.10)",
+    label: 'Riaperto',
+    dot: '#EF4444',
+    text: '#B91C1C',
+    tagBg: 'rgba(239,68,68,0.10)',
+    fill: 'rgba(239,68,68,0.5)',
+    trackBg: 'rgba(239,68,68,0.08)',
   },
   Risolto: {
-    label: "Risolto",
-    dot: BAR_COLOR.solved,
-    text: "#047857",
-    tagBg: "rgba(16,185,129,0.10)",
+    label: 'Risolto',
+    dot: '#10B981',
+    text: '#047857',
+    tagBg: 'rgba(16,185,129,0.10)',
+    fill: 'rgba(16,185,129,0.5)',
+    trackBg: 'rgba(16,185,129,0.08)',
   },
-};
-const STATUS_DONE_FALLBACK = STATUS["Risolto"];
-const STATUS_ORDER = [
-  "Aperto",
-  "Riaperto",
-  "in attesa di risposta",
-  "in risoluzione",
-  "Risolto",
-];
-
-function getStatusCfg(issue: PSPIssue) {
-  if (STATUS[issue.status]) return STATUS[issue.status];
-  if (issue.statusCategory === "done") return STATUS_DONE_FALLBACK;
-  return {
-    label: "—",
-    dot: "#C4B5FD",
-    text: "#5B21B6",
-    tagBg: "rgba(196,181,253,0.10)",
-  };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+const STATUS_DONE_FALLBACK = STATUS['Risolto']
+const STATUS_ORDER = [
+  'Aperto',
+  'Riaperto',
+  'in attesa di risposta',
+  'in risoluzione',
+  'Risolto',
+]
+const PEOPLE_STATUSES = STATUS_ORDER
+
+function issueStatusKey(issue: PSPIssue): string {
+  if (STATUS[issue.status]) return issue.status
+  if (issue.statusCategory === 'done') return 'Risolto'
+  return issue.status
+}
+
+const TOOLTIP_STYLE = {
+  border: '1px solid #E8E8E8',
+  borderRadius: 10,
+  fontSize: 11,
+  fontWeight: 700,
+  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+}
+
+function getStatusCfg(issue: PSPIssue) {
+  if (STATUS[issue.status]) return STATUS[issue.status]
+  if (issue.statusCategory === 'done') return STATUS_DONE_FALLBACK
+  return {
+    label: '—',
+    dot: '#C4B5FD',
+    text: '#5B21B6',
+    tagBg: 'rgba(196,181,253,0.10)',
+  }
+}
 
 function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return "oggi";
-  if (days === 1) return "ieri";
-  if (days < 30) return `${days}g fa`;
-  const months = Math.floor(days / 30);
-  return months < 12 ? `${months}m fa` : `${Math.floor(months / 12)}a fa`;
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const days = Math.floor(diff / 86400000)
+  if (days === 0) return 'oggi'
+  if (days === 1) return 'ieri'
+  if (days < 30) return `${days}g fa`
+  const months = Math.floor(days / 30)
+  return months < 12 ? `${months}m fa` : `${Math.floor(months / 12)}a fa`
 }
 
 function statusCounts(issues: PSPIssue[]): Record<string, number> {
   return issues.reduce<Record<string, number>>((acc, i) => {
-    const key = STATUS[i.status]
-      ? i.status
-      : i.statusCategory === "done"
-        ? "Risolto"
-        : i.status;
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
+    const key = issueStatusKey(i)
+    acc[key] = (acc[key] ?? 0) + 1
+    return acc
+  }, {})
 }
-
-// ─── CriticalityPanel ─────────────────────────────────────────────────────────
-
-const TOOLTIP_STYLE = {
-  border: "1px solid #E8E8E8",
-  borderRadius: 10,
-  fontSize: 11,
-  fontWeight: 700,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-};
-
-function DonutChart({
-  data,
-  centerValue,
-  centerLabel,
-}: {
-  data: { name: string; value: number; color: string }[];
-  centerValue: number | string;
-  centerLabel: string;
-}) {
-  const filled = data.filter((d) => d.value > 0);
-  return (
-    <div style={{ position: "relative", width: 148, height: 148, flexShrink: 0 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={filled.length > 0 ? filled : [{ name: "—", value: 1, color: "#F0F0F0" }]}
-            cx="50%"
-            cy="50%"
-            innerRadius={44}
-            outerRadius={68}
-            dataKey="value"
-            strokeWidth={2}
-            stroke="#fff"
-            startAngle={90}
-            endAngle={-270}
-          >
-            {(filled.length > 0 ? filled : [{ color: "#F0F0F0" }]).map(
-              (d, i) => <Cell key={i} fill={d.color} />,
-            )}
-          </Pie>
-          <Tooltip
-            contentStyle={TOOLTIP_STYLE}
-            labelStyle={{ color: "#111111", marginBottom: 4 }}
-            itemStyle={{ color: "#555555" }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-      {/* Center label */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          pointerEvents: "none",
-          gap: 2,
-        }}
-      >
-        <span style={{ fontSize: 24, fontWeight: 800, color: "#111111", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
-          {centerValue}
-        </span>
-        <span style={{ fontSize: 9, fontWeight: 700, color: "#767676", textTransform: "uppercase", letterSpacing: 1 }}>
-          {centerLabel}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ─── StackedBar ───────────────────────────────────────────────────────────────
-
-
-// ─── StackedBar ───────────────────────────────────────────────────────────────
 
 function StackedBar({
   counts,
   total,
   h = 6,
 }: {
-  counts: Record<string, number>;
-  total: number;
-  h?: number;
+  counts: Record<string, number>
+  total: number
+  h?: number
 }) {
-  const present = STATUS_ORDER.filter((s) => (counts[s] ?? 0) > 0);
+  const present = STATUS_ORDER.filter((s) => (counts[s] ?? 0) > 0)
   return (
     <div
-      className="relative rounded-full overflow-hidden w-full"
-      style={{ height: h, backgroundColor: "#F0F0F0" }}
+      className='relative w-full overflow-hidden rounded-full'
+      style={{ height: h, backgroundColor: '#F0F0F0' }}
     >
-      <div className="absolute inset-0 flex" style={{ gap: 1 }}>
+      <div className='absolute inset-0 flex' style={{ gap: 1 }}>
         {present.map((s) => (
           <div
             key={s}
             style={{
-              height: "100%",
+              height: '100%',
               width: `${(counts[s] / total) * 100}%`,
-              backgroundColor: STATUS[s].dot,
+              backgroundColor: STATUS[s].fill,
             }}
             title={`${STATUS[s].label}: ${counts[s]}`}
           />
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-// ─── SLA badge ────────────────────────────────────────────────────────────────
 
-const EIGHT_H = 8 * 3600_000,
-  TWO_H = 2 * 3600_000;
+
+const EIGHT_H = 8 * 3600_000
+const TWO_H = 2 * 3600_000
 
 function SlaBadge({ sla }: { sla: PSPSla | null }) {
-  if (!sla) return <span className="text-[11px] text-[#767676]">—</span>;
+  if (!sla) return <span className='text-[11px] text-[#767676]'>\u2014</span>
   if (sla.paused)
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[10px] font-extrabold bg-[#F5F5F5] text-[#555555]">
-        ⏸ Pausa
+      <span className='inline-flex items-center gap-1 rounded-full bg-[#F5F5F5] px-2 py-[2px] text-[10px] font-bold text-[#555555]'>
+        Pausa
       </span>
-    );
+    )
   if (sla.breached) {
-    const ms = Date.now() - new Date(sla.breachTime).getTime();
+    const ms = Date.now() - new Date(sla.breachTime).getTime()
     const days = Math.floor(ms / 86400000),
-      hrs = Math.floor(ms / 3600000);
-    const cfg = STATUS["Riaperto"];
+      hrs = Math.floor(ms / 3600000)
     return (
       <span
-        className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[10px] font-extrabold"
-        style={{ backgroundColor: cfg.tagBg, color: cfg.text }}
-        title={`Scaduto il ${new Date(sla.breachTime).toLocaleString("it-IT")}`}
+        className='inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-bold'
+        style={{
+          backgroundColor: ISSUE_COLORS.blocked.tagBg,
+          color: ISSUE_COLORS.blocked.text,
+        }}
+        title={`Scaduto il ${new Date(sla.breachTime).toLocaleString('it-IT')}`}
       >
         +{days >= 1 ? `${days}g` : `${hrs}h`} fa
       </span>
-    );
+    )
   }
-  const { remainingMs: ms, remainingFriendly: rem, goalFriendly: goal } = sla;
-  const key =
+  const { remainingMs: ms, remainingFriendly: rem, goalFriendly: goal } = sla
+  const urgency =
     ms <= TWO_H
-      ? "Riaperto"
+      ? ISSUE_COLORS.blocked
       : ms <= EIGHT_H
-        ? "in attesa di risposta"
-        : "Risolto";
-  const cfg = STATUS[key];
+        ? ISSUE_COLORS.inProgress
+        : ISSUE_COLORS.done
+  const cfg = urgency
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[10px] font-extrabold tabular-nums"
+      className='inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-bold tabular-nums'
       style={{ backgroundColor: cfg.tagBg, color: cfg.text }}
-      title={`Goal: ${goal} · Scade: ${new Date(sla.breachTime).toLocaleString("it-IT")}`}
+      title={`Goal: ${goal} \u00b7 Scade: ${new Date(sla.breachTime).toLocaleString('it-IT')}`}
     >
-      ◷ {rem}
+      {rem}
     </span>
-  );
+  )
 }
 
-// ─── StatusTag ────────────────────────────────────────────────────────────────
-
 function StatusTag({ issue }: { issue: PSPIssue }) {
-  const cfg = getStatusCfg(issue);
+  const cfg = getStatusCfg(issue)
   return (
     <span
-      className="inline-flex items-center gap-[5px] px-2 py-[2px] rounded-full text-[10px] font-extrabold"
+      className='inline-flex items-center gap-[5px] rounded-full px-2 py-[2px] text-[10px] font-bold'
       style={{ backgroundColor: cfg.tagBg, color: cfg.text }}
     >
       <span
-        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        className='h-1.5 w-1.5 flex-shrink-0 rounded-full'
         style={{ backgroundColor: cfg.dot }}
       />
       {cfg.label}
     </span>
-  );
+  )
 }
-
-// ─── StatsOverview ────────────────────────────────────────────────────────────
 
 function StatsOverview({
   counts,
@@ -301,57 +255,57 @@ function StatsOverview({
   selected,
   onSelect,
 }: {
-  counts: Record<string, number>;
-  total: number;
-  openTotal: number;
-  selected: string | null;
-  onSelect: (s: string | null) => void;
+  counts: Record<string, number>
+  total: number
+  openTotal: number
+  selected: string | null
+  onSelect: (s: string | null) => void
 }) {
-  const present = STATUS_ORDER.filter((s) => (counts[s] ?? 0) > 0);
+  const present = STATUS_ORDER.filter((s) => (counts[s] ?? 0) > 0)
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
-      <div className="flex items-center divide-x divide-[#EBEBEB]">
+    <div className='bg-card overflow-hidden rounded-2xl border'>
+      <div className='divide-border flex items-center divide-x'>
         {present.map((s) => {
-          const cfg = STATUS[s];
-          const active = selected === s;
+          const cfg = STATUS[s]
+          const active = selected === s
           return (
             <button
               key={s}
               onClick={() => onSelect(active ? null : s)}
-              className="flex items-baseline gap-2 px-5 py-3 transition-colors hover:bg-[#FAFAFA]"
+              className='hover:bg-muted/50 flex items-baseline gap-2 px-5 py-3 transition-colors'
               style={{
                 opacity: selected && !active ? 0.3 : 1,
-                backgroundColor: active ? "#F7F7F7" : undefined,
+                backgroundColor: active ? '#F7F7F7' : undefined,
               }}
             >
-              <span className="text-[28px] font-extrabold leading-none tabular-nums text-[#111111]">
+              <span className='text-foreground text-[28px] leading-none font-bold tabular-nums'>
                 {counts[s]}
               </span>
-              <span className="text-[11px] font-extrabold text-[#555555]">
+              <span className='text-muted-foreground text-[11px] font-bold'>
                 {cfg.label}
               </span>
               <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0 translate-y-[-1px]"
+                className='h-1.5 w-1.5 flex-shrink-0 translate-y-[-1px] rounded-full'
                 style={{ backgroundColor: cfg.dot }}
               />
             </button>
-          );
+          )
         })}
-        <div className="flex items-baseline gap-2 px-5 py-3 ml-auto">
-          <span className="text-[36px] font-extrabold leading-none tabular-nums text-[#111111]">
+        <div className='ml-auto flex items-baseline gap-2 px-5 py-3'>
+          <span className='text-foreground text-[36px] leading-none font-bold tabular-nums'>
             {total}
           </span>
           <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676]">
+            <p className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
               totali
             </p>
-            <p className="text-[11px] font-extrabold text-[#555555] mt-0.5">
-              <span className="text-[#111111]">{openTotal}</span> aperti
+            <p className='text-muted-foreground mt-0.5 text-[11px] font-bold'>
+              <span className='text-foreground'>{openTotal}</span> aperti
             </p>
           </div>
         </div>
       </div>
-      <div className="px-5 pb-3">
+      <div className='px-5 pb-3'>
         <StackedBar
           counts={selected ? { [selected]: counts[selected] ?? 0 } : counts}
           total={selected ? (counts[selected] ?? 0) : total}
@@ -359,503 +313,528 @@ function StatsOverview({
         />
       </div>
     </div>
-  );
+  )
 }
-
-// ─── RequestTypeChart ─────────────────────────────────────────────────────────
 
 function RequestTypeChart({
   groups,
   issuesByRT,
-  maxTotal,
   selectedRT,
   onSelect,
 }: {
-  groups: PSPRequestTypeGroup[];
-  issuesByRT: Record<string, PSPIssue[]>;
-  maxTotal: number;
-  selectedRT: string | null;
-  onSelect: (rt: string | null) => void;
+  groups: PSPRequestTypeGroup[]
+  issuesByRT: Record<string, PSPIssue[]>
+  selectedRT: string | null
+  onSelect: (rt: string | null) => void
 }) {
-  return (
-    <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden w-full h-full">
-      {/* Legend */}
-      <div className="flex items-center gap-5 px-5 py-2 border-b border-[#F0F0F0]">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676] mr-1">
-          Legenda
-        </span>
-        {STATUS_ORDER.map((s) => (
-          <span key={s} className="flex items-center gap-1.5">
-            <span
-              className="w-2 h-2 rounded-[3px] flex-shrink-0"
-              style={{ backgroundColor: STATUS[s].dot }}
-            />
-            <span className="text-[11px] font-extrabold text-[#555555]">
-              {STATUS[s].label}
-            </span>
-          </span>
-        ))}
-      </div>
+  const maxCount = Math.max(
+    1,
+    ...groups.flatMap((g) =>
+      g.requestTypes.flatMap((rt) => {
+        const c = statusCounts(issuesByRT[rt.name] ?? [])
+        return STATUS_ORDER.map((s) => c[s] ?? 0)
+      })
+    )
+  )
 
-      {/* Chart rows */}
-      <div className="px-5 py-2 pb-3">
-        {groups.map((group, gi) => {
-          const groupTotal = group.requestTypes.reduce(
-            (sum, rt) => sum + (issuesByRT[rt.name]?.length ?? 0),
-            0,
-          );
-          return (
-            <div key={group.id} className={gi > 0 ? "mt-3" : ""}>
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676] mt-1 mb-1.5">
-                {group.name}{" "}
-                <span className="text-[#AAAAAA]">{groupTotal}</span>
-              </p>
+  return (
+    <div className='bg-card w-full overflow-hidden rounded-2xl border'>
+      {groups.map((group, gi) => {
+        const groupTotal = group.requestTypes.reduce(
+          (sum, rt) => sum + (issuesByRT[rt.name]?.length ?? 0),
+          0
+        )
+        return (
+          <div
+            key={group.id}
+            className={`px-5 py-3 ${gi > 0 ? 'border-border border-t' : ''}`}
+          >
+            <p className='text-muted-foreground mb-3 text-[10px] tracking-widest uppercase'>
+              {group.name} <span className='text-[#AAAAAA]'>{groupTotal}</span>
+            </p>
+
+            <div className='grid grid-cols-2 gap-x-5 gap-y-4'>
               {group.requestTypes.map((rt) => {
-                const issues = issuesByRT[rt.name] ?? [];
-                const total = issues.length;
-                const counts = statusCounts(issues);
-                const active = selectedRT === rt.name;
-                const present = STATUS_ORDER.filter(
-                  (s) => (counts[s] ?? 0) > 0,
-                );
+                const issues = issuesByRT[rt.name] ?? []
+                const total = issues.length
+                const counts = statusCounts(issues)
+                const active = selectedRT === rt.name
 
                 return (
-                  <button
-                    key={rt.id}
-                    onClick={() =>
-                      total > 0 && onSelect(active ? null : rt.name)
-                    }
-                    className="flex flex-col gap-1 w-full px-2 -mx-2 rounded-lg transition-colors py-1.5"
-                    style={{
-                      backgroundColor: active ? "rgba(0,0,0,0.04)" : undefined,
-                      opacity: total === 0 ? 0.3 : 1,
-                      cursor: total === 0 ? "default" : "pointer",
-                    }}
-                  >
-                    {/* Row 1: indicator + name + bar + total */}
-                    <div className="flex items-center gap-3 w-full">
+                  <div key={rt.id} style={{ opacity: total === 0 ? 0.3 : 1 }}>
+                    <div
+                      className='mb-1.5 flex min-w-0 cursor-pointer items-center gap-1.5 font-bold'
+                      onClick={() =>
+                        total > 0 && onSelect(active ? null : rt.name)
+                      }
+                    >
                       <span
-                        className="w-0.5 h-4 rounded-full flex-shrink-0 transition-colors"
+                        className='h-3 w-0.5 shrink-0 rounded-full transition-colors'
                         style={{
-                          backgroundColor: active ? "#111111" : "transparent",
+                          backgroundColor: active ? '#111111' : 'transparent',
                         }}
                       />
                       <span
-                        className="text-[11px] font-extrabold flex-shrink-0 truncate text-left w-44"
-                        style={{ color: active ? "#111111" : "#555555" }}
+                        className='text-md min-w-0 transition-colors'
+                        style={{ color: active ? '#111111' : '#555555' }}
                       >
                         {rt.name}
                       </span>
-                      {/* Bar */}
-                      <div
-                        className="flex-1 relative rounded-full overflow-hidden"
-                        style={{ height: 8, backgroundColor: "#F0F0F0" }}
-                      >
-                        {total > 0 && (
-                          <div
-                            className="absolute left-0 top-0 bottom-0 flex"
-                            style={{
-                              width: `${(total / maxTotal) * 100}%`,
-                              gap: 1,
-                              transition: "width .25s ease",
-                            }}
-                          >
-                            {present.map((s) => (
-                              <div
-                                key={s}
-                                style={{
-                                  height: "100%",
-                                  width: `${(counts[s] / total) * 100}%`,
-                                  backgroundColor: STATUS[s].dot,
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <span
-                        className="text-[12px] font-extrabold tabular-nums w-6 text-right flex-shrink-0"
-                        style={{
-                          color: active
-                            ? "#111111"
-                            : total === 0
-                              ? "#CCCCCC"
-                              : "#333333",
-                        }}
-                      >
-                        {total > 0 ? total : "—"}
+                      <span className='text-md shrink-0 text-gray-400 tabular-nums'>
+                        {total > 0 ? total : '\u2014'}
                       </span>
                     </div>
 
-                    {/* Row 2: per-status count chips */}
-                    {total > 0 && (
-                      <div className="flex items-center gap-2 pl-[calc(2px+0.75rem+11rem+0.75rem)]">
-                        {present.map((s) => (
-                          <span
-                            key={s}
-                            className="inline-flex items-center gap-1 text-[10px] font-extrabold tabular-nums"
-                            style={{ color: STATUS[s].text }}
-                          >
+                    <div className='flex flex-col gap-1'>
+                      {STATUS_ORDER.map((s) => {
+                        const count = counts[s] ?? 0
+                        const pct = (count / maxCount) * 100
+                        const cfg = STATUS[s]
+                        return (
+                          <div key={s} className='flex items-center gap-2'>
+                            <div
+                              className='relative h-6 flex-1 overflow-hidden rounded-xs'
+                              style={{ backgroundColor: cfg.trackBg }}
+                            >
+                              {count > 0 && (
+                                <div
+                                  className='absolute inset-y-0 left-0 rounded-xs'
+                                  style={{
+                                    width: `${pct.toFixed(1)}%`,
+                                    backgroundColor: cfg.fill,
+                                    transition: 'width .25s ease',
+                                  }}
+                                />
+                              )}
+                              <div className='absolute inset-0 flex items-center px-2'>
+                                <span
+                                  className='text-xs whitespace-nowrap'
+                                  style={{
+                                    color:
+                                      count > 0 ? cfg.text : 'rgba(0,0,0,0.25)',
+                                  }}
+                                >
+                                  {cfg.label}
+                                </span>
+                              </div>
+                            </div>
                             <span
-                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: STATUS[s].dot }}
-                            />
-                            {STATUS[s].label} {counts[s]}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </button>
-                );
+                              className='w-6 shrink-0 text-right text-[13px] tabular-nums'
+                              style={{
+                                color: count > 0 ? '#1a1a1a' : '#CCCCCC',
+                              }}
+                            >
+                              {count > 0 ? count : '\u2014'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
               })}
             </div>
-          );
-        })}
-      </div>
+          </div>
+        )
+      })}
     </div>
-  );
+  )
 }
-
-// ─── PeopleStats ──────────────────────────────────────────────────────────────
-
-// tutti gli stati incluso Risolto
-const PEOPLE_STATUSES = STATUS_ORDER;
-
 function buildPeopleData(
   issues: PSPIssue[],
-  key: "reporter" | "assignee",
-  top = 10,
+  key: 'reporter' | 'assignee',
+  top = 10
 ) {
-  const map: Record<string, Record<string, number>> = {};
+  const map: Record<string, Record<string, number>> = {}
 
   issues.forEach((i) => {
-    const person = i[key]?.displayName ?? "Non assegnato";
-    if (!map[person]) map[person] = {};
-    const s = STATUS[i.status] ? i.status : i.statusCategory === "done" ? "Risolto" : i.status;
-    map[person][s] = (map[person][s] ?? 0) + 1;
-  });
+    const person = i[key]?.displayName ?? 'Non assegnato'
+    if (!map[person]) map[person] = {}
+    const s = issueStatusKey(i)
+    map[person][s] = (map[person][s] ?? 0) + 1
+  })
 
   return Object.entries(map)
     .map(([name, counts]) => {
-      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      const total = Object.values(counts).reduce((a, b) => a + b, 0)
       const entry: Record<string, string | number> = {
         name,
         full: name,
         _total: total,
-      };
-      PEOPLE_STATUSES.forEach((s) => { entry[s] = counts[s] ?? 0; });
-      return entry as Record<string, string | number> & { _total: number };
+      }
+      PEOPLE_STATUSES.forEach((s) => {
+        entry[s] = counts[s] ?? 0
+      })
+      return entry as Record<string, string | number> & { _total: number }
     })
     .sort((a, b) => b._total - a._total)
-    .slice(0, top);
+    .slice(0, top)
 }
 
 function PeopleChart({
   data,
   title,
 }: {
-  data: ReturnType<typeof buildPeopleData>;
-  title: string;
+  data: ReturnType<typeof buildPeopleData>
+  title: string
 }) {
   return (
-    <div className="flex-1 min-w-0 flex flex-col">
-      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676] mb-3">
+    <div className='flex min-w-0 flex-1 flex-col'>
+      <p className='text-muted-foreground mb-3 text-[10px] font-bold tracking-widest uppercase'>
         {title}
       </p>
-      <ResponsiveContainer width="100%" height={data.length * 34 + 8}>
+      <ResponsiveContainer width='100%' height={data.length * 34 + 8}>
         <BarChart
           data={data}
-          layout="vertical"
+          layout='vertical'
           barSize={12}
           margin={{ left: 0, right: 36, top: 0, bottom: 0 }}
         >
-          <XAxis type="number" hide />
+          <XAxis type='number' hide />
           <YAxis
-            type="category"
-            dataKey="name"
+            type='category'
+            dataKey='name'
             width={180}
-            tick={{ fontSize: 11, fontWeight: 700, fill: "#555555", fontFamily: "inherit" }}
+            tick={{
+              fontSize: 11,
+              fontWeight: 700,
+              fill: '#555555',
+              fontFamily: 'inherit',
+            }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip
-            cursor={{ fill: "rgba(0,0,0,0.03)" }}
+            cursor={{ fill: 'rgba(0,0,0,0.03)' }}
             contentStyle={TOOLTIP_STYLE}
-            labelFormatter={(_, payload) => payload?.[0]?.payload?.full ?? ""}
-            labelStyle={{ color: "#111111", marginBottom: 4 }}
-            itemStyle={{ color: "#555555" }}
+            labelFormatter={(_, payload) => payload?.[0]?.payload?.full ?? ''}
+            labelStyle={{ color: '#111111', marginBottom: 4 }}
+            itemStyle={{ color: '#555555' }}
           />
           {PEOPLE_STATUSES.map((s, i) => (
             <Bar
               key={s}
               dataKey={s}
-              stackId="p"
-              fill={STATUS[s].dot}
+              stackId='p'
+              fill={STATUS[s].fill}
               name={STATUS[s].label}
-              radius={i === PEOPLE_STATUSES.length - 1 ? [0, 3, 3, 0] : [0, 0, 0, 0]}
-              label={i === PEOPLE_STATUSES.length - 1 ? {
-                position: "right",
-                fontSize: 11,
-                fontWeight: 700,
-                fill: "#555555",
-                formatter: (_: unknown, entry: { payload?: { _total?: number } }) =>
-                  entry?.payload?._total ?? "",
-              } : undefined}
+              radius={
+                i === PEOPLE_STATUSES.length - 1 ? [0, 3, 3, 0] : [0, 0, 0, 0]
+              }
+              label={
+                i === PEOPLE_STATUSES.length - 1
+                  ? {
+                      position: 'right',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      fill: '#555555',
+                      formatter: (
+                        _: unknown,
+                        entry?: { payload?: { _total?: number } }
+                      ) => entry?.payload?._total ?? '',
+                    }
+                  : undefined
+              }
             />
           ))}
         </BarChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }
 
 function PeopleStatsBox({ issues }: { issues: PSPIssue[] }) {
-  const reporterData = buildPeopleData(issues, "reporter");
-  const assigneeData = buildPeopleData(issues, "assignee");
+  const reporterData = buildPeopleData(issues, 'reporter')
+  const assigneeData = buildPeopleData(issues, 'assignee')
 
   const legendStatuses = PEOPLE_STATUSES.filter((s) =>
-    [...reporterData, ...assigneeData].some((d) => (d[s] as number) > 0),
-  );
+    [...reporterData, ...assigneeData].some((d) => (d[s] as number) > 0)
+  )
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-2.5 border-b border-[#F0F0F0]">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676]">
+    <div className='bg-card overflow-hidden rounded-2xl border'>
+      <div className='border-border flex items-center justify-between border-b px-5 py-2.5'>
+        <span className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
           Persone
         </span>
-        <div className="flex items-center gap-4">
+        <div className='flex items-center gap-4'>
           {legendStatuses.map((s) => (
-            <span key={s} className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-[3px]" style={{ backgroundColor: STATUS[s].dot }} />
-              <span className="text-[10px] font-extrabold text-[#767676]">{STATUS[s].label}</span>
+            <span key={s} className='flex items-center gap-1.5'>
+              <span
+                className='h-2 w-2 rounded-[3px]'
+                style={{ backgroundColor: STATUS[s].dot }}
+              />
+              <span className='text-muted-foreground text-[10px] font-bold'>
+                {STATUS[s].label}
+              </span>
             </span>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-2 divide-x divide-[#F0F0F0]">
-        <div className="px-5 pt-4 pb-2">
-          <PeopleChart data={reporterData} title="Chi apre i ticket" />
+      <div className='divide-border grid grid-cols-2 divide-x'>
+        <div className='px-5 pt-4 pb-2'>
+          <PeopleChart data={reporterData} title='Chi apre i ticket' />
         </div>
-        <div className="px-5 pt-4 pb-2">
-          <PeopleChart data={assigneeData} title="A chi sono assegnati" />
+        <div className='px-5 pt-4 pb-2'>
+          <PeopleChart data={assigneeData} title='A chi sono assegnati' />
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-// ─── IssueRow ─────────────────────────────────────────────────────────────────
+const PRIORITY_ORDER: Record<string, number> = {
+  Highest: 0,
+  High: 1,
+  Medium: 2,
+  Low: 3,
+  Lowest: 4,
+}
+
+const PRIORITY_DOT: Record<string, string> = {
+  Highest: '#6D28D9',
+  High: '#8B5CF6',
+  Medium: '#C084FC',
+  Low: '#DDD6FE',
+  Lowest: '#EDE9FE',
+}
+
+const TABLE_HEADERS = [
+  'Chiave',
+  'Titolo',
+  'Request Type',
+  'Stato',
+  'Priorit\u00e0',
+  'Assegnato a',
+  'Aperto da',
+  'Apertura',
+  'Time to Res.',
+] as const
 
 function IssueRow({ issue }: { issue: PSPIssue }) {
-  const priorityDot: Record<string, string> = {
-    Highest: "#6D28D9",
-    High: "#8B5CF6",
-    Medium: "#C084FC",
-    Low: "#DDD6FE",
-    Lowest: "#EDE9FE",
-  };
   return (
-    <tr className="border-b border-[#F0F0F0] hover:bg-[#FAFAFA] transition-colors">
-      <td className="py-2 px-4 whitespace-nowrap">
+    <tr className='border-border hover:bg-muted/50 border-b transition-colors'>
+      <td className='px-4 py-2 whitespace-nowrap'>
         <a
           href={issue.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[11px] font-extrabold font-mono text-[#5B21B6] hover:underline"
+          target='_blank'
+          rel='noopener noreferrer'
+          className='font-mono text-[11px] font-bold text-violet-700 hover:underline'
         >
           {issue.key}
         </a>
       </td>
-      <td className="py-2 px-4 max-w-[260px]">
+      <td className='max-w-[260px] px-4 py-2'>
         <a
           href={issue.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[12px] font-extrabold text-[#111111] block truncate hover:text-[#5B21B6] transition-colors"
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-foreground block truncate text-[12px] font-bold transition-colors hover:text-violet-700'
           title={issue.summary}
         >
           {issue.summary}
         </a>
       </td>
-      <td className="py-2 px-4 whitespace-nowrap">
-        <span className="text-[11px] font-extrabold text-[#555555]">
+      <td className='px-4 py-2 whitespace-nowrap'>
+        <span className='text-muted-foreground text-[11px] font-bold'>
           {issue.requestType ?? issue.issueType}
         </span>
       </td>
-      <td className="py-2 px-4">
+      <td className='px-4 py-2'>
         <StatusTag issue={issue} />
       </td>
-      <td className="py-2 px-4 whitespace-nowrap">
-        <span className="flex items-center gap-1.5">
+      <td className='px-4 py-2 whitespace-nowrap'>
+        <span className='flex items-center gap-1.5'>
           <span
-            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+            className='h-1.5 w-1.5 flex-shrink-0 rounded-full'
             style={{
-              backgroundColor: priorityDot[issue.priority] ?? "#EDE9FE",
+              backgroundColor: PRIORITY_DOT[issue.priority] ?? '#EDE9FE',
             }}
           />
-          <span className="text-[11px] font-extrabold text-[#555555]">
+          <span className='text-muted-foreground text-[11px] font-bold'>
             {issue.priority}
           </span>
         </span>
       </td>
-      <td className="py-2 px-4 whitespace-nowrap">
-        <span className="text-[11px] font-extrabold text-[#555555]">
-          {issue.assignee?.displayName ?? "—"}
+      <td className='px-4 py-2 whitespace-nowrap'>
+        <span className='text-muted-foreground text-[11px] font-bold'>
+          {issue.assignee?.displayName ?? '\u2014'}
         </span>
       </td>
-      <td className="py-2 px-4 whitespace-nowrap">
-        <span className="text-[11px] font-extrabold text-[#555555]">
-          {issue.reporter?.displayName ?? "—"}
+      <td className='px-4 py-2 whitespace-nowrap'>
+        <span className='text-muted-foreground text-[11px] font-bold'>
+          {issue.reporter?.displayName ?? '\u2014'}
         </span>
       </td>
-      <td className="py-2 px-4 whitespace-nowrap">
-        <span className="text-[11px] font-extrabold tabular-nums text-[#767676]">
+      <td className='px-4 py-2 whitespace-nowrap'>
+        <span className='text-muted-foreground text-[11px] font-bold tabular-nums'>
           {timeAgo(issue.created)}
         </span>
       </td>
-      <td className="py-2 px-4 whitespace-nowrap">
+      <td className='px-4 py-2 whitespace-nowrap'>
         <SlaBadge sla={issue.sla} />
       </td>
     </tr>
-  );
+  )
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+const SORT_FN: Record<string, (a: PSPIssue, b: PSPIssue) => number> = {
+  Chiave: (a, b) => a.key.localeCompare(b.key),
+  Titolo: (a, b) => a.summary.localeCompare(b.summary),
+  'Request Type': (a, b) =>
+    (a.requestType ?? a.issueType).localeCompare(b.requestType ?? b.issueType),
+  Stato: (a, b) => a.status.localeCompare(b.status),
+  Priorità: (a, b) =>
+    (PRIORITY_ORDER[a.priority] ?? 9) - (PRIORITY_ORDER[b.priority] ?? 9),
+  'Assegnato a': (a, b) =>
+    (a.assignee?.displayName ?? '').localeCompare(
+      b.assignee?.displayName ?? ''
+    ),
+  'Aperto da': (a, b) =>
+    (a.reporter?.displayName ?? '').localeCompare(
+      b.reporter?.displayName ?? ''
+    ),
+  Apertura: (a, b) =>
+    new Date(a.created).getTime() - new Date(b.created).getTime(),
+  'Time to Res.': (a, b) =>
+    (a.sla?.remainingMs ?? Infinity) - (b.sla?.remainingMs ?? Infinity),
+}
 
 export function PSPDashboard() {
-  const { data, loading, error, cacheHit } = usePSP();
-  const { isRefreshing } = useRefresh();
-  const [selectedRT, setSelectedRT] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<string>("Apertura");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  
+  const { data, loading, error, cacheHit, refetch } = usePSP();
+  const { isRefreshing, triggerRefresh } = useRefresh();
+
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  const [selectedRT, setSelectedRT] = useState<string | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [sortKey, setSortKey] = useState<string>('Apertura')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   const issuesByRT = useMemo(() => {
-    if (!data) return {} as Record<string, PSPIssue[]>;
+    if (!data) return {} as Record<string, PSPIssue[]>
     return data.issues.reduce<Record<string, PSPIssue[]>>((acc, i) => {
-      const k = i.requestType ?? i.issueType;
-      (acc[k] ??= []).push(i);
-      return acc;
-    }, {});
-  }, [data]);
+      const k = i.requestType ?? i.issueType
+      ;(acc[k] ??= []).push(i)
+      return acc
+    }, {})
+  }, [data])
 
   const allStatusCounts = useMemo(
     () => (data ? statusCounts(data.issues) : {}),
-    [data],
-  );
+    [data]
+  )
+
   const openTotal = useMemo(
-    () => data?.issues.filter((i) => i.statusCategory !== "done").length ?? 0,
-    [data],
-  );
-  const maxRTTotal = useMemo(() => {
-    if (!data?.groups) return 1;
-    return Math.max(
-      1,
-      ...data.groups.flatMap((g) =>
-        g.requestTypes.map((rt) => issuesByRT[rt.name]?.length ?? 0),
-      ),
-    );
-  }, [data, issuesByRT]);
-
-  const PRIORITY_ORDER: Record<string, number> = {
-    Highest: 0, High: 1, Medium: 2, Low: 3, Lowest: 4,
-  };
-
-  const SORT_FN: Record<string, (a: PSPIssue, b: PSPIssue) => number> = {
-    Chiave:        (a, b) => a.key.localeCompare(b.key),
-    Titolo:        (a, b) => a.summary.localeCompare(b.summary),
-    "Request Type":(a, b) => (a.requestType ?? a.issueType).localeCompare(b.requestType ?? b.issueType),
-    Stato:         (a, b) => a.status.localeCompare(b.status),
-    Priorità:      (a, b) => (PRIORITY_ORDER[a.priority] ?? 9) - (PRIORITY_ORDER[b.priority] ?? 9),
-    "Assegnato a": (a, b) => (a.assignee?.displayName ?? "").localeCompare(b.assignee?.displayName ?? ""),
-    "Aperto da":   (a, b) => (a.reporter?.displayName ?? "").localeCompare(b.reporter?.displayName ?? ""),
-    Apertura:      (a, b) => new Date(a.created).getTime() - new Date(b.created).getTime(),
-    "Time to Res.":(a, b) => (a.sla?.remainingMs ?? Infinity) - (b.sla?.remainingMs ?? Infinity),
-  };
+    () => data?.issues.filter((i) => i.statusCategory !== 'done').length ?? 0,
+    [data]
+  )
 
   const filtered = useMemo(() => {
-    if (!data) return [];
+    if (!data) return []
     const base = data.issues.filter((i) => {
-      if (i.statusCategory === "done") return false;
-      if (selectedRT && (i.requestType ?? i.issueType) !== selectedRT) return false;
-      if (selectedStatus && i.status !== selectedStatus) return false;
+      if (i.statusCategory === 'done') return false
+      if (selectedRT && (i.requestType ?? i.issueType) !== selectedRT)
+        return false
+      if (selectedStatus && issueStatusKey(i) !== selectedStatus) return false
       if (search) {
-        const q = search.toLowerCase();
-        return i.summary.toLowerCase().includes(q) || i.key.toLowerCase().includes(q);
+        const q = search.toLowerCase()
+        return (
+          i.summary.toLowerCase().includes(q) || i.key.toLowerCase().includes(q)
+        )
       }
-      return true;
-    });
-    const fn = SORT_FN[sortKey];
-    if (!fn) return base;
-    const sorted = [...base].sort(fn);
-    return sortDir === "desc" ? sorted.reverse() : sorted;
-  }, [data, selectedRT, selectedStatus, search, sortKey, sortDir]);
+      return true
+    })
+    const fn = SORT_FN[sortKey]
+    if (!fn) return base
+    const sorted = [...base].sort(fn)
+    return sortDir === 'desc' ? sorted.reverse() : sorted
+  }, [data, selectedRT, selectedStatus, search, sortKey, sortDir])
 
   if (loading)
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#F5F5F5]">
-        <LoadingSpinner message="Caricamento PSP…" />
+      <div className='flex flex-1 items-center justify-center'>
+        <div className='flex flex-col items-center gap-3'>
+          <RefreshCw className='text-muted-foreground h-8 w-8 animate-spin' />
+          <p className='text-muted-foreground text-sm'>
+            Caricamento PSP&hellip;
+          </p>
+        </div>
       </div>
-    );
+    )
+
   if (error)
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#F5F5F5]">
-        <p className="text-sm text-red-600">{error.message}</p>
+      <div className='flex flex-1 items-center justify-center'>
+        <div className='flex flex-col items-center gap-3'>
+          <p className='text-destructive text-sm font-semibold'>
+            {error.message}
+          </p>
+          <button className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3' disabled={loading || isRefreshing} onClick={triggerRefresh}><RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? 'animate-spin' : ''}`} />Ricarica</button>
+        </div>
       </div>
-    );
-  if (!data) return null;
+    )
 
-  const total = data.issues.length;
-  const activeStatusCfg = selectedStatus ? STATUS[selectedStatus] : null;
+  if (!data) return null
+
+  const total = data.issues.length
+  const activeStatusCfg = selectedStatus ? STATUS[selectedStatus] : null
+  const fetchedTime = data.fetchedAt
+    ? new Date(data.fetchedAt).toLocaleTimeString('it-IT', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : ''
+
+  const ttlMinutes = Math.round((parseInt(process.env.NEXT_PUBLIC_JIRA_CACHE_TTL || '300', 10)) / 60)
+  const ttlLabel =
+    ttlMinutes >= 60 ? `${Math.round(ttlMinutes / 60)}h` : `${ttlMinutes}m`
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F5F5F5]">
-      <div className="flex flex-col gap-2 px-6 py-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-1">
+    <div className='flex-1 overflow-y-auto'>
+      <div className='flex flex-col gap-4 px-6 py-5'>
+        <div className='mb-1 flex items-center justify-between'>
           <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#767676] mb-1.5">
-              Service Desk · SA
+            <p className='text-muted-foreground mb-1.5 text-[10px] font-bold tracking-widest uppercase'>
+              Service Desk &middot; SA
             </p>
-            <h1 className="text-2xl font-extrabold text-[#111111] tracking-tight leading-none">
+            <h1 className='text-2xl leading-none font-bold tracking-tight'>
               PSP
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            {isRefreshing ? (
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-[#767676]">
-                <span className="w-3 h-3 border-2 border-[#AAAAAA] border-t-transparent rounded-full animate-spin" />
-                Syncing…
+          <div className='flex items-center gap-3'>
+            {loading ? (
+              <span className='text-muted-foreground inline-flex items-center gap-1.5 text-[11px] font-bold'>
+                <RefreshCw className='h-3 w-3 animate-spin' />
+                Aggiornamento&hellip;
               </span>
             ) : (
-              <span className="text-[11px] font-extrabold text-[#767676]">
-                {cacheHit ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-                    Cache · {new Date(data.fetchedAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
-                    Aggiornato · {new Date(data.fetchedAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                )}
-                {" · ultimi 90g"}
+              <span className='text-muted-foreground text-[11px] font-bold'>
+                <span className='inline-flex items-center gap-1.5'>
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${cacheHit ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                  />
+                  Dati delle {fetchedTime}
+                  <span className='opacity-50'>&middot; cache {ttlLabel}</span>
+                </span>
+                {' \u00b7 ultimi 90g'}
               </span>
             )}
+            <button className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3' disabled={loading || isRefreshing} onClick={triggerRefresh}><RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? 'animate-spin' : ''}`} />Ricarica</button>
             <a
-              href="https://hd-group.atlassian.net/jira/servicedesk/projects/SA/queues/custom/218"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold bg-[#0b1d7b] text-white hover:bg-[#0d2494] transition-colors"
+              href='https://hd-group.atlassian.net/jira/servicedesk/projects/SA/queues/custom/218'
+              target='_blank'
+              rel='noopener noreferrer'
             >
-              ↗ Apri in Jira
+              <button className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3' disabled={loading || isRefreshing} onClick={triggerRefresh}><RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? 'animate-spin' : ''}`} />Ricarica</button>
             </a>
           </div>
         </div>
 
-        {/* Stats */}
         <StatsOverview
           counts={allStatusCounts}
           total={total}
@@ -864,116 +843,114 @@ export function PSPDashboard() {
           onSelect={setSelectedStatus}
         />
 
-        {/* Supporto piattaforme */}
         {(data.groups ?? []).length > 0 && (
           <RequestTypeChart
             groups={data.groups}
             issuesByRT={issuesByRT}
-            maxTotal={maxRTTotal}
             selectedRT={selectedRT}
             onSelect={setSelectedRT}
           />
         )}
 
-        {/* Persone */}
         <PeopleStatsBox issues={data.issues} />
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
-          {/* Toolbar */}
-          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#F0F0F0]">
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#767676] text-[13px] pointer-events-none">
-                ⌕
+        <div className='bg-card overflow-hidden rounded-2xl border'>
+          <div className='flex items-center gap-2 border-b px-4 py-2.5'>
+            <div className='relative flex-1'>
+              <span className='text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]'>
+                &#x2315;
               </span>
               <input
-                type="text"
-                placeholder="Cerca per chiave o titolo…"
+                type='text'
+                placeholder='Cerca per chiave o titolo\u2026'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#F7F7F7] rounded-lg pl-7 pr-3 py-1.5 text-[12px] font-extrabold text-[#111111] placeholder:text-[#AAAAAA] placeholder:font-extrabold outline-none transition-all"
-                style={{ boxShadow: search ? "0 0 0 2px #6D28D9" : undefined }}
+                className='bg-muted/50 text-foreground placeholder:text-muted-foreground/60 w-full rounded-lg border-0 py-1.5 pr-3 pl-7 text-[12px] font-bold transition-all outline-none placeholder:font-bold focus:ring-2 focus:ring-violet-600'
               />
             </div>
             {selectedRT && (
               <button
                 onClick={() => setSelectedRT(null)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-[#0b1d7b] text-white"
+                className='bg-primary text-primary-foreground inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold'
               >
-                {selectedRT} <span className="opacity-50">×</span>
+                {selectedRT} <span className='opacity-50'>&times;</span>
               </button>
             )}
             {selectedStatus && activeStatusCfg && (
               <button
                 onClick={() => setSelectedStatus(null)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold"
+                className='inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold'
                 style={{
                   backgroundColor: activeStatusCfg.tagBg,
                   color: activeStatusCfg.text,
                 }}
               >
-                {activeStatusCfg.label} <span className="opacity-50">×</span>
+                {activeStatusCfg.label}{' '}
+                <span className='opacity-50'>&times;</span>
               </button>
             )}
             {(selectedRT || selectedStatus || search) && (
               <button
                 onClick={() => {
-                  setSelectedRT(null);
-                  setSelectedStatus(null);
-                  setSearch("");
+                  setSelectedRT(null)
+                  setSelectedStatus(null)
+                  setSearch('')
                 }}
-                className="text-[11px] font-extrabold text-[#767676] hover:text-[#555555] transition-colors shrink-0"
+                className='text-muted-foreground hover:text-foreground shrink-0 text-[11px] font-bold transition-colors'
               >
                 Azzera
               </button>
             )}
-            <span className="text-[11px] font-extrabold tabular-nums text-[#555555] shrink-0 ml-auto">
+            <span className='text-muted-foreground ml-auto shrink-0 text-[11px] font-bold tabular-nums'>
               {filtered.length}
-              <span className="text-[#AAAAAA]">/{openTotal} aperti</span>
+              <span className='text-muted-foreground/60'>
+                /{openTotal} aperti
+              </span>
             </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          <div className='overflow-x-auto'>
+            <table className='w-full text-left'>
               <thead>
-                <tr className="bg-[#FAFAFA] border-b border-[#F0F0F0]">
-                  {[
-                    "Chiave",
-                    "Titolo",
-                    "Request Type",
-                    "Stato",
-                    "Priorità",
-                    "Assegnato a",
-                    "Aperto da",
-                    "Apertura",
-                    "Time to Res.",
-                  ].map((h) => {
-                    const sortable = h in SORT_FN;
-                    const active   = sortKey === h;
+                <tr className='bg-muted/30 border-border border-b'>
+                  {TABLE_HEADERS.map((h) => {
+                    const sortable = h in SORT_FN
+                    const active = sortKey === h
                     return (
                       <th
                         key={h}
                         onClick={() => {
-                          if (!sortable) return;
-                          if (active) setSortDir((d) => d === "asc" ? "desc" : "asc");
-                          else { setSortKey(h); setSortDir("asc"); }
+                          if (!sortable) return
+                          if (active)
+                            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+                          else {
+                            setSortKey(h)
+                            setSortDir('asc')
+                          }
                         }}
-                        className="py-2 px-4 text-[10px] font-extrabold uppercase tracking-wider whitespace-nowrap select-none"
+                        className='px-4 py-2 text-[10px] font-bold tracking-wider whitespace-nowrap uppercase select-none'
                         style={{
-                          color: active ? "#111111" : "#767676",
-                          cursor: sortable ? "pointer" : "default",
+                          color: active ? 'foreground' : 'muted-foreground',
+                          cursor: sortable ? 'pointer' : 'default',
                         }}
                       >
-                        <span className="inline-flex items-center gap-1">
+                        <span className='inline-flex items-center gap-1'>
                           {h}
                           {sortable && (
-                            <span style={{ opacity: active ? 1 : 0.25, fontSize: 9 }}>
-                              {active && sortDir === "desc" ? "↓" : "↑"}
+                            <span
+                              style={{
+                                opacity: active ? 1 : 0.25,
+                                fontSize: 9,
+                              }}
+                            >
+                              {active && sortDir === 'desc'
+                                ? '\u2193'
+                                : '\u2191'}
                             </span>
                           )}
                         </span>
                       </th>
-                    );
+                    )
                   })}
                 </tr>
               </thead>
@@ -982,7 +959,7 @@ export function PSPDashboard() {
                   <tr>
                     <td
                       colSpan={9}
-                      className="py-16 text-center text-[13px] font-extrabold text-[#767676]"
+                      className='text-muted-foreground py-16 text-center text-[13px] font-bold'
                     >
                       Nessun risultato.
                     </td>
@@ -995,8 +972,8 @@ export function PSPDashboard() {
           </div>
         </div>
 
-        <div className="h-2" />
+        <div className='h-2' />
       </div>
     </div>
-  );
+  )
 }

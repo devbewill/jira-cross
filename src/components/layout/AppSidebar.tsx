@@ -58,6 +58,21 @@ function IconClock() {
     </svg>
   );
 }
+function IconSprint() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M8 1L2 8h5l-1 6 6-7H7l1-6z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconTimesheet() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M2 3.5C2 2.67157 2.67157 2 3.5 2H11.5C12.3284 2 13 2.67157 13 3.5V11.5C13 12.3284 12.3284 13 11.5 13H3.5C2.67157 13 2 12.3284 2 11.5V3.5Z" stroke="currentColor" strokeWidth="1.3"/>
+      <path d="M2 6H13M6 2V13" stroke="currentColor" strokeWidth="1.3"/>
+    </svg>
+  );
+}
 function IconSync({ spinning }: { spinning: boolean }) {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
@@ -81,12 +96,13 @@ const NAV = [
   { href: "/",         label: "Epics",    icon: <IconTimeline /> },
   { href: "/releases", label: "Releases", icon: <IconCalendar /> },
   { href: "/psp",      label: "PSP",      icon: <IconGrid />     },
+  { href: "/sprint",   label: "Sprint",   icon: <IconSprint />   },
+  { href: "/timesheet",label: "Timesheet",icon: <IconTimesheet />},
 ] as const;
 
 interface AppSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
-  onOpenReleases: () => void;
 }
 
 function NavBtn({
@@ -132,7 +148,7 @@ function NavBtn({
   );
 }
 
-export function AppSidebar({ collapsed, onToggle, onOpenReleases }: AppSidebarProps) {
+export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const pathname = usePathname();
   const { isRefreshing, triggerRefresh } = useRefresh();
 
@@ -185,11 +201,6 @@ export function AppSidebar({ collapsed, onToggle, onOpenReleases }: AppSidebarPr
         })}
 
         <div style={{ margin: "6px 4px", height: 1, backgroundColor: S.divider }} />
-
-        <NavBtn collapsed={collapsed} title={collapsed ? "Status Releases" : undefined} onClick={onOpenReleases}>
-          <span style={{ flexShrink: 0, color: S.textSub }}><IconClock /></span>
-          {!collapsed && <span style={{ color: S.textSub, fontSize: 13, fontWeight: 500 }}>Status Releases</span>}
-        </NavBtn>
       </nav>
 
       {/* ── Bottom ───────────────────────────────────────────────────── */}

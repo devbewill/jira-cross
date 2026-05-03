@@ -86,7 +86,7 @@ export function SwimLane({
 
   return (
     <div
-      className="relative border-b border-linear-border/30"
+      className="relative border-b border-border/30"
       style={{ minHeight: `${height}px` }}
     >
       {board.epics.map((epic) => {

@@ -80,26 +80,26 @@ function ReleaseGroupSection({
     return (
       <section className="border-b border-neutral-500">
         <button
-          className="w-full sticky top-0 z-10 px-5 py-2 flex items-center gap-3 text-left transition-all duration-200 bg-linear-todo"
+          className="w-full sticky top-0 z-10 px-5 py-2 flex items-center gap-3 text-left transition-all duration-200 bg-slate-400"
           onClick={() => setOpen((o) => !o)}
         >
           <span
             className={`transition-transform duration-200 text-[10px] font-bold flex-shrink-0 ${
-              open ? "rotate-90 text-linear-text" : "rotate-0 text-linear-text"
+              open ? "rotate-90 text-foreground" : "rotate-0 text-foreground"
             }`}
           >
             ▶
           </span>
-          <span className="flex-1 text-[11px] font-bold uppercase tracking-widest leading-none text-linear-textSecondary">
+          <span className="flex-1 text-[11px] font-bold uppercase tracking-widest leading-none text-muted-foreground">
             No release
           </span>
-          <span className="flex-shrink-0 text-[9px] font-semibold  text-linear-textDim">
+          <span className="flex-shrink-0 text-[9px] font-semibold  text-muted-foreground/60">
             {group.stories.length}{" "}
             {group.stories.length === 1 ? "item" : "items"}
           </span>
         </button>
         {open && (
-          <ul className="bg-linear-surfaceHover">
+          <ul className="hover:bg-muted/50 bg-transparent">
             {group.stories.map((story, si) => (
               <StoryRow
                 key={story.key}
@@ -125,7 +125,7 @@ function ReleaseGroupSection({
         {/* Arrow — always anchored left, aligned to first text line */}
         <span
           className={`transition-transform duration-200 text-[10px] font-bold flex-shrink-0 self-start mt-[2px] ${
-            open ? "rotate-90 text-linear-text" : "rotate-0 text-linear-text"
+            open ? "rotate-90 text-foreground" : "rotate-0 text-foreground"
           }`}
         >
           ▶
@@ -133,11 +133,11 @@ function ReleaseGroupSection({
 
         {/* Title + description column */}
         <div className="flex flex-col flex-1 min-w-0">
-          <span className="text-[11px] font-bold uppercase tracking-widest leading-none text-linear-text">
+          <span className="text-[11px] font-bold uppercase tracking-widest leading-none text-foreground">
             {group.fv.name}
           </span>
           {group.fv.description && (
-            <p className="text-[12px] text-linear-text leading-snug mt-0.5">
+            <p className="text-[12px] text-foreground leading-snug mt-0.5">
               {group.fv.description}
             </p>
           )}
@@ -146,7 +146,7 @@ function ReleaseGroupSection({
         {/* Date + status + count — right side, stacked vertically */}
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
           {group.fv.releaseDate && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md leading-none bg-linear-surface text-linear-text">
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md leading-none bg-card text-foreground">
               {formatDate(group.fv.releaseDate)}
             </span>
           )}
@@ -155,7 +155,7 @@ function ReleaseGroupSection({
           >
             {cfg.label}
           </span>
-          <span className="text-[9px] font-semibold text-linear-text">
+          <span className="text-[9px] font-semibold text-foreground">
             {group.stories.length}{" "}
             {group.stories.length === 1 ? "item" : "items"}
           </span>
@@ -163,7 +163,7 @@ function ReleaseGroupSection({
       </button>
 
       {open && (
-        <ul className="bg-linear-surfaceHover">
+        <ul className="hover:bg-muted/50 bg-transparent">
           {group.stories.map((story, si) => (
             <StoryRow
               key={story.key}
@@ -182,21 +182,21 @@ function ReleaseGroupSection({
 function StoryRow({ story, isLast }: { story: Story; isLast: boolean }) {
   return (
     <li
-      className={`flex items-start gap-3 px-5 py-3.5 transition-colors cursor-default hover:bg-linear-surfaceHover ${
-        isLast ? "" : "border-b border-linear-border/50"
+      className={`flex items-start gap-3 px-5 py-3.5 transition-colors cursor-default hover:hover:bg-muted/50 bg-transparent ${
+        isLast ? "" : "border-b border-border/50"
       }`}
     >
       <span
         className={`w-[10px] h-[10px] rounded-full flex-shrink-0 mt-[2px] ${statusDotClass(story.statusCategory)}`}
       />
       <div className="flex-1 min-w-0">
-        <span className="block text-[9px] font-black uppercase tracking-widest text-linear-textDim mb-0.5">
+        <span className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">
           {story.key}
         </span>
-        <span className="block text-xs font-bold leading-snug text-linear-text">
+        <span className="block text-xs font-bold leading-snug text-foreground">
           {story.summary}
         </span>
-        <span className="block text-[9px] font-bold mt-0.5 uppercase tracking-wider text-linear-textDim">
+        <span className="block text-[9px] font-bold mt-0.5 uppercase tracking-wider text-muted-foreground/60">
           {story.status}
         </span>
       </div>
@@ -247,12 +247,12 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
         aria-hidden="true"
       />
 
-      <div className="fixed right-0 top-0 h-full z-[201] flex flex-col w-[450px] bg-linear-surface border-l border-linear-border animate-slide-in-right overflow-hidden">
+      <div className="fixed right-0 top-0 h-full z-[201] flex flex-col w-[450px] bg-card border-l border-border animate-slide-in-right overflow-hidden">
         {/* Header */}
-        <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-linear-border">
+        <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-border">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
-              <span className="inline-block text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none mb-2 bg-linear-text text-linear-secondary">
+              <span className="inline-block text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none mb-2 bg-foreground text-slate-500">
                 {epic.key}
               </span>
               <h2 className="text-sm font-black uppercase leading-snug tracking-tight truncate">
@@ -262,7 +262,7 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
 
             <button
               onClick={onClose}
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors border border-linear-border text-linear-textSecondary bg-linear-surface hover:bg-linear-bg hover:text-linear-text"
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors border border-border text-muted-foreground bg-card hover:bg-background hover:text-foreground"
               aria-label="Close panel"
             >
               ✕
@@ -272,10 +272,10 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
           {/* Stats bar + counts */}
           {epic.storyStats && epic.storyStats.total > 0 && (
             <div>
-              <div className="flex w-full h-[8px] rounded-full overflow-hidden mb-2.5 bg-linear-todo">
+              <div className="flex w-full h-[8px] rounded-full overflow-hidden mb-2.5 bg-slate-400">
                 {epic.storyStats.done > 0 && (
                   <div
-                    className="bg-linear-done"
+                    className="bg-emerald-500"
                     style={{
                       width: `${(epic.storyStats.done / epic.storyStats.total) * 100}%`,
                     }}
@@ -283,7 +283,7 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
                 )}
                 {epic.storyStats.inProgress > 0 && (
                   <div
-                    className="bg-linear-inProgress"
+                    className="bg-amber-500"
                     style={{
                       width: `${(epic.storyStats.inProgress / epic.storyStats.total) * 100}%`,
                     }}
@@ -291,7 +291,7 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
                 )}
                 {epic.storyStats.todo > 0 && (
                   <div
-                    className="bg-linear-todo"
+                    className="bg-slate-400"
                     style={{
                       width: `${(epic.storyStats.todo / epic.storyStats.total) * 100}%`,
                     }}
@@ -301,20 +301,20 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
 
               <div className="flex gap-3 text-[10px] font-bold">
                 <span className="flex items-center gap-1">
-                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-linear-done" />
-                  <span className="text-linear-text">
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-emerald-500" />
+                  <span className="text-foreground">
                     {epic.storyStats.done} done
                   </span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-linear-inProgress" />
-                  <span className="text-linear-text">
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-amber-500" />
+                  <span className="text-foreground">
                     {epic.storyStats.inProgress} in progress
                   </span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-linear-todo" />
-                  <span className="text-linear-textDim">
+                  <span className="w-[10px] h-[10px] rounded-full flex-shrink-0 bg-slate-400" />
+                  <span className="text-muted-foreground/60">
                     {epic.storyStats.todo} todo
                   </span>
                 </span>
@@ -324,11 +324,11 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
 
           {!loading && !error && (
             <div className="flex items-center gap-3 mt-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-linear-textDim">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
                 {stories.length} {stories.length === 1 ? "story" : "stories"}
               </p>
               {withRelease > 0 && (
-                <p className="text-[10px] font-bold uppercase tracking-widest text-linear-textDim">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   · {withRelease} in a release
                 </p>
               )}
@@ -341,12 +341,12 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
           className="flex-1 overflow-y-auto"
           style={{
             scrollbarWidth: "thin",
-            scrollbarColor: "var(--color-linear-borderHover) transparent",
+            scrollbarColor: "var(--border) transparent",
           }}
         >
           {loading && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-bold uppercase tracking-widest animate-pulse text-linear-textDim">
+              <span className="text-xs font-bold uppercase tracking-widest animate-pulse text-muted-foreground/60">
                 Loading…
               </span>
             </div>
@@ -354,13 +354,13 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
 
           {error && (
             <div className="px-5 py-4">
-              <p className="text-xs font-bold text-linear-danger">{error}</p>
+              <p className="text-xs font-bold text-red-500">{error}</p>
             </div>
           )}
 
           {!loading && !error && stories.length === 0 && (
             <div className="flex items-center justify-center h-32">
-              <span className="text-xs font-bold uppercase tracking-widest text-linear-textDim">
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">
                 No stories found
               </span>
             </div>
@@ -370,7 +370,7 @@ export function EpicPanel({ epic, onClose }: EpicPanelProps) {
             <div>
               {groups.some((g) => g.fv !== null) && (
                 <div className="px-5 py-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-linear-textDim">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
                     RILASCI:
                   </span>
                 </div>

@@ -53,6 +53,9 @@ const g = globalThis as typeof globalThis & {
   __storiesCache?: MemoryCache<any>;
   __versionIssuesCache?: MemoryCache<any>;
   __pspCache?: MemoryCache<any>;
+  __sprintCache?: MemoryCache<any>;
+  __timesheetCache?: MemoryCache<any>;
+  __groupCache?: MemoryCache<any>;
 };
 
 const TTL = parseInt(process.env.JIRA_CACHE_TTL || '300', 10);
@@ -64,6 +67,9 @@ if (!g.__releaseIssuesCache) g.__releaseIssuesCache = new MemoryCache<any>(TTL);
 if (!g.__storiesCache)       g.__storiesCache       = new MemoryCache<any>(SHORT_TTL);
 if (!g.__versionIssuesCache) g.__versionIssuesCache = new MemoryCache<any>(SHORT_TTL);
 if (!g.__pspCache)           g.__pspCache           = new MemoryCache<any>(TTL);
+if (!g.__sprintCache)        g.__sprintCache        = new MemoryCache<any>(TTL);
+if (!g.__timesheetCache)     g.__timesheetCache     = new MemoryCache<any>(TTL);
+if (!g.__groupCache)         g.__groupCache         = new MemoryCache<any>(TTL);
 
 export const epicsCache         = g.__epicsCache;
 export const releasesCache      = g.__releasesCache;
@@ -71,3 +77,6 @@ export const releaseIssuesCache = g.__releaseIssuesCache;
 export const storiesCache       = g.__storiesCache;
 export const versionIssuesCache = g.__versionIssuesCache;
 export const pspCache           = g.__pspCache;
+export const sprintCache        = g.__sprintCache;
+export const timesheetCache     = g.__timesheetCache;
+export const groupCache         = g.__groupCache;

@@ -26,9 +26,9 @@ export const BLOCK_MARGIN = BLOCK_MARGIN_RELEASES;
 
 function buildSegments(stats: StoryStats): string[] {
   const segs: string[] = [];
-  for (let i = 0; i < stats.done; i++) segs.push("bg-linear-done");
-  for (let i = 0; i < stats.inProgress; i++) segs.push("bg-linear-inProgress");
-  for (let i = 0; i < stats.todo; i++) segs.push("bg-linear-todo");
+  for (let i = 0; i < stats.done; i++) segs.push("bg-emerald-500");
+  for (let i = 0; i < stats.inProgress; i++) segs.push("bg-amber-500");
+  for (let i = 0; i < stats.todo; i++) segs.push("bg-slate-400");
   return segs;
 }
 
@@ -39,20 +39,20 @@ function StoryCounts({ stats }: { stats: StoryStats }) {
   return (
     <div className="flex items-center gap-1.5 shrink-0">
       {stats.done > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-linear-text">
-          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-done" />
+        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-foreground">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-500" />
           {stats.done}
         </span>
       )}
       {stats.inProgress > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-linear-text">
-          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-inProgress" />
+        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-foreground">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-amber-500" />
           {stats.inProgress}
         </span>
       )}
       {stats.todo > 0 && (
-        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-linear-text">
-          <span className="w-2 h-2 rounded-full shrink-0 bg-linear-todo" />
+        <span className="flex items-center gap-1 text-[10px] font-extrabold leading-none text-foreground">
+          <span className="w-2 h-2 rounded-full shrink-0 bg-slate-400" />
           {stats.todo}
         </span>
       )}
@@ -179,7 +179,7 @@ export function EpicBlock({
           className="flex items-center gap-2 overflow-hidden"
           style={{ height: `${INFO_HEIGHT}px`, marginBottom: `${GAP}px` }}
         >
-          <div className="text-[12px] font-extrabold leading-none tracking-tight truncate min-w-0 text-linear-text">
+          <div className="text-[12px] font-extrabold leading-none tracking-tight truncate min-w-0 text-foreground">
             {epic.summary}
           </div>
           {hasStats && <StoryCounts stats={epic.storyStats!} />}
@@ -188,7 +188,7 @@ export function EpicBlock({
         {/* Segments bar */}
         <div
           className={`relative w-full rounded-lg overflow-hidden transition-all duration-300 bg-white box-border ${
-            isOverdue ? "border-2 border-linear-danger" : ""
+            isOverdue ? "border-2 border-red-500" : ""
           }`}
           style={{ height: `${BAR_H}px` }}
         >
@@ -207,7 +207,7 @@ export function EpicBlock({
           )}
 
           <div className="relative z-10 h-full flex items-center justify-between px-2.5">
-            <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full leading-none shrink-0 bg-white/90 text-linear-text">
+            <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full leading-none shrink-0 bg-white/90 text-foreground">
               {epic.key}
             </span>
             {epic.dueDate && (
@@ -215,7 +215,7 @@ export function EpicBlock({
                 className={`text-[9px] leading-none shrink-0 font-bold px-2 py-0.5 rounded-full ${
                   isOverdue
                     ? "bg-red-500/90 text-white"
-                    : "bg-white/90 text-linear-text"
+                    : "bg-white/90 text-foreground"
                 }`}
               >
                 {new Date(epic.dueDate).toLocaleDateString("en-US", {
@@ -239,16 +239,19 @@ export function EpicBlock({
             return (
               <div
                 key={rel.id}
-                className={`absolute flex items-center justify-center overflow-hidden pointer-events-none transition-all duration-200 hover:scale-105 rounded border border-l-2 border-r-2 ${cfg.solidBg} ${cfg.solidBorder}`}
+                className="absolute flex items-center justify-center overflow-hidden pointer-events-none transition-all duration-200 hover:scale-105 rounded border border-l-2 border-r-2"
                 style={{
                   top: `${topPx}px`,
                   left: `${barLeft}px`,
                   width: `${barWidth}px`,
                   height: `${REL_BAR_H}px`,
+                  backgroundColor: cfg.solidBg,
+                  borderColor: cfg.solidBorder,
                 }}
               >
                 <span
-                  className={`text-[8px] font-bold leading-none truncate px-1 relative z-10 ${cfg.solidText}`}
+                  className="text-[8px] font-bold leading-none truncate px-1 relative z-10"
+                  style={{ color: cfg.solidText }}
                 >
                   {rel.name}
                 </span>

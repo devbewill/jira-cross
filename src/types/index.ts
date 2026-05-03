@@ -172,3 +172,68 @@ export interface TimelinePosition {
   width: number;
   laneIndex: number;
 }
+
+// Sprint Types
+export interface JiraSprint {
+  id: number;
+  name: string;
+  startDate: string | null;
+  endDate: string | null;
+  boardId: number;
+  boardName: string;
+  goal: string;
+  state: "active" | "closed";
+}
+
+export interface SprintIssue {
+  key: string;
+  summary: string;
+  status: string;
+  statusCategory: "todo" | "in-progress" | "done";
+  issueType: string;
+  fixVersions: Array<{
+    id: string;
+    name: string;
+    released: boolean;
+    releaseDate: string | null;
+  }>;
+  reporter: { accountId: string; displayName: string } | null;
+  sprintId: number;
+  url: string;
+}
+
+export interface SprintDashboardData {
+  sprints: JiraSprint[];
+  issuesBySprint: Record<number, SprintIssue[]>;
+  fetchedAt: string;
+  cacheHit: boolean;
+}
+
+// Timesheet Types
+export interface TimesheetEntry {
+  issueKey: string;
+  issueSummary: string;
+  projectKey: string;
+  timeSpentSeconds: number;
+  started: string;
+}
+
+export interface ProjectSummary {
+  projectName: string;
+  seconds: number;
+  entries: TimesheetEntry[];
+}
+
+export interface UserTimesheet {
+  accountId: string;
+  displayName: string;
+  avatarUrl: string;
+  totalSeconds: number;
+  byProject: Record<string, ProjectSummary>;
+}
+
+export interface TimesheetData {
+  users: UserTimesheet[];
+  totalSeconds: number;
+  fetchedAt: string;
+}

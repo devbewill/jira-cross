@@ -1,68 +1,59 @@
-// ─── Centralized release/issue status configuration ──────────────────────────
-// Single source of truth for status labels and Tailwind class mappings.
-// All colors are defined in tailwind.config.ts — this file only references them
-// via Tailwind class names.
-// Used by: ReleaseBlock, ReleaseTimeline, ReleasesOverlay, EpicPanel, ReleasePanel
+import { ISSUE_COLORS } from './jira-colors'
+import type { JiraRelease } from '@/types'
 
-import { JiraRelease, StoryFixVersion } from "@/types";
+export type ReleaseStatus = 'released' | 'overdue' | 'upcoming'
 
-// ─── Release status types & config ───────────────────────────────────────────
-
-export type ReleaseStatus = "released" | "overdue" | "upcoming";
-
-// Palette monocromatica viola/fucsia per tutti gli stati release
 export const RELEASE_STATUS_CONFIG = {
+  // Released = done → green pastel
   released: {
-    label: "Released",
-    bg: "bg-linear-secondaryLight",
-    text: "text-linear-secondaryDark",      // #4A4A6A su #EEEEF8 — leggibile
-    border: "border-linear-secondary",
-    solidBg: "bg-linear-done",              // violet-700 (#6D28D9) — visibile
-    solidText: "text-white",
-    solidBorder: "border-linear-done",
-    solidOutline: "outline-linear-done",
+    label: 'Released',
+    pillBg: ISSUE_COLORS.done.tagBg,
+    pillText: ISSUE_COLORS.done.text,
+    pillBorder: ISSUE_COLORS.done.border,
+    solidBg: 'rgba(16,185,129,0.5)',
+    solidText: ISSUE_COLORS.done.text,
+    solidBorder: 'rgba(16,185,129,0.08)',
+    solidOutline: ISSUE_COLORS.done.outline,
   },
+  // Overdue = blocked/urgent → red pastel
   overdue: {
-    label: "Overdue",
-    bg: "bg-linear-overdueLight/10",
-    text: "text-linear-overdueSolid",       // fuchsia-600 (#C026D3)
-    border: "border-linear-overdueSolid",
-    solidBg: "bg-linear-overdueSolid",      // fuchsia-600
-    solidText: "text-white",
-    solidBorder: "border-linear-overdueSolid",
-    solidOutline: "outline-linear-overdueSolid",
+    label: 'Overdue',
+    pillBg: ISSUE_COLORS.blocked.tagBg,
+    pillText: ISSUE_COLORS.blocked.text,
+    pillBorder: ISSUE_COLORS.blocked.border,
+    solidBg: 'rgba(239,68,68,0.5)',
+    solidText: ISSUE_COLORS.blocked.text,
+    solidBorder: 'rgba(239,68,68,0.08)',
+    solidOutline: ISSUE_COLORS.blocked.outline,
   },
+  // Upcoming = in progress → amber pastel
   upcoming: {
-    label: "Upcoming",
-    bg: "bg-linear-secondaryLight",
-    text: "text-linear-accentDark",
-    border: "border-linear-accent",
-    solidBg: "bg-linear-inProgress",        // violet-500 (#8B5CF6)
-    solidText: "text-white",
-    solidBorder: "border-linear-inProgress",
-    solidOutline: "outline-linear-inProgress",
+    label: 'Upcoming',
+    pillBg: ISSUE_COLORS.inProgress.tagBg,
+    pillText: ISSUE_COLORS.inProgress.text,
+    pillBorder: ISSUE_COLORS.inProgress.border,
+    solidBg: 'rgba(245,158,11,0.5)',
+    solidText: ISSUE_COLORS.inProgress.text,
+    solidBorder: 'rgba(245,158,11,0.08)',
+    solidOutline: ISSUE_COLORS.inProgress.outline,
   },
-} as const;
-
-// ─── Status resolvers ────────────────────────────────────────────────────────
+} as const
 
 export function releaseStatusOf(r: JiraRelease): ReleaseStatus {
-  if (r.released) return "released";
-  if (r.releaseDate && new Date(r.releaseDate) < new Date()) return "overdue";
-  return "upcoming";
+  if (r.released) return 'released'
+  if (r.releaseDate && new Date(r.releaseDate) < new Date()) return 'overdue'
+  return 'upcoming'
 }
 
-export function fixVersionStatusOf(fv: StoryFixVersion): ReleaseStatus {
-  if (fv.released) return "released";
-  if (fv.releaseDate && new Date(fv.releaseDate) < new Date()) return "overdue";
-  return "upcoming";
+export function fixVersionStatusOf(fv: { released: boolean; releaseDate: string | null }): ReleaseStatus {
+  if (fv.released) return 'released'
+  if (fv.releaseDate && new Date(fv.releaseDate) < new Date()) return 'overdue'
+  return 'upcoming'
 }
-
-// ─── Status dot class for story status categories ─────────────────────────────
 
 export function statusDotClass(statusCategory: string): string {
-  if (statusCategory === "done") return "bg-linear-done";
-  if (statusCategory === "indeterminate" || statusCategory === "in-progress")
-    return "bg-linear-inProgress";
-  return "bg-linear-todo";
+  if (statusCategory === 'done') return ISSUE_COLORS.done.dot
+  if (statusCategory === 'indeterminate' || statusCategory === 'in-progress')
+    return ISSUE_COLORS.inProgress.dot
+  return ISSUE_COLORS.todo.dot
 }

@@ -7,16 +7,16 @@ export function getStatusColor(statusCategory: string): string {
     case "new":
     case "to do":
     case "todo":
-      return "bg-linear-todo text-linear-text border-[3px] border-linear-secondary";
+      return "bg-slate-400 text-foreground border-[3px] border-slate-300";
     case "indeterminate":
     case "in progress":
     case "inprogress":
       // Gold bg — primary brand color for active work
-      return "bg-linear-inProgress text-linear-text border-[3px] border-linear-secondary";
+      return "bg-amber-500 text-foreground border-[3px] border-slate-300";
     case "done":
-      return "bg-linear-done text-linear-text border-[3px] border-linear-secondary";
+      return "bg-emerald-500 text-foreground border-[3px] border-slate-300";
     default:
-      return "bg-linear-todo text-linear-text border-[3px] border-linear-secondary";
+      return "bg-slate-400 text-foreground border-[3px] border-slate-300";
   }
 }
 
@@ -25,7 +25,7 @@ export function getBadgeColor(
   variant: "status" | "board" = "status",
 ): string {
   if (variant === "board") {
-    return "bg-linear-surface border border-linear-border text-linear-text";
+    return "bg-card border border-border text-foreground";
   }
 
   // Status badge — solid pill with modern colors
@@ -33,15 +33,15 @@ export function getBadgeColor(
     case "new":
     case "todo":
     case "to do":
-      return "bg-linear-todo text-linear-text border-0 font-bold";
+      return "bg-slate-400 text-foreground border-0 font-bold";
     case "indeterminate":
     case "inprogress":
     case "in progress":
       // Gold badge with dark border — primary brand color
-      return "bg-linear-inProgress text-linear-text border border-linear-secondary font-bold";
+      return "bg-amber-500 text-foreground border border-slate-300 font-bold";
     case "done":
-      return "bg-linear-done text-linear-text border-0 font-bold";
+      return "bg-emerald-500 text-foreground border-0 font-bold";
     default:
-      return "bg-linear-todo text-linear-text border-0 font-bold";
+      return "bg-slate-400 text-foreground border-0 font-bold";
   }
 }
