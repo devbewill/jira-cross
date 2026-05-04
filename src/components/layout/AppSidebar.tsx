@@ -223,17 +223,17 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
                           style={{
                             display: "flex", alignItems: "center", gap: 8,
                             height: 30, paddingLeft: 14, paddingRight: 8,
-                            borderRadius: 7, cursor: "pointer",
-                            backgroundColor: subActive ? "rgba(11,29,123,0.08)" : "transparent",
+                            cursor: "pointer",
+                            backgroundColor: "transparent",
                             color: subActive ? S.activeBg : S.textSub,
                             fontSize: 12, fontWeight: subActive ? 700 : 500,
-                            transition: "background-color 120ms, color 120ms",
+                            transition: "color 120ms",
                           }}
                           onMouseEnter={e => {
-                            if (!subActive) (e.currentTarget as HTMLDivElement).style.backgroundColor = S.hover;
+                            if (!subActive) (e.currentTarget as HTMLDivElement).style.color = S.text;
                           }}
                           onMouseLeave={e => {
-                            if (!subActive) (e.currentTarget as HTMLDivElement).style.backgroundColor = "transparent";
+                            if (!subActive) (e.currentTarget as HTMLDivElement).style.color = S.textSub;
                           }}
                         >
                           {s.label}
