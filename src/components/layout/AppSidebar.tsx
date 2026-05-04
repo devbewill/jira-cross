@@ -4,19 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRefresh } from "@/contexts/RefreshContext";
 
-// ─── Colori sidebar (light, alto contrasto) ───────────────────────────────────
+// ─── Colori sidebar — pastel theme ──────────────────────────────────────────
 const S = {
   bg:          "#FFFFFF",
-  border:      "#E0E0E0",
-  text:        "#111111",   // 18:1 su bianco
-  textSub:     "#555555",   // 7:1 su bianco
-  textMuted:   "#767676",   // 4.5:1 su bianco — minimo WCAG AA
-  divider:     "#E8E8E8",
-  hover:       "#F5F5F5",
-  activeBg:    "#0b1d7b",
-  activeText:  "#FFFFFF",
-  syncBg:      "#f4aafe",
-  syncText:    "#1a1a1a",
+  border:      "#F2F2F7",
+  text:        "#2C2C2E",
+  textSub:     "#8E8E93",
+  textMuted:   "#C7C7CC",
+  divider:     "#F2F2F7",
+  hover:       "#F9F9FB",
+  activeBg:    "#EBF3FF",
+  activeText:  "#3A7BDF",
+  syncBg:      "#3A7BDF",
+  syncText:    "#FFFFFF",
 };
 
 function IconTimeline() {
@@ -183,10 +183,10 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <div style={{
             width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-            backgroundColor: S.text,
+            backgroundColor: "#EBF3FF",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <span style={{ fontSize: 11, color: "#FFFFFF", fontWeight: 700, lineHeight: 1 }}>◈</span>
+            <span style={{ fontSize: 11, color: "#3A7BDF", fontWeight: 700, lineHeight: 1 }}>◈</span>
           </div>
           {!collapsed && (
             <div style={{ overflow: "hidden", lineHeight: "1.25" }}>
@@ -225,7 +225,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
                             height: 30, paddingLeft: 14, paddingRight: 8,
                             cursor: "pointer",
                             backgroundColor: "transparent",
-                            color: subActive ? S.activeBg : S.textSub,
+                            color: subActive ? "#3A7BDF" : S.textSub,
                             fontSize: 12, fontWeight: subActive ? 700 : 500,
                             transition: "color 120ms",
                           }}
