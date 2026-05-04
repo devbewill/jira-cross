@@ -5,7 +5,7 @@ import { pspCache } from '@/lib/cache/memory-cache';
 import { PSPIssue, PSPSla, PSPApiResponse, PSPRequestType, PSPRequestTypeGroup } from '@/types';
 import { JiraIssueRaw } from '@/lib/jira/types';
 
-const PSP_CACHE_KEY = 'psp:sa-all-v1';
+const PSP_CACHE_KEY = 'psp:sa-all-v4';
 const SERVICE_DESK_ID = '30';
 
 function mapSla(raw: any): PSPSla | null {
@@ -42,6 +42,7 @@ function mapRawToPSPIssue(raw: JiraIssueRaw, baseUrl: string): PSPIssue {
       ? { displayName: f.reporter.displayName, avatarUrl: f.reporter.avatarUrls?.['24x24'] ?? '' }
       : null,
     created: f?.created ?? '',
+    resolutionDate: f?.resolutiondate ?? (statusCategory === 'done' ? (f?.updated ?? null) : null),
     sla: mapSla(f?.customfield_10060),
     url: `${baseUrl}/browse/${raw.key}`,
   };
@@ -106,7 +107,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     const [rawIssues, groups] = await Promise.all([
       client.searchIssues(PSP_OPEN_JQL, [
         'summary', 'status', 'issuetype', 'priority',
-        'assignee', 'reporter', 'created', 'customfield_10010', 'customfield_10060',
+        'assignee', 'reporter', 'created', 'updated', 'resolutiondate', 'customfield_10010', 'customfield_10060',
       ]),
       fetchServiceDeskData(jiraBaseUrl, auth),
     ]);

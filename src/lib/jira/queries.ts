@@ -27,8 +27,8 @@ export const getEpicFieldsList = (
   ].join(",");
 };
 
-// PSP – SA Service Desk: all work items (open + resolved), last 90 days
-export const PSP_OPEN_JQL = `project = SA AND created >= -90d ORDER BY created DESC`;
+// PSP – SA Service Desk: tutti i ticket senza limitazioni
+export const PSP_OPEN_JQL = `project = SA ORDER BY created DESC`;
 
 // Default pagination
 export const DEFAULT_PAGE_SIZE = 50;

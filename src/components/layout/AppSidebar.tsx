@@ -92,13 +92,26 @@ function IconChevron({ flipped }: { flipped: boolean }) {
   );
 }
 
-const NAV = [
-  { href: "/",         label: "Epics",    icon: <IconTimeline /> },
-  { href: "/releases", label: "Releases", icon: <IconCalendar /> },
-  { href: "/psp",      label: "PSP",      icon: <IconGrid />     },
-  { href: "/sprint",   label: "Sprint",   icon: <IconSprint />   },
-  { href: "/timesheet",label: "Timesheet",icon: <IconTimesheet />},
-] as const;
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  sub?: { href: string; label: string }[];
+};
+
+const NAV: NavItem[] = [
+  { href: "/",          label: "Epics",    icon: <IconTimeline /> },
+  { href: "/releases",  label: "Releases", icon: <IconCalendar /> },
+  {
+    href: "/psp",       label: "PSP",      icon: <IconGrid />,
+    sub: [
+      { href: "/psp",          label: "Dashboard" },
+      { href: "/psp/tickets",  label: "Tutti i ticket" },
+    ],
+  },
+  { href: "/sprint",    label: "Sprint",   icon: <IconSprint />   },
+  { href: "/timesheet", label: "Timesheet",icon: <IconTimesheet />},
+];
 
 interface AppSidebarProps {
   collapsed: boolean;
@@ -188,15 +201,49 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
       {/* ── Navigation ───────────────────────────────────────────────── */}
       <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, padding: "10px 8px", overflow: "hidden" }}>
-        {NAV.map(({ href, label, icon }) => {
-          const active = pathname === href;
+        {NAV.map(({ href, label, icon, sub }) => {
+          const groupActive = sub
+            ? pathname === href || pathname.startsWith(href + "/")
+            : pathname === href;
           return (
-            <Link key={href} href={href} style={{ textDecoration: "none" }}>
-              <NavBtn active={active} collapsed={collapsed} title={collapsed ? label : undefined}>
-                <span style={{ flexShrink: 0 }}>{icon}</span>
-                {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>}
-              </NavBtn>
-            </Link>
+            <div key={href}>
+              <Link href={href} style={{ textDecoration: "none" }}>
+                <NavBtn active={groupActive} collapsed={collapsed} title={collapsed ? label : undefined}>
+                  <span style={{ flexShrink: 0 }}>{icon}</span>
+                  {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>}
+                </NavBtn>
+              </Link>
+              {!collapsed && sub && groupActive && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 1, marginTop: 1, paddingLeft: 12 }}>
+                  {sub.map(s => {
+                    const subActive = pathname === s.href;
+                    return (
+                      <Link key={s.href} href={s.href} style={{ textDecoration: "none" }}>
+                        <div
+                          style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            height: 30, paddingLeft: 14, paddingRight: 8,
+                            borderRadius: 7, cursor: "pointer",
+                            backgroundColor: subActive ? "rgba(11,29,123,0.08)" : "transparent",
+                            color: subActive ? S.activeBg : S.textSub,
+                            fontSize: 12, fontWeight: subActive ? 700 : 500,
+                            transition: "background-color 120ms, color 120ms",
+                          }}
+                          onMouseEnter={e => {
+                            if (!subActive) (e.currentTarget as HTMLDivElement).style.backgroundColor = S.hover;
+                          }}
+                          onMouseLeave={e => {
+                            if (!subActive) (e.currentTarget as HTMLDivElement).style.backgroundColor = "transparent";
+                          }}
+                        >
+                          {s.label}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
 

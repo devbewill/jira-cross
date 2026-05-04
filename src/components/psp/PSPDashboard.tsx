@@ -1,50 +1,13 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { ExternalLink, RefreshCw } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import Link from 'next/link';
+import { ExternalLink, RefreshCw, TableIcon } from 'lucide-react';
+import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, AreaChart, Area, Legend } from 'recharts';
 import { usePSP } from '@/hooks/usePSP';
 import { useRefresh } from '@/contexts/RefreshContext';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { PSPIssue, PSPRequestTypeGroup, PSPSla } from '@/types';
+import { PSPIssue, PSPRequestTypeGroup } from '@/types';
 
-const ISSUE_COLORS = {
-  done: {
-    dot: '#10B981', // emerald-500
-    text: '#047857', // emerald-700
-    tagBg: 'rgba(16,185,129,0.10)',
-    border: 'rgba(16,185,129,0.25)',
-    outline: 'rgba(16,185,129,0.6)',
-  },
-  inProgress: {
-    dot: '#F59E0B', // amber-500
-    text: '#B45309', // amber-700
-    tagBg: 'rgba(245,158,11,0.10)',
-    border: 'rgba(245,158,11,0.25)',
-    outline: 'rgba(245,158,11,0.6)',
-  },
-  todo: {
-    dot: '#94A3B8', // slate-400
-    text: '#475569', // slate-600
-    tagBg: 'rgba(148,163,184,0.12)',
-    border: 'rgba(148,163,184,0.25)',
-    outline: 'rgba(148,163,184,0.6)',
-  },
-  open: {
-    dot: '#3B82F6', // blue-500
-    text: '#1D4ED8', // blue-700
-    tagBg: 'rgba(59,130,246,0.10)',
-    border: 'rgba(59,130,246,0.25)',
-    outline: 'rgba(59,130,246,0.6)',
-  },
-  blocked: {
-    dot: '#EF4444', // red-500
-    text: '#B91C1C', // red-700
-    tagBg: 'rgba(239,68,68,0.10)',
-    border: 'rgba(239,68,68,0.25)',
-    outline: 'rgba(239,68,68,0.6)',
-  },
-} as const;
 
 const STATUS: Record<
   {
@@ -96,6 +59,14 @@ const STATUS: Record<
     fill: 'rgba(16,185,129,0.5)',
     trackBg: 'rgba(16,185,129,0.08)',
   },
+  Annullato: {
+    label: 'Annullato',
+    dot: '#9CA3AF',
+    text: '#4B5563',
+    tagBg: 'rgba(156,163,175,0.10)',
+    fill: 'rgba(156,163,175,0.45)',
+    trackBg: 'rgba(156,163,175,0.08)',
+  },
 }
 
 const STATUS_DONE_FALLBACK = STATUS['Risolto']
@@ -105,8 +76,39 @@ const STATUS_ORDER = [
   'in attesa di risposta',
   'in risoluzione',
   'Risolto',
+  'Annullato',
 ]
-const PEOPLE_STATUSES = STATUS_ORDER
+// Colors aligned with existing STATUS palette
+const DONUT_COLORS = [
+  '#3B82F6', // blue   (Aperto)
+  '#10B981', // green  (Risolto)
+  '#F59E0B', // amber  (In attesa)
+  '#06B6D4', // cyan
+  '#EF4444', // red    (Riaperto)
+  '#EC4899', // pink
+  '#14B8A6', // teal
+  '#F97316', // orange
+  '#9CA3AF', // gray   (Annullato)
+  '#6366F1', // indigo
+]
+
+const STATUS_LEGEND_COLOR: Record<string, string> = {
+  'Aperto': '#3B82F6',
+  'Riaperto': '#EF4444',
+  'in attesa di risposta': '#F59E0B',
+  'in risoluzione': '#FFB8F7',
+  'Risolto': '#10B981',
+  'Annullato': '#9CA3AF',
+}
+
+const STATUS_LABEL_COLOR: Record<string, string> = {
+  'Aperto': '#fff',
+  'Riaperto': '#fff',
+  'in attesa di risposta': '#78350F',
+  'in risoluzione': '#86198F',
+  'Risolto': '#fff',
+  'Annullato': '#fff',
+}
 
 function issueStatusKey(issue: PSPIssue): string {
   if (STATUS[issue.status]) return issue.status
@@ -122,25 +124,24 @@ const TOOLTIP_STYLE = {
   boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
 }
 
-function getStatusCfg(issue: PSPIssue) {
-  if (STATUS[issue.status]) return STATUS[issue.status]
-  if (issue.statusCategory === 'done') return STATUS_DONE_FALLBACK
-  return {
-    label: '—',
-    dot: '#C4B5FD',
-    text: '#5B21B6',
-    tagBg: 'rgba(196,181,253,0.10)',
-  }
-}
-
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const days = Math.floor(diff / 86400000)
-  if (days === 0) return 'oggi'
-  if (days === 1) return 'ieri'
-  if (days < 30) return `${days}g fa`
-  const months = Math.floor(days / 30)
-  return months < 12 ? `${months}m fa` : `${Math.floor(months / 12)}a fa`
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: any[] }) {
+  if (!active || !payload?.length) return null
+  const items = payload.filter((p: any) => p.dataKey !== '_total' && Number(p.value) > 0)
+  if (!items.length) return null
+  const label = payload[0]?.payload?.full ?? payload[0]?.payload?.name ?? ''
+  return (
+    <div style={{ ...TOOLTIP_STYLE, padding: '8px 12px', backgroundColor: '#fff' }}>
+      <p style={{ color: '#111', marginBottom: 6, fontWeight: 700, fontSize: 11 }}>{label}</p>
+      {items.map((item: any) => (
+        <div key={item.dataKey} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 2, flexShrink: 0, backgroundColor: STATUS_LEGEND_COLOR[item.dataKey] ?? item.fill }} />
+          <span style={{ color: '#555', fontSize: 11, fontWeight: 700 }}>
+            {STATUS[item.dataKey]?.label ?? item.name}: {item.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function statusCounts(issues: PSPIssue[]): Record<string, number> {
@@ -151,30 +152,22 @@ function statusCounts(issues: PSPIssue[]): Record<string, number> {
   }, {})
 }
 
-function StackedBar({
-  counts,
-  total,
-  h = 6,
-}: {
-  counts: Record<string, number>
-  total: number
-  h?: number
-}) {
+function rawStatusCounts(issues: PSPIssue[]): Record<string, number> {
+  return issues.reduce<Record<string, number>>((acc, i) => {
+    acc[i.status] = (acc[i.status] ?? 0) + 1
+    return acc
+  }, {})
+}
+
+function StackedBar({ counts, total, h = 6 }: { counts: Record<string, number>; total: number; h?: number }) {
   const present = STATUS_ORDER.filter((s) => (counts[s] ?? 0) > 0)
   return (
-    <div
-      className='relative w-full overflow-hidden rounded-full'
-      style={{ height: h, backgroundColor: '#F0F0F0' }}
-    >
+    <div className='relative w-full overflow-hidden rounded-full' style={{ height: h, backgroundColor: '#F0F0F0' }}>
       <div className='absolute inset-0 flex' style={{ gap: 1 }}>
         {present.map((s) => (
           <div
             key={s}
-            style={{
-              height: '100%',
-              width: `${(counts[s] / total) * 100}%`,
-              backgroundColor: STATUS[s].fill,
-            }}
+            style={{ height: '100%', width: `${(counts[s] / total) * 100}%`, backgroundColor: STATUS_LEGEND_COLOR[s] }}
             title={`${STATUS[s].label}: ${counts[s]}`}
           />
         ))}
@@ -183,77 +176,8 @@ function StackedBar({
   )
 }
 
-
-
-const EIGHT_H = 8 * 3600_000
-const TWO_H = 2 * 3600_000
-
-function SlaBadge({ sla }: { sla: PSPSla | null }) {
-  if (!sla) return <span className='text-[11px] text-[#767676]'>\u2014</span>
-  if (sla.paused)
-    return (
-      <span className='inline-flex items-center gap-1 rounded-full bg-[#F5F5F5] px-2 py-[2px] text-[10px] font-bold text-[#555555]'>
-        Pausa
-      </span>
-    )
-  if (sla.breached) {
-    const ms = Date.now() - new Date(sla.breachTime).getTime()
-    const days = Math.floor(ms / 86400000),
-      hrs = Math.floor(ms / 3600000)
-    return (
-      <span
-        className='inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-bold'
-        style={{
-          backgroundColor: ISSUE_COLORS.blocked.tagBg,
-          color: ISSUE_COLORS.blocked.text,
-        }}
-        title={`Scaduto il ${new Date(sla.breachTime).toLocaleString('it-IT')}`}
-      >
-        +{days >= 1 ? `${days}g` : `${hrs}h`} fa
-      </span>
-    )
-  }
-  const { remainingMs: ms, remainingFriendly: rem, goalFriendly: goal } = sla
-  const urgency =
-    ms <= TWO_H
-      ? ISSUE_COLORS.blocked
-      : ms <= EIGHT_H
-        ? ISSUE_COLORS.inProgress
-        : ISSUE_COLORS.done
-  const cfg = urgency
-  return (
-    <span
-      className='inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-bold tabular-nums'
-      style={{ backgroundColor: cfg.tagBg, color: cfg.text }}
-      title={`Goal: ${goal} \u00b7 Scade: ${new Date(sla.breachTime).toLocaleString('it-IT')}`}
-    >
-      {rem}
-    </span>
-  )
-}
-
-function StatusTag({ issue }: { issue: PSPIssue }) {
-  const cfg = getStatusCfg(issue)
-  return (
-    <span
-      className='inline-flex items-center gap-[5px] rounded-full px-2 py-[2px] text-[10px] font-bold'
-      style={{ backgroundColor: cfg.tagBg, color: cfg.text }}
-    >
-      <span
-        className='h-1.5 w-1.5 flex-shrink-0 rounded-full'
-        style={{ backgroundColor: cfg.dot }}
-      />
-      {cfg.label}
-    </span>
-  )
-}
-
 function StatsOverview({
-  counts,
-  total,
-  openTotal,
-  selected,
-  onSelect,
+  counts, total, openTotal, selected, onSelect,
 }: {
   counts: Record<string, number>
   total: number
@@ -273,431 +197,614 @@ function StatsOverview({
               key={s}
               onClick={() => onSelect(active ? null : s)}
               className='hover:bg-muted/50 flex items-baseline gap-2 px-5 py-3 transition-colors'
-              style={{
-                opacity: selected && !active ? 0.3 : 1,
-                backgroundColor: active ? '#F7F7F7' : undefined,
-              }}
+              style={{ opacity: selected && !active ? 0.3 : 1, backgroundColor: active ? '#F7F7F7' : undefined }}
             >
-              <span className='text-foreground text-[28px] leading-none font-bold tabular-nums'>
-                {counts[s]}
-              </span>
-              <span className='text-muted-foreground text-[11px] font-bold'>
-                {cfg.label}
-              </span>
-              <span
-                className='h-1.5 w-1.5 flex-shrink-0 translate-y-[-1px] rounded-full'
-                style={{ backgroundColor: cfg.dot }}
-              />
+              <span className='text-[28px] leading-none font-bold tabular-nums' style={{ color: STATUS_LEGEND_COLOR[s] }}>{counts[s]}</span>
+              <span className='text-muted-foreground text-[11px] font-bold'>{cfg.label}</span>
             </button>
           )
         })}
         <div className='ml-auto flex items-baseline gap-2 px-5 py-3'>
-          <span className='text-foreground text-[36px] leading-none font-bold tabular-nums'>
-            {total}
-          </span>
+          <span className='text-foreground text-[36px] leading-none font-bold tabular-nums'>{total}</span>
           <div>
-            <p className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
-              totali
-            </p>
+            <p className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>totali</p>
             <p className='text-muted-foreground mt-0.5 text-[11px] font-bold'>
               <span className='text-foreground'>{openTotal}</span> aperti
             </p>
           </div>
         </div>
       </div>
-      <div className='px-5 pb-3'>
-        <StackedBar
-          counts={selected ? { [selected]: counts[selected] ?? 0 } : counts}
-          total={selected ? (counts[selected] ?? 0) : total}
-          h={6}
-        />
-      </div>
     </div>
   )
 }
 
 function RequestTypeChart({
-  groups,
-  issuesByRT,
-  selectedRT,
-  onSelect,
+  groups, issuesByRT, selectedRT, onSelect,
 }: {
   groups: PSPRequestTypeGroup[]
   issuesByRT: Record<string, PSPIssue[]>
   selectedRT: string | null
   onSelect: (rt: string | null) => void
 }) {
-  const maxCount = Math.max(
-    1,
-    ...groups.flatMap((g) =>
-      g.requestTypes.flatMap((rt) => {
-        const c = statusCounts(issuesByRT[rt.name] ?? [])
-        return STATUS_ORDER.map((s) => c[s] ?? 0)
-      })
-    )
-  )
+  const presentGroups = groups
+    .map(g => ({
+      ...g,
+      requestTypes: g.requestTypes.filter(rt => (issuesByRT[rt.name]?.length ?? 0) > 0),
+    }))
+    .filter(g => g.requestTypes.length > 0)
+
+  if (presentGroups.length === 0) return null
 
   return (
-    <div className='bg-card w-full overflow-hidden rounded-2xl border'>
-      {groups.map((group, gi) => {
-        const groupTotal = group.requestTypes.reduce(
-          (sum, rt) => sum + (issuesByRT[rt.name]?.length ?? 0),
-          0
-        )
-        return (
-          <div
-            key={group.id}
-            className={`px-5 py-3 ${gi > 0 ? 'border-border border-t' : ''}`}
-          >
-            <p className='text-muted-foreground mb-3 text-[10px] tracking-widest uppercase'>
-              {group.name} <span className='text-[#AAAAAA]'>{groupTotal}</span>
-            </p>
+    <div className='bg-card overflow-hidden rounded-2xl border'>
+      <div className='border-border border-b px-5 py-2.5'>
+        <span className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>Tipo di richiesta</span>
+      </div>
+      <div className='flex flex-col divide-y divide-border'>
+        {presentGroups.map(group => {
+          const data = group.requestTypes
+            .map(rt => {
+              const issues = issuesByRT[rt.name] ?? []
+              const raw = rawStatusCounts(issues)
+              const entry: Record<string, string | number> = {
+                name: rt.name.length > 22 ? rt.name.slice(0, 20) + '…' : rt.name,
+                full: rt.name,
+                _total: issues.length,
+              }
+              STATUS_ORDER.forEach(s => { entry[s] = raw[s] ?? 0 })
+              return entry as Record<string, string | number> & { _total: number }
+            })
+            .sort((a, b) => b._total - a._total)
 
-            <div className='grid grid-cols-2 gap-x-5 gap-y-4'>
-              {group.requestTypes.map((rt) => {
-                const issues = issuesByRT[rt.name] ?? []
-                const total = issues.length
-                const counts = statusCounts(issues)
-                const active = selectedRT === rt.name
+          const activeStatuses = STATUS_ORDER.filter(s => data.some(d => (d[s] as number) > 0))
 
-                return (
-                  <div key={rt.id} style={{ opacity: total === 0 ? 0.3 : 1 }}>
-                    <div
-                      className='mb-1.5 flex min-w-0 cursor-pointer items-center gap-1.5 font-bold'
-                      onClick={() =>
-                        total > 0 && onSelect(active ? null : rt.name)
+          return (
+            <div key={group.id} className='px-5 pt-4 pb-5'>
+              <p className='text-muted-foreground mb-3 text-[10px] font-bold tracking-widest uppercase'>{group.name}</p>
+              <div style={{ position: 'relative' }}>
+                <ResponsiveContainer width='100%' height={data.length * 38 + 8}>
+                  <BarChart
+                    data={data}
+                    layout='vertical'
+                    barSize={24}
+                    margin={{ left: 0, right: 44, top: 0, bottom: 0 }}
+                    onClick={(e) => {
+                      if (e?.activePayload?.[0]) {
+                        const name = e.activePayload[0].payload.full
+                        onSelect(selectedRT === name ? null : name)
                       }
-                    >
-                      <span
-                        className='h-3 w-0.5 shrink-0 rounded-full transition-colors'
-                        style={{
-                          backgroundColor: active ? '#111111' : 'transparent',
+                    }}
+                  >
+                    <XAxis type='number' hide />
+                    <YAxis
+                      type='category'
+                      dataKey='name'
+                      width={180}
+                      tick={{ fontSize: 11, fontWeight: 700, fill: '#555555', cursor: 'pointer' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+                    {activeStatuses.map(s => (
+                      <Bar
+                        key={s}
+                        dataKey={s}
+                        stackId='a'
+                        fill={STATUS_LEGEND_COLOR[s]}
+                        style={{ cursor: 'pointer' }}
+                        label={{
+                          content: (props: any) => {
+                            const n = props.value as number
+                            if (!n) return null
+                            const w = Number(props.width)
+                            if (w < 18) return null
+                            return (
+                              <text
+                                x={Number(props.x) + w / 2}
+                                y={Number(props.y) + Number(props.height) / 2}
+                                dominantBaseline='middle'
+                                textAnchor='middle'
+                                fill={STATUS_LABEL_COLOR[s] ?? '#fff'}
+                                fontSize={10}
+                                fontWeight={700}
+                              >
+                                {n}
+                              </text>
+                            )
+                          },
                         }}
-                      />
-                      <span
-                        className='text-md min-w-0 transition-colors'
-                        style={{ color: active ? '#111111' : '#555555' }}
                       >
-                        {rt.name}
-                      </span>
-                      <span className='text-md shrink-0 text-gray-400 tabular-nums'>
-                        {total > 0 ? total : '\u2014'}
-                      </span>
-                    </div>
-
-                    <div className='flex flex-col gap-1'>
-                      {STATUS_ORDER.map((s) => {
-                        const count = counts[s] ?? 0
-                        const pct = (count / maxCount) * 100
-                        const cfg = STATUS[s]
-                        return (
-                          <div key={s} className='flex items-center gap-2'>
-                            <div
-                              className='relative h-6 flex-1 overflow-hidden rounded-xs'
-                              style={{ backgroundColor: cfg.trackBg }}
-                            >
-                              {count > 0 && (
-                                <div
-                                  className='absolute inset-y-0 left-0 rounded-xs'
-                                  style={{
-                                    width: `${pct.toFixed(1)}%`,
-                                    backgroundColor: cfg.fill,
-                                    transition: 'width .25s ease',
-                                  }}
-                                />
-                              )}
-                              <div className='absolute inset-0 flex items-center px-2'>
-                                <span
-                                  className='text-xs whitespace-nowrap'
-                                  style={{
-                                    color:
-                                      count > 0 ? cfg.text : 'rgba(0,0,0,0.25)',
-                                  }}
-                                >
-                                  {cfg.label}
-                                </span>
-                              </div>
-                            </div>
-                            <span
-                              className='w-6 shrink-0 text-right text-[13px] tabular-nums'
-                              style={{
-                                color: count > 0 ? '#1a1a1a' : '#CCCCCC',
-                              }}
-                            >
-                              {count > 0 ? count : '\u2014'}
-                            </span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
+                        {selectedRT
+                          ? data.map((entry, idx) => (
+                              <Cell key={idx} fill={STATUS_LEGEND_COLOR[s]} opacity={entry.full === selectedRT ? 1 : 0.15} />
+                            ))
+                          : null}
+                      </Bar>
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+                <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                  {data.map((entry, idx) => {
+                    const bandH = (data.length * 38 + 8) / data.length
+                    const centerY = idx * bandH + bandH / 2
+                    return (
+                      <div key={idx} style={{
+                        position: 'absolute', right: 4, top: centerY,
+                        transform: 'translateY(-50%)', fontSize: 11, fontWeight: 700,
+                        color: '#555555', lineHeight: 1, whiteSpace: 'nowrap',
+                      }}>
+                        {entry._total}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }
-function buildPeopleData(
-  issues: PSPIssue[],
-  key: 'reporter' | 'assignee',
-  top = 10
-) {
-  const map: Record<string, Record<string, number>> = {}
 
-  issues.forEach((i) => {
-    const person = i[key]?.displayName ?? 'Non assegnato'
-    if (!map[person]) map[person] = {}
-    const s = issueStatusKey(i)
-    map[person][s] = (map[person][s] ?? 0) + 1
+
+// ─── Donut helpers ────────────────────────────────────────────────────────────
+function buildDonutData(issues: PSPIssue[], field: 'reporter' | 'assignee') {
+  const map = new Map<string, number>()
+  issues.forEach(i => {
+    const name = i[field]?.displayName ?? 'Non assegnato'
+    map.set(name, (map.get(name) ?? 0) + 1)
   })
-
-  return Object.entries(map)
-    .map(([name, counts]) => {
-      const total = Object.values(counts).reduce((a, b) => a + b, 0)
-      const entry: Record<string, string | number> = {
-        name,
-        full: name,
-        _total: total,
-      }
-      PEOPLE_STATUSES.forEach((s) => {
-        entry[s] = counts[s] ?? 0
-      })
-      return entry as Record<string, string | number> & { _total: number }
-    })
-    .sort((a, b) => b._total - a._total)
-    .slice(0, top)
+  return Array.from(map.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10)
 }
 
-function PeopleChart({
-  data,
-  title,
-}: {
-  data: ReturnType<typeof buildPeopleData>
+function DonutHalf({ data, title, total }: {
+  data: { name: string; value: number }[]
   title: string
+  total: number
 }) {
   return (
-    <div className='flex min-w-0 flex-1 flex-col'>
-      <p className='text-muted-foreground mb-3 text-[10px] font-bold tracking-widest uppercase'>
-        {title}
-      </p>
-      <ResponsiveContainer width='100%' height={data.length * 34 + 8}>
-        <BarChart
-          data={data}
-          layout='vertical'
-          barSize={12}
-          margin={{ left: 0, right: 36, top: 0, bottom: 0 }}
-        >
-          <XAxis type='number' hide />
-          <YAxis
-            type='category'
-            dataKey='name'
-            width={180}
-            tick={{
-              fontSize: 11,
-              fontWeight: 700,
-              fill: '#555555',
-              fontFamily: 'inherit',
-            }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <Tooltip
-            cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-            contentStyle={TOOLTIP_STYLE}
-            labelFormatter={(_, payload) => payload?.[0]?.payload?.full ?? ''}
-            labelStyle={{ color: '#111111', marginBottom: 4 }}
-            itemStyle={{ color: '#555555' }}
-          />
-          {PEOPLE_STATUSES.map((s, i) => (
-            <Bar
-              key={s}
-              dataKey={s}
-              stackId='p'
-              fill={STATUS[s].fill}
-              name={STATUS[s].label}
-              radius={
-                i === PEOPLE_STATUSES.length - 1 ? [0, 3, 3, 0] : [0, 0, 0, 0]
-              }
-              label={
-                i === PEOPLE_STATUSES.length - 1
-                  ? {
-                      position: 'right',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      fill: '#555555',
-                      formatter: (
-                        _: unknown,
-                        entry?: { payload?: { _total?: number } }
-                      ) => entry?.payload?._total ?? '',
-                    }
-                  : undefined
-              }
-            />
+    <div className='flex flex-col gap-4 px-5 py-4'>
+      <p className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>{title}</p>
+      <div className='flex items-start gap-5'>
+        <div style={{ position: 'relative', flexShrink: 0, width: 160, height: 160 }}>
+          <ResponsiveContainer width={160} height={160}>
+            <PieChart>
+              <Pie data={data} dataKey='value' innerRadius={48} outerRadius={72} paddingAngle={2} strokeWidth={0}>
+                {data.map((_, i) => (
+                  <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(v: number, name: string) => [v, name]}
+                contentStyle={{ ...TOOLTIP_STYLE, backgroundColor: '#fff', padding: '6px 10px' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none',
+          }}>
+            <span style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: '#111' }}>{total}</span>
+            <span style={{ fontSize: 10, color: '#767676', fontWeight: 700, marginTop: 2 }}>aperti</span>
+          </div>
+        </div>
+        <div className='flex min-w-0 flex-1 flex-col gap-1.5'>
+          {data.map((d, i) => (
+            <div key={d.name} className='flex min-w-0 items-center gap-2'>
+              <span className='h-2 w-2 flex-shrink-0 rounded-full' style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+              <span className='text-foreground min-w-0 flex-1 truncate text-[11px] font-bold'>{d.name}</span>
+              <span className='text-muted-foreground flex-shrink-0 text-[11px] font-bold tabular-nums'>{d.value}</span>
+            </div>
           ))}
-        </BarChart>
-      </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   )
 }
 
-function PeopleStatsBox({ issues }: { issues: PSPIssue[] }) {
-  const reporterData = buildPeopleData(issues, 'reporter')
-  const assigneeData = buildPeopleData(issues, 'assignee')
+function DonutCard({ issues }: { issues: PSPIssue[] }) {
+  const open = issues.filter(i => i.statusCategory !== 'done')
+  const reporterData = buildDonutData(open, 'reporter')
+  const assigneeData = buildDonutData(open, 'assignee')
+  return (
+    <div className='bg-card overflow-hidden rounded-2xl border'>
+      <div className='border-border border-b px-5 py-2.5'>
+        <span className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
+          Distribuzione ticket aperti
+        </span>
+      </div>
+      <div className='divide-border grid grid-cols-2 divide-x'>
+        <DonutHalf data={reporterData} title='Chi apre' total={open.length} />
+        <DonutHalf data={assigneeData} title='A chi sono assegnati' total={open.length} />
+      </div>
+    </div>
+  )
+}
 
-  const legendStatuses = PEOPLE_STATUSES.filter((s) =>
-    [...reporterData, ...assigneeData].some((d) => (d[s] as number) > 0)
+// ─── Trend helpers ────────────────────────────────────────────────────────────
+type TrendInterval = 'weekly' | 'monthly' | 'quarterly' | 'custom'
+
+function mondayOfWeek(date: Date): string {
+  const d = new Date(date)
+  const day = d.getDay()
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day))
+  d.setHours(0, 0, 0, 0)
+  return d.toISOString().slice(0, 10)
+}
+
+function groupKey(date: Date, interval: TrendInterval): string {
+  const y = date.getFullYear()
+  const m = date.getMonth()
+  if (interval === 'monthly') return `${y}-${String(m + 1).padStart(2, '0')}`
+  if (interval === 'quarterly') return `${y}-Q${Math.floor(m / 3) + 1}`
+  return mondayOfWeek(date)
+}
+
+function formatKey(key: string, interval: TrendInterval): string {
+  if (interval === 'monthly') {
+    const [y, mo] = key.split('-')
+    return new Date(+y, +mo - 1, 1).toLocaleDateString('it-IT', { month: 'short', year: '2-digit' })
+  }
+  if (interval === 'quarterly') return key.replace('-', ' ')
+  return new Date(key).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+}
+
+function buildKeys(interval: TrendInterval, customStart: string, customEnd: string): string[] {
+  const now = new Date()
+  const keys: string[] = []
+
+  if (interval === 'weekly') {
+    for (let i = 12; i >= 0; i--) {
+      const d = new Date(now); d.setDate(d.getDate() - i * 7)
+      keys.push(mondayOfWeek(d))
+    }
+  } else if (interval === 'monthly') {
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const y = d.getFullYear(), m = d.getMonth()
+      keys.push(`${y}-${String(m + 1).padStart(2, '0')}`)
+    }
+  } else if (interval === 'quarterly') {
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i * 3, 1)
+      const y = d.getFullYear(), m = d.getMonth()
+      keys.push(`${y}-Q${Math.floor(m / 3) + 1}`)
+    }
+  } else {
+    // custom: weekly buckets between start and end
+    if (!customStart || !customEnd) return []
+    const startD = new Date(customStart), endD = new Date(customEnd)
+    const cur = new Date(mondayOfWeek(startD))
+    while (cur <= endD) {
+      keys.push(cur.toISOString().slice(0, 10))
+      cur.setDate(cur.getDate() + 7)
+    }
+  }
+  return [...new Set(keys)]
+}
+
+function buildTrendData(issues: PSPIssue[], interval: TrendInterval, customStart: string, customEnd: string) {
+  const keys = buildKeys(interval, customStart, customEnd)
+  const keySet = new Set(keys)
+
+  const opened: Record<string, number> = {}
+  const resolved: Record<string, number> = {}
+  const resTimeSums: Record<string, number> = {}
+  const resTimeCounts: Record<string, number> = {}
+
+  issues.forEach(i => {
+    const ok = groupKey(new Date(i.created), interval)
+    if (keySet.has(ok)) opened[ok] = (opened[ok] ?? 0) + 1
+
+    if (i.resolutionDate) {
+      const rk = groupKey(new Date(i.resolutionDate), interval)
+      if (keySet.has(rk)) {
+        resolved[rk] = (resolved[rk] ?? 0) + 1
+        const days = (new Date(i.resolutionDate).getTime() - new Date(i.created).getTime()) / 86_400_000
+        if (days <= 30) {
+          resTimeSums[rk] = (resTimeSums[rk] ?? 0) + days
+          resTimeCounts[rk] = (resTimeCounts[rk] ?? 0) + 1
+        }
+      }
+    }
+  })
+
+  return keys.map(k => ({
+    label: formatKey(k, interval),
+    aperti: opened[k] ?? 0,
+    risolti: resolved[k] ?? 0,
+    tempoMedio: resTimeCounts[k]
+      ? Math.round((resTimeSums[k] / resTimeCounts[k]) * 10) / 10
+      : null,
+  }))
+}
+
+const INTERVAL_LABELS: Record<TrendInterval, string> = {
+  weekly: 'Sett.',
+  monthly: 'Mese',
+  quarterly: 'Trim.',
+  custom: 'Custom',
+}
+
+function TrendCard({ issues }: { issues: PSPIssue[] }) {
+  const [interval, setInterval] = useState<TrendInterval>('weekly')
+  const [customStart, setCustomStart] = useState('')
+  const [customEnd, setCustomEnd] = useState('')
+
+  const data = useMemo(
+    () => buildTrendData(issues, interval, customStart, customEnd),
+    [issues, interval, customStart, customEnd],
+  )
+
+  const hasResData = data.some(d => d.tempoMedio !== null)
+
+  return (
+    <div className='bg-card overflow-hidden rounded-2xl border'>
+      {/* Header */}
+      <div className='border-border flex flex-wrap items-center gap-3 border-b px-5 py-2.5'>
+        <span className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
+          Andamento nel tempo
+        </span>
+        <div className='ml-auto flex items-center gap-1'>
+          {(['weekly', 'monthly', 'quarterly', 'custom'] as TrendInterval[]).map(iv => (
+            <button
+              key={iv}
+              onClick={() => setInterval(iv)}
+              className='rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors'
+              style={{
+                backgroundColor: interval === iv ? '#111' : 'transparent',
+                color: interval === iv ? '#fff' : '#767676',
+              }}
+            >
+              {INTERVAL_LABELS[iv]}
+            </button>
+          ))}
+        </div>
+        {interval === 'custom' && (
+          <div className='flex w-full items-center gap-2 pt-1'>
+            <input
+              type='date'
+              value={customStart}
+              onChange={e => setCustomStart(e.target.value)}
+              className='rounded-lg border border-[#E8E8E8] bg-transparent px-2.5 py-1 text-[11px] font-bold text-[#111] outline-none focus:ring-1 focus:ring-[#3B82F6]'
+            />
+            <span className='text-muted-foreground text-[11px]'>→</span>
+            <input
+              type='date'
+              value={customEnd}
+              onChange={e => setCustomEnd(e.target.value)}
+              className='rounded-lg border border-[#E8E8E8] bg-transparent px-2.5 py-1 text-[11px] font-bold text-[#111] outline-none focus:ring-1 focus:ring-[#3B82F6]'
+            />
+          </div>
+        )}
+      </div>
+
+      <div className='flex flex-col gap-6 p-5'>
+        {/* Volume — area chart */}
+        <div>
+          <p className='text-muted-foreground mb-3 text-[10px] font-bold tracking-widest uppercase'>
+            Ticket aperti e risolti
+          </p>
+          {data.length === 0 ? (
+            <p className='text-muted-foreground py-8 text-center text-[12px] font-bold'>Seleziona un intervallo di date.</p>
+          ) : (
+            <ResponsiveContainer width='100%' height={180}>
+              <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id='gradAperti' x1='0' y1='0' x2='0' y2='1'>
+                    <stop offset='5%' stopColor='#3B82F6' stopOpacity={0.18} />
+                    <stop offset='95%' stopColor='#3B82F6' stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id='gradRisolti' x1='0' y1='0' x2='0' y2='1'>
+                    <stop offset='5%' stopColor='#10B981' stopOpacity={0.18} />
+                    <stop offset='95%' stopColor='#10B981' stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey='label' tick={{ fontSize: 10, fontWeight: 700, fill: '#767676' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: '#767676' }} axisLine={false} tickLine={false} width={24} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ ...TOOLTIP_STYLE, backgroundColor: '#fff', padding: '6px 10px' }}
+                  cursor={{ stroke: '#E8E8E8', strokeWidth: 1 }}
+                  formatter={(v: number, name: string) => [v, name === 'aperti' ? 'Aperti' : 'Risolti']}
+                />
+                <Legend
+                  iconType='circle' iconSize={7}
+                  formatter={(v) => (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#555' }}>
+                      {v === 'aperti' ? 'Aperti' : 'Risolti'}
+                    </span>
+                  )}
+                />
+                <Area dataKey='aperti' name='aperti' stroke='#3B82F6' strokeWidth={2} fill='url(#gradAperti)' dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+                <Area dataKey='risolti' name='risolti' stroke='#10B981' strokeWidth={2} fill='url(#gradRisolti)' dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Avg resolution time — area line */}
+        <div>
+          <div className='mb-3 flex items-baseline gap-2'>
+            <p className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
+              Tempo medio di risoluzione (giorni)
+            </p>
+            <span className='text-muted-foreground text-[10px] font-bold opacity-50'>· eccezioni &gt;30gg escluse</span>
+          </div>
+          {!hasResData ? (
+            <p className='text-muted-foreground py-8 text-center text-[12px] font-bold'>
+              Nessun dato di risoluzione disponibile per questo periodo.
+            </p>
+          ) : (
+            <ResponsiveContainer width='100%' height={140}>
+              <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id='gradTempo' x1='0' y1='0' x2='0' y2='1'>
+                    <stop offset='5%' stopColor='#F59E0B' stopOpacity={0.2} />
+                    <stop offset='95%' stopColor='#F59E0B' stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey='label' tick={{ fontSize: 10, fontWeight: 700, fill: '#767676' }} axisLine={false} tickLine={false} />
+                <YAxis
+                  tick={{ fontSize: 10, fontWeight: 700, fill: '#767676' }}
+                  axisLine={false} tickLine={false} width={36}
+                  tickFormatter={(v) => `${v}g`}
+                />
+                <Tooltip
+                  contentStyle={{ ...TOOLTIP_STYLE, backgroundColor: '#fff', padding: '6px 10px' }}
+                  cursor={{ stroke: '#E8E8E8', strokeWidth: 1 }}
+                  formatter={(v: number | null) => v !== null ? [`${v} giorni`, 'Tempo medio'] : ['—', 'Tempo medio']}
+                />
+                <Area
+                  dataKey='tempoMedio'
+                  name='tempoMedio'
+                  stroke='#F59E0B'
+                  strokeWidth={2}
+                  fill='url(#gradTempo)'
+                  dot={{ r: 3, fill: '#F59E0B', strokeWidth: 0 }}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                  connectNulls={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Platform trend ───────────────────────────────────────────────────────────
+function buildPlatformTrendData(
+  issues: PSPIssue[],
+  interval: TrendInterval,
+  customStart: string,
+  customEnd: string,
+) {
+  const keys = buildKeys(interval, customStart, customEnd)
+  const keySet = new Set(keys)
+
+  // Collect all distinct requestType names sorted by total volume desc
+  const totals = new Map<string, number>()
+  issues.forEach(i => {
+    const name = i.requestType ?? i.issueType
+    totals.set(name, (totals.get(name) ?? 0) + 1)
+  })
+  const platformNames = Array.from(totals.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([name]) => name)
+
+  const counts: Record<string, Record<string, number>> = {}
+  keys.forEach(k => { counts[k] = {} })
+
+  issues.forEach(i => {
+    const ok = groupKey(new Date(i.created), interval)
+    if (!keySet.has(ok)) return
+    const name = i.requestType ?? i.issueType
+    counts[ok][name] = (counts[ok][name] ?? 0) + 1
+  })
+
+  const data = keys.map(k => ({ label: formatKey(k, interval), ...counts[k] }))
+  return { data, platformNames }
+}
+
+function PlatformTrendCard({ issues }: { issues: PSPIssue[] }) {
+  const [interval, setInterval] = useState<TrendInterval>('weekly')
+  const [customStart, setCustomStart] = useState('')
+  const [customEnd, setCustomEnd] = useState('')
+
+  const { data, platformNames } = useMemo(
+    () => buildPlatformTrendData(issues, interval, customStart, customEnd),
+    [issues, interval, customStart, customEnd],
   )
 
   return (
     <div className='bg-card overflow-hidden rounded-2xl border'>
-      <div className='border-border flex items-center justify-between border-b px-5 py-2.5'>
+      <div className='border-border flex flex-wrap items-center gap-3 border-b px-5 py-2.5'>
         <span className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
-          Persone
+          Ticket per piattaforma nel tempo
         </span>
-        <div className='flex items-center gap-4'>
-          {legendStatuses.map((s) => (
-            <span key={s} className='flex items-center gap-1.5'>
-              <span
-                className='h-2 w-2 rounded-[3px]'
-                style={{ backgroundColor: STATUS[s].dot }}
-              />
-              <span className='text-muted-foreground text-[10px] font-bold'>
-                {STATUS[s].label}
-              </span>
+        <div className='ml-auto flex items-center gap-1'>
+          {(['weekly', 'monthly', 'quarterly', 'custom'] as TrendInterval[]).map(iv => (
+            <button
+              key={iv}
+              onClick={() => setInterval(iv)}
+              className='rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors'
+              style={{ backgroundColor: interval === iv ? '#111' : 'transparent', color: interval === iv ? '#fff' : '#767676' }}
+            >
+              {INTERVAL_LABELS[iv]}
+            </button>
+          ))}
+        </div>
+        {interval === 'custom' && (
+          <div className='flex w-full items-center gap-2 pt-1'>
+            <input type='date' value={customStart} onChange={e => setCustomStart(e.target.value)}
+              className='rounded-lg border border-[#E8E8E8] bg-transparent px-2.5 py-1 text-[11px] font-bold text-[#111] outline-none focus:ring-1 focus:ring-[#3B82F6]' />
+            <span className='text-muted-foreground text-[11px]'>→</span>
+            <input type='date' value={customEnd} onChange={e => setCustomEnd(e.target.value)}
+              className='rounded-lg border border-[#E8E8E8] bg-transparent px-2.5 py-1 text-[11px] font-bold text-[#111] outline-none focus:ring-1 focus:ring-[#3B82F6]' />
+          </div>
+        )}
+      </div>
+
+      <div className='p-5'>
+        {/* Legend */}
+        <div className='mb-4 flex flex-wrap gap-x-4 gap-y-1.5'>
+          {platformNames.map((name, i) => (
+            <span key={name} className='flex items-center gap-1.5'>
+              <span className='h-2 w-2 flex-shrink-0 rounded-sm' style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+              <span className='text-muted-foreground text-[11px] font-bold'>{name}</span>
             </span>
           ))}
         </div>
-      </div>
-      <div className='divide-border grid grid-cols-2 divide-x'>
-        <div className='px-5 pt-4 pb-2'>
-          <PeopleChart data={reporterData} title='Chi apre i ticket' />
-        </div>
-        <div className='px-5 pt-4 pb-2'>
-          <PeopleChart data={assigneeData} title='A chi sono assegnati' />
-        </div>
+
+        {data.length === 0 ? (
+          <p className='text-muted-foreground py-8 text-center text-[12px] font-bold'>Seleziona un intervallo di date.</p>
+        ) : (
+          <ResponsiveContainer width='100%' height={240}>
+            <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barSize={18}>
+              <XAxis dataKey='label' tick={{ fontSize: 10, fontWeight: 700, fill: '#767676' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: '#767676' }} axisLine={false} tickLine={false} width={24} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ ...TOOLTIP_STYLE, backgroundColor: '#fff', padding: '8px 12px' }}
+                cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+                  const items = payload.filter(p => Number(p.value) > 0).reverse()
+                  const total = items.reduce((s, p) => s + Number(p.value), 0)
+                  return (
+                    <div style={{ ...TOOLTIP_STYLE, padding: '8px 12px', backgroundColor: '#fff' }}>
+                      <p style={{ color: '#111', marginBottom: 6, fontWeight: 700, fontSize: 11 }}>{label} · {total} ticket</p>
+                      {items.map((p, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 2, flexShrink: 0, backgroundColor: p.fill as string }} />
+                          <span style={{ flex: 1, color: '#555', fontSize: 11, fontWeight: 700 }}>{p.dataKey}</span>
+                          <span style={{ color: '#111', fontSize: 11, fontWeight: 700, tabularNums: true } as React.CSSProperties}>{p.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                }}
+              />
+              {platformNames.map((name, i) => (
+                <Bar
+                  key={name}
+                  dataKey={name}
+                  stackId='a'
+                  fill={DONUT_COLORS[i % DONUT_COLORS.length]}
+                  radius={i === platformNames.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   )
-}
-
-const PRIORITY_ORDER: Record<string, number> = {
-  Highest: 0,
-  High: 1,
-  Medium: 2,
-  Low: 3,
-  Lowest: 4,
-}
-
-const PRIORITY_DOT: Record<string, string> = {
-  Highest: '#6D28D9',
-  High: '#8B5CF6',
-  Medium: '#C084FC',
-  Low: '#DDD6FE',
-  Lowest: '#EDE9FE',
-}
-
-const TABLE_HEADERS = [
-  'Chiave',
-  'Titolo',
-  'Request Type',
-  'Stato',
-  'Priorit\u00e0',
-  'Assegnato a',
-  'Aperto da',
-  'Apertura',
-  'Time to Res.',
-] as const
-
-function IssueRow({ issue }: { issue: PSPIssue }) {
-  return (
-    <tr className='border-border hover:bg-muted/50 border-b transition-colors'>
-      <td className='px-4 py-2 whitespace-nowrap'>
-        <a
-          href={issue.url}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='font-mono text-[11px] font-bold text-violet-700 hover:underline'
-        >
-          {issue.key}
-        </a>
-      </td>
-      <td className='max-w-[260px] px-4 py-2'>
-        <a
-          href={issue.url}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-foreground block truncate text-[12px] font-bold transition-colors hover:text-violet-700'
-          title={issue.summary}
-        >
-          {issue.summary}
-        </a>
-      </td>
-      <td className='px-4 py-2 whitespace-nowrap'>
-        <span className='text-muted-foreground text-[11px] font-bold'>
-          {issue.requestType ?? issue.issueType}
-        </span>
-      </td>
-      <td className='px-4 py-2'>
-        <StatusTag issue={issue} />
-      </td>
-      <td className='px-4 py-2 whitespace-nowrap'>
-        <span className='flex items-center gap-1.5'>
-          <span
-            className='h-1.5 w-1.5 flex-shrink-0 rounded-full'
-            style={{
-              backgroundColor: PRIORITY_DOT[issue.priority] ?? '#EDE9FE',
-            }}
-          />
-          <span className='text-muted-foreground text-[11px] font-bold'>
-            {issue.priority}
-          </span>
-        </span>
-      </td>
-      <td className='px-4 py-2 whitespace-nowrap'>
-        <span className='text-muted-foreground text-[11px] font-bold'>
-          {issue.assignee?.displayName ?? '\u2014'}
-        </span>
-      </td>
-      <td className='px-4 py-2 whitespace-nowrap'>
-        <span className='text-muted-foreground text-[11px] font-bold'>
-          {issue.reporter?.displayName ?? '\u2014'}
-        </span>
-      </td>
-      <td className='px-4 py-2 whitespace-nowrap'>
-        <span className='text-muted-foreground text-[11px] font-bold tabular-nums'>
-          {timeAgo(issue.created)}
-        </span>
-      </td>
-      <td className='px-4 py-2 whitespace-nowrap'>
-        <SlaBadge sla={issue.sla} />
-      </td>
-    </tr>
-  )
-}
-
-const SORT_FN: Record<string, (a: PSPIssue, b: PSPIssue) => number> = {
-  Chiave: (a, b) => a.key.localeCompare(b.key),
-  Titolo: (a, b) => a.summary.localeCompare(b.summary),
-  'Request Type': (a, b) =>
-    (a.requestType ?? a.issueType).localeCompare(b.requestType ?? b.issueType),
-  Stato: (a, b) => a.status.localeCompare(b.status),
-  Priorità: (a, b) =>
-    (PRIORITY_ORDER[a.priority] ?? 9) - (PRIORITY_ORDER[b.priority] ?? 9),
-  'Assegnato a': (a, b) =>
-    (a.assignee?.displayName ?? '').localeCompare(
-      b.assignee?.displayName ?? ''
-    ),
-  'Aperto da': (a, b) =>
-    (a.reporter?.displayName ?? '').localeCompare(
-      b.reporter?.displayName ?? ''
-    ),
-  Apertura: (a, b) =>
-    new Date(a.created).getTime() - new Date(b.created).getTime(),
-  'Time to Res.': (a, b) =>
-    (a.sla?.remainingMs ?? Infinity) - (b.sla?.remainingMs ?? Infinity),
 }
 
 export function PSPDashboard() {
@@ -711,9 +818,6 @@ export function PSPDashboard() {
 
   const [selectedRT, setSelectedRT] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
-  const [sortKey, setSortKey] = useState<string>('Apertura')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   const issuesByRT = useMemo(() => {
     if (!data) return {} as Record<string, PSPIssue[]>
@@ -733,27 +837,6 @@ export function PSPDashboard() {
     () => data?.issues.filter((i) => i.statusCategory !== 'done').length ?? 0,
     [data]
   )
-
-  const filtered = useMemo(() => {
-    if (!data) return []
-    const base = data.issues.filter((i) => {
-      if (i.statusCategory === 'done') return false
-      if (selectedRT && (i.requestType ?? i.issueType) !== selectedRT)
-        return false
-      if (selectedStatus && issueStatusKey(i) !== selectedStatus) return false
-      if (search) {
-        const q = search.toLowerCase()
-        return (
-          i.summary.toLowerCase().includes(q) || i.key.toLowerCase().includes(q)
-        )
-      }
-      return true
-    })
-    const fn = SORT_FN[sortKey]
-    if (!fn) return base
-    const sorted = [...base].sort(fn)
-    return sortDir === 'desc' ? sorted.reverse() : sorted
-  }, [data, selectedRT, selectedStatus, search, sortKey, sortDir])
 
   if (loading)
     return (
@@ -782,7 +865,6 @@ export function PSPDashboard() {
   if (!data) return null
 
   const total = data.issues.length
-  const activeStatusCfg = selectedStatus ? STATUS[selectedStatus] : null
   const fetchedTime = data.fetchedAt
     ? new Date(data.fetchedAt).toLocaleTimeString('it-IT', {
         hour: '2-digit',
@@ -824,13 +906,19 @@ export function PSPDashboard() {
                 {' \u00b7 ultimi 90g'}
               </span>
             )}
-            <button className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3' disabled={loading || isRefreshing} onClick={triggerRefresh}><RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? 'animate-spin' : ''}`} />Ricarica</button>
+            <Link href='/psp/tickets' className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 gap-1.5'>
+              <TableIcon className='h-3.5 w-3.5' />Tutti i ticket
+            </Link>
+            <button className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3' disabled={loading || isRefreshing} onClick={triggerRefresh}>
+              <RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? 'animate-spin' : ''}`} />Ricarica
+            </button>
             <a
               href='https://hd-group.atlassian.net/jira/servicedesk/projects/SA/queues/custom/218'
               target='_blank'
               rel='noopener noreferrer'
+              className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 gap-1.5'
             >
-              <button className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3' disabled={loading || isRefreshing} onClick={triggerRefresh}><RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? 'animate-spin' : ''}`} />Ricarica</button>
+              <ExternalLink className='h-3.5 w-3.5' />Jira
             </a>
           </div>
         </div>
@@ -852,127 +940,10 @@ export function PSPDashboard() {
           />
         )}
 
-        <PeopleStatsBox issues={data.issues} />
+        <DonutCard issues={data.issues} />
+        <TrendCard issues={data.issues} />
+        <PlatformTrendCard issues={data.issues} />
 
-        <div className='bg-card overflow-hidden rounded-2xl border'>
-          <div className='flex items-center gap-2 border-b px-4 py-2.5'>
-            <div className='relative flex-1'>
-              <span className='text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]'>
-                &#x2315;
-              </span>
-              <input
-                type='text'
-                placeholder='Cerca per chiave o titolo\u2026'
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className='bg-muted/50 text-foreground placeholder:text-muted-foreground/60 w-full rounded-lg border-0 py-1.5 pr-3 pl-7 text-[12px] font-bold transition-all outline-none placeholder:font-bold focus:ring-2 focus:ring-violet-600'
-              />
-            </div>
-            {selectedRT && (
-              <button
-                onClick={() => setSelectedRT(null)}
-                className='bg-primary text-primary-foreground inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold'
-              >
-                {selectedRT} <span className='opacity-50'>&times;</span>
-              </button>
-            )}
-            {selectedStatus && activeStatusCfg && (
-              <button
-                onClick={() => setSelectedStatus(null)}
-                className='inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold'
-                style={{
-                  backgroundColor: activeStatusCfg.tagBg,
-                  color: activeStatusCfg.text,
-                }}
-              >
-                {activeStatusCfg.label}{' '}
-                <span className='opacity-50'>&times;</span>
-              </button>
-            )}
-            {(selectedRT || selectedStatus || search) && (
-              <button
-                onClick={() => {
-                  setSelectedRT(null)
-                  setSelectedStatus(null)
-                  setSearch('')
-                }}
-                className='text-muted-foreground hover:text-foreground shrink-0 text-[11px] font-bold transition-colors'
-              >
-                Azzera
-              </button>
-            )}
-            <span className='text-muted-foreground ml-auto shrink-0 text-[11px] font-bold tabular-nums'>
-              {filtered.length}
-              <span className='text-muted-foreground/60'>
-                /{openTotal} aperti
-              </span>
-            </span>
-          </div>
-
-          <div className='overflow-x-auto'>
-            <table className='w-full text-left'>
-              <thead>
-                <tr className='bg-muted/30 border-border border-b'>
-                  {TABLE_HEADERS.map((h) => {
-                    const sortable = h in SORT_FN
-                    const active = sortKey === h
-                    return (
-                      <th
-                        key={h}
-                        onClick={() => {
-                          if (!sortable) return
-                          if (active)
-                            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-                          else {
-                            setSortKey(h)
-                            setSortDir('asc')
-                          }
-                        }}
-                        className='px-4 py-2 text-[10px] font-bold tracking-wider whitespace-nowrap uppercase select-none'
-                        style={{
-                          color: active ? 'foreground' : 'muted-foreground',
-                          cursor: sortable ? 'pointer' : 'default',
-                        }}
-                      >
-                        <span className='inline-flex items-center gap-1'>
-                          {h}
-                          {sortable && (
-                            <span
-                              style={{
-                                opacity: active ? 1 : 0.25,
-                                fontSize: 9,
-                              }}
-                            >
-                              {active && sortDir === 'desc'
-                                ? '\u2193'
-                                : '\u2191'}
-                            </span>
-                          )}
-                        </span>
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className='text-muted-foreground py-16 text-center text-[13px] font-bold'
-                    >
-                      Nessun risultato.
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map((i) => <IssueRow key={i.key} issue={i} />)
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className='h-2' />
       </div>
     </div>
   )

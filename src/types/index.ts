@@ -113,6 +113,7 @@ export interface PSPIssue {
   assignee: { displayName: string; avatarUrl: string } | null;
   reporter: { displayName: string; avatarUrl: string } | null;
   created: string;
+  resolutionDate: string | null;
   sla: PSPSla | null;
   url: string;
 }
