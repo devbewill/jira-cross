@@ -7,15 +7,15 @@ import { useRefresh } from "@/contexts/RefreshContext";
 // ─── Colori sidebar — pastel theme ──────────────────────────────────────────
 const S = {
   bg:          "#FFFFFF",
-  border:      "#F2F2F7",
-  text:        "#2C2C2E",
-  textSub:     "#8E8E93",
-  textMuted:   "#C7C7CC",
-  divider:     "#F2F2F7",
-  hover:       "#F9F9FB",
-  activeBg:    "#EBF3FF",
-  activeText:  "#3A7BDF",
-  syncBg:      "#3A7BDF",
+  border:      "#E5E7EB",
+  text:        "#1F2937",
+  textSub:     "#6B7280",
+  textMuted:   "#A1A1AA",
+  divider:     "#E5E7EB",
+  hover:       "#F3F4F6",
+  activeBg:    "#DBEAFE",
+  activeText:  "#2563EB",
+  syncBg:      "#2563EB",
   syncText:    "#FFFFFF",
 };
 

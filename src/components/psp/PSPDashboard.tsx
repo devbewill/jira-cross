@@ -12,28 +12,28 @@ import { useRefresh } from '@/contexts/RefreshContext';
 import { PSPIssue, PSPRequestTypeGroup } from '@/types';
 
 const C = {
-  bg:       '#FAFAFA',
+  bg:       '#F5F5F5',
   card:     '#FFFFFF',
-  text:     '#2C2C2E',
-  text2:    '#8E8E93',
-  text3:    '#C7C7CC',
-  surface:  '#F2F2F7',
+  text:     '#1F2937',
+  text2:    '#6B7280',
+  text3:    '#A1A1AA',
+  surface:  '#E5E7EB',
 }
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string; accent: string }> = {
-  Aperto:                    { label: 'Aperti',         color: '#B4D7FF', bg: '#EBF3FF', accent: '#3A7BDF' },
-  Riaperto:                  { label: 'Ri aperti',      color: '#FFB3B0', bg: '#FFF0EF', accent: '#D45A56' },
-  'in attesa di risposta':   { label: 'In attesa',      color: '#FFD6A0', bg: '#FFF6E8', accent: '#C78828' },
-  'in risoluzione':          { label: 'In risoluzione',  color: '#C4C1F7', bg: '#F0EEFF', accent: '#7B78C7' },
-  Risolto:                   { label: 'Risolti',        color: '#A8E6BE', bg: '#E8F8EE', accent: '#4AA96E' },
-  Annullato:                 { label: 'Annullati',      color: '#D1D1D6', bg: '#F4F4F5', accent: '#8A8A8E' },
+  Aperto:                    { label: 'Aperti',         color: '#93C5FD', bg: '#93C5FD', accent: '#2563EB' },
+  Riaperto:                  { label: 'Ri aperti',      color: '#FCA5A5', bg: '#FCA5A5', accent: '#DC2626' },
+  'in attesa di risposta':   { label: 'In attesa',      color: '#FCD34D', bg: '#FCD34D', accent: '#D97706' },
+  'in risoluzione':          { label: 'In risoluzione',  color: '#C4B5FD', bg: '#C4B5FD', accent: '#7C3AED' },
+  Risolto:                   { label: 'Risolti',        color: '#86EFAC', bg: '#86EFAC', accent: '#16A34A' },
+  Annullato:                 { label: 'Annullati',      color: '#D4D4D8', bg: '#D4D4D8', accent: '#71717A' },
 }
 
 const STATUS_ORDER = ['Aperto','Riaperto','in attesa di risposta','in risoluzione','Risolto','Annullato']
 
 const DONUT_PAL = [
-  '#B4D7FF', '#C4C1F7', '#FFD6A0', '#A8E6BE', '#FFB3B0',
-  '#A8D8F0', '#D7B8F0', '#D1D1D6', '#F0B8C4', '#A8E0D8',
+  '#93C5FD', '#C4B5FD', '#FCD34D', '#86EFAC', '#FCA5A5',
+  '#67E8F9', '#D8B4FE', '#D4D4D8', '#FDA4AF', '#5EEAD4',
 ]
 
 // ── helpers ──────────────────────────────────────────────────────────────
@@ -401,12 +401,12 @@ function Trend({ issues }: { issues: PSPIssue[] }) {
               <AreaChart data={data} margin={{ top: 2, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id='gA' x1='0' y1='0' x2='0' y2='1'>
-                    <stop offset='5%' stopColor='#B4D7FF' stopOpacity={0.3} />
-                    <stop offset='95%' stopColor='#B4D7FF' stopOpacity={0} />
+                    <stop offset='5%' stopColor='#93C5FD' stopOpacity={0.3} />
+                    <stop offset='95%' stopColor='#93C5FD' stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id='gR' x1='0' y1='0' x2='0' y2='1'>
-                    <stop offset='5%' stopColor='#A8E6BE' stopOpacity={0.3} />
-                    <stop offset='95%' stopColor='#A8E6BE' stopOpacity={0} />
+                    <stop offset='5%' stopColor='#86EFAC' stopOpacity={0.3} />
+                    <stop offset='95%' stopColor='#86EFAC' stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey='label' tick={{ fontSize: 9, fontWeight: 600, fill: C.text3 }} axisLine={false} tickLine={false} />
@@ -416,8 +416,8 @@ function Trend({ issues }: { issues: PSPIssue[] }) {
                 <Legend iconType='circle' iconSize={5} formatter={(v) => (
                   <span style={{ fontSize: 10, fontWeight: 600, color: C.text2 }}>{v === 'aperti' ? 'Aperti' : 'Risolti'}</span>
                 )} />
-                <Area type='monotone' dataKey='aperti' name='aperti' stroke='#3A7BDF' strokeWidth={2} fill='url(#gA)' dot={false} />
-                <Area type='monotone' dataKey='risolti' name='risolti' stroke='#4AA96E' strokeWidth={2} fill='url(#gR)' dot={false} />
+                <Area type='monotone' dataKey='aperti' name='aperti' stroke='#2563EB' strokeWidth={2} fill='url(#gA)' dot={false} />
+                <Area type='monotone' dataKey='risolti' name='risolti' stroke='#16A34A' strokeWidth={2} fill='url(#gR)' dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -433,16 +433,16 @@ function Trend({ issues }: { issues: PSPIssue[] }) {
                 <AreaChart data={data} margin={{ top: 2, right: 8, left: 0, bottom: 0 }}>
                   <defs>
                   <linearGradient id='gT' x1='0' y1='0' x2='0' y2='1'>
-                    <stop offset='5%' stopColor='#C4C1F7' stopOpacity={0.3} />
-                    <stop offset='95%' stopColor='#C4C1F7' stopOpacity={0} />
+                    <stop offset='5%' stopColor='#C4B5FD' stopOpacity={0.3} />
+                    <stop offset='95%' stopColor='#C4B5FD' stopOpacity={0} />
                   </linearGradient>
                   </defs>
                   <XAxis dataKey='label' tick={{ fontSize: 9, fontWeight: 600, fill: C.text3 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 9, fontWeight: 600, fill: C.text3 }} axisLine={false} tickLine={false} width={30} tickFormatter={v => `${v}g`} />
                   <Tooltip contentStyle={tip} cursor={{ stroke: C.text3, strokeWidth: 1, strokeDasharray: '3 3' }}
                     formatter={(v: number | null) => v !== null ? [`${v}g`, 'Tempo medio'] : ['\u2014', 'Tempo medio']} />
-                  <Area type='monotone' dataKey='tempoMedio' name='tempoMedio' stroke='#7B78C7' strokeWidth={1.5} fill='url(#gT)'
-                    dot={{ r: 2, fill: '#7B78C7', strokeWidth: 0 }} activeDot={{ r: 3, strokeWidth: 0 }} connectNulls={false} />
+                  <Area type='monotone' dataKey='tempoMedio' name='tempoMedio' stroke='#7C3AED' strokeWidth={1.5} fill='url(#gT)'
+                    dot={{ r: 2, fill: '#7C3AED', strokeWidth: 0 }} activeDot={{ r: 3, strokeWidth: 0 }} connectNulls={false} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -581,7 +581,7 @@ export function PSPDashboard() {
   if (loading) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 24, height: 24, border: `2px solid ${C.text3}`, borderTopColor: '#3A7BDF', borderRadius: '50%', animation: 'spin .6s linear infinite' }} />
+        <div style={{ width: 24, height: 24, border: `2px solid ${C.text3}`, borderTopColor: '#2563EB', borderRadius: '50%', animation: 'spin .6s linear infinite' }} />
         <span style={{ fontSize: 11, color: C.text3, fontWeight: 500 }}>Caricamento&hellip;</span>
       </div>
     </div>
@@ -636,7 +636,7 @@ export function PSPDashboard() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{
-            width: 6, height: 6, borderRadius: '50%', backgroundColor: cacheHit ? C.text3 : '#A8E6BE',
+            width: 6, height: 6, borderRadius: '50%', backgroundColor: cacheHit ? C.text3 : '#86EFAC',
           }} />
           <Link href='/psp/tickets' style={headerBtn}>
             <TableIcon className='h-3 w-3' /> <span>Ticket</span>
