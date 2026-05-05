@@ -13,10 +13,10 @@ const S = {
   textMuted:   "#A1A1AA",
   divider:     "#E5E7EB",
   hover:       "#F3F4F6",
-  activeBg:    "#DBEAFE",
-  activeText:  "#2563EB",
-  syncBg:      "#2563EB",
-  syncText:    "#FFFFFF",
+  activeBg:    "#F3F4F6",
+  activeText:  "#111827",
+  syncBg:      "#FFFFFF",
+  syncText:    "#111827",
 };
 
 function IconTimeline() {
@@ -186,7 +186,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             backgroundColor: "#EBF3FF",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <span style={{ fontSize: 11, color: "#3A7BDF", fontWeight: 700, lineHeight: 1 }}>◈</span>
+            <span style={{ fontSize: 11, color: "#111827", fontWeight: 700, lineHeight: 1 }}>◈</span>
           </div>
           {!collapsed && (
             <div style={{ overflow: "hidden", lineHeight: "1.25" }}>
@@ -225,7 +225,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
                             height: 30, paddingLeft: 14, paddingRight: 8,
                             cursor: "pointer",
                             backgroundColor: "transparent",
-                            color: subActive ? "#3A7BDF" : S.textSub,
+                            color: subActive ? "#111827" : S.textSub,
                             fontSize: 12, fontWeight: subActive ? 700 : 500,
                             transition: "color 120ms",
                           }}
@@ -263,7 +263,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             display: "flex", alignItems: "center", gap: 10,
             height: 36, padding: collapsed ? "0 13px" : "0 12px",
             justifyContent: collapsed ? "center" : undefined,
-            borderRadius: 8, border: "none", cursor: isRefreshing ? "not-allowed" : "pointer",
+            borderRadius: 8, border: "1px solid #E5E7EB", cursor: isRefreshing ? "not-allowed" : "pointer",
             backgroundColor: S.syncBg, color: S.syncText,
             fontSize: 13, fontWeight: 700,
             opacity: isRefreshing ? 0.5 : 1,

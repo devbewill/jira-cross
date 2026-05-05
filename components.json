@@ -1,0 +1,1618 @@
+[
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10142",
+    "id": "10142",
+    "name": "[Approvazione : Responsabile]",
+    "description": "[Approvazione : Responsabile]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10140",
+    "id": "10140",
+    "name": "[Azure - Gestione]",
+    "description": "[Azure - Gestione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10096",
+    "id": "10096",
+    "name": "[Connettività smartworking - richiesta supporto]",
+    "description": "[Connettività smartworking - richiesta supporto]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10094",
+    "id": "10094",
+    "name": "[Connettività ufficio - richiesta supporto]",
+    "description": "[Connettività ufficio - richiesta supporto]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10161",
+    "id": "10161",
+    "name": "[Dispositivi - configurazione / assegnazione e consegna]",
+    "description": "[Dispositivi - configurazione / assegnazione e consegna]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10162",
+    "id": "10162",
+    "name": "[Dispositivi - ritiro/sostituzione]",
+    "description": "[Dispositivi - ritiro/sostituzione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10134",
+    "id": "10134",
+    "name": "[Documenti - Gestione]",
+    "description": "[Documenti - Gestione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10070",
+    "id": "10070",
+    "name": "[Dominio - acquisto/rinnovi]",
+    "description": "[Dominio - acquisto/rinnovi]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10131",
+    "id": "10131",
+    "name": "[Dominio/DNS - gestione]",
+    "description": "[Dominio/DNS - gestione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10037",
+    "id": "10037",
+    "name": "[Email di servizio]",
+    "description": "[Email di servizio]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10123",
+    "id": "10123",
+    "name": "[Eventi - Allestimento Attrezzatura]",
+    "description": "[Eventi - Allestimento Attrezzatura]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10122",
+    "id": "10122",
+    "name": "[Eventi - Gestione]",
+    "description": "[Eventi - Gestione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10106",
+    "id": "10106",
+    "name": "[Exchange - attivazione / modifica inoltri]",
+    "description": "[Exchange - attivazione / modifica inoltri]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10124",
+    "id": "10124",
+    "name": "[Exchange - backup]",
+    "description": "[Exchange - backup]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10139",
+    "id": "10139",
+    "name": "[Exchange - Calendario]",
+    "description": "[Exchange - Calendario]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10093",
+    "id": "10093",
+    "name": "[Exchange - creazione nuova shared mailbox]",
+    "description": "[Exchange - creazione nuova shared mailbox]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10089",
+    "id": "10089",
+    "name": "[Exchange - shared mailbox - configurazione accesso / delega per utente]",
+    "description": "[Exchange - shared mailbox - configurazione accesso / delega per utente]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10136",
+    "id": "10136",
+    "name": "[Exchange - shared mailbox gestione]",
+    "description": "[Exchange - shared mailbox gestione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10077",
+    "id": "10077",
+    "name": "[Exchange - sincronizzazione]",
+    "description": "[Exchange - sincronizzazione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10079",
+    "id": "10079",
+    "name": "[Exchange - supporto ricerca messaggi]",
+    "description": "[Exchange - supporto ricerca messaggi]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10099",
+    "id": "10099",
+    "name": "[Exchange - supporto utilizzo]",
+    "description": "[Exchange - supporto utilizzo]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10033",
+    "id": "10033",
+    "name": "[Flusso Acquisti - richiesta nuovo dispositivo]",
+    "description": "[Flusso Acquisti - richiesta nuovo dispositivo]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10129",
+    "id": "10129",
+    "name": "[Formazione]",
+    "description": "[Formazione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10141",
+    "id": "10141",
+    "name": "[Google - Ads/Analytics/Suite/Tag]",
+    "description": "[Google - Ads/Analytics/Suite/Tag]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10114",
+    "id": "10114",
+    "name": "[Google - creazione nuova shared mailbox]",
+    "description": "[Google - creazione nuova shared mailbox]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10092",
+    "id": "10092",
+    "name": "[Google - creazione nuova utenza]",
+    "description": "[Google - creazione nuova utenza]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10113",
+    "id": "10113",
+    "name": "[Google - shared mailbox - configurazione accesso / delega per utente]",
+    "description": "[Google - shared mailbox - configurazione accesso / delega per utente]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10133",
+    "id": "10133",
+    "name": "[HR - Compliance]",
+    "description": "[HR - Compliance]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10064",
+    "id": "10064",
+    "name": "[Infrastruttura - montaggio attrezzatura]",
+    "description": "[Infrastruttura - montaggio attrezzatura]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10074",
+    "id": "10074",
+    "name": "[Intervento allestimento tecnologico locali]",
+    "description": "[Intervento allestimento tecnico locali]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10111",
+    "id": "10111",
+    "name": "[Intervento Tecnico - Dominio]",
+    "description": "[Intervento Tecnico - Dominio]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10095",
+    "id": "10095",
+    "name": "[Intervento Tecnico - richiesta pc temporaneo per utente]",
+    "description": "[Intervento Tecnico - richiesta pc temporaneo per utente]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10043",
+    "id": "10043",
+    "name": "[Intervento Tecnico : Assistenza hardware dispositivi]",
+    "description": "[Intervento Tecnico : Assistenza hardware dispositivi]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10066",
+    "id": "10066",
+    "name": "[Intervento Tecnico : Minacce Virus]",
+    "description": "Operazione di gestione virus",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10056",
+    "id": "10056",
+    "name": "[Intervento Tecnico : Software]",
+    "description": "Operazione su Software",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10044",
+    "id": "10044",
+    "name": "[Intervento Tecnico : Stampante]",
+    "description": "[Intervento Tecnico : Stampante]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10110",
+    "id": "10110",
+    "name": "[Intervento Tecnico : WiFi]",
+    "description": "[Intervento Tecnico WiFi]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10126",
+    "id": "10126",
+    "name": "[Inventario - Asset]",
+    "description": "[Inventario - Asset]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10117",
+    "id": "10117",
+    "name": "[Inventario - sistemazione materiali in entrata]",
+    "description": "[Inventario - sistemazione materiali in entrata]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10127",
+    "id": "10127",
+    "name": "[JIRA - gestione tickets]",
+    "description": "[JIRA - gestione tickets]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10132",
+    "id": "10132",
+    "name": "[Jira - Supporto]",
+    "description": "[Jira - Supporto]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10050",
+    "id": "10050",
+    "name": "[Logistica : Ritiro / invio pc]",
+    "description": "[Logistica : Ritiro / invio pc]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10085",
+    "id": "10085",
+    "name": "[Mago - Richiesta supporto fonitore]",
+    "description": "[Mago - Richiesta supporto fonitore]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10060",
+    "id": "10060",
+    "name": "[Mago - supporto connessione / accesso]",
+    "description": "Operazione su sw MAGO",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10084",
+    "id": "10084",
+    "name": "[MS365 - aggiornamento/gestione licenze ]",
+    "description": "[MS365 - aggiornamento/gestione licenze ]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10091",
+    "id": "10091",
+    "name": "[MS365 - creazione nuova / modifica  utenza]",
+    "description": "[MS365 - creazione nuova / modifica  utenza]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10107",
+    "id": "10107",
+    "name": "[MS365 - disattivazione utenza]",
+    "description": "[MS365 - disattivazione utenza]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10087",
+    "id": "10087",
+    "name": "[MS365 - Richiesta supporto login]",
+    "description": "[MS365 - Richiesta supporto login]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10098",
+    "id": "10098",
+    "name": "[MS365 - Richiesta supporto Pacchetto Office]",
+    "description": "[MS365 - Richiesta supporto Pacchetto Office]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10120",
+    "id": "10120",
+    "name": "[NAS - Controllo Backup]",
+    "description": "[NAS - Controllo Backup]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10090",
+    "id": "10090",
+    "name": "[NAS - creazione nuovo utente]",
+    "description": "[NAS - creazione nuovo utente]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10083",
+    "id": "10083",
+    "name": "[NAS - richiesta supporto per accesso]",
+    "description": "[NAS - richiesta supporto per accesso]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10038",
+    "id": "10038",
+    "name": "[Non gestibile]",
+    "description": "Richiesta non di nostra pertinenza",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10069",
+    "id": "10069",
+    "name": "[OneDrive - SharePoint - supporto utilizzo]",
+    "description": "[OneDrive - SharePoint - supporto utilizzo]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10088",
+    "id": "10088",
+    "name": "[Outlook - supporto configurazione app]",
+    "description": "[Outlook - supporto configurazione app]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10137",
+    "id": "10137",
+    "name": "[Outlook - Supporto utilizzo]",
+    "description": "[Outlook - Supporto utilizzo]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10061",
+    "id": "10061",
+    "name": "[Pagamenti]",
+    "description": "Da fare / sollecito",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10105",
+    "id": "10105",
+    "name": "[PC - configurazione / assegnazione e consegna]",
+    "description": "[PC - configurazione / assegnazione e consegna]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10067",
+    "id": "10067",
+    "name": "[PC - ritiro/sostituzione PC aziendale]",
+    "description": "[PC - ritiro/sostituzione PC aziendale]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10081",
+    "id": "10081",
+    "name": "[PEC - accesso/rimozione]",
+    "description": "[PEC - accesso/rimozione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10057",
+    "id": "10057",
+    "name": "[PEC - acquisto/rinnovo]",
+    "description": "[PEC - acquisto/rinnovo]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10071",
+    "id": "10071",
+    "name": "[PEC - controllo invio - ricezione]",
+    "description": "[PEC - controllo invio - ricezione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10109",
+    "id": "10109",
+    "name": "[PEC - supporto]",
+    "description": "[PEC - supporto]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10080",
+    "id": "10080",
+    "name": "[Ricerca - implementazione soluzioni IT]",
+    "description": "[Ricerca - implementazione soluzioni IT]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10045",
+    "id": "10045",
+    "name": "[Richiesta : Accessori/Consumabili]",
+    "description": "Consegna Accessori",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10118",
+    "id": "10118",
+    "name": "[Richiesta : acquisti on line]",
+    "description": "[Richiesta : acquisti on line]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10058",
+    "id": "10058",
+    "name": "[Richiesta : ricerca / verifica fatture]",
+    "description": "[Operazione su ricerca fatture]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10053",
+    "id": "10053",
+    "name": "[Richiesta : Riscatto PC Aziendale]",
+    "description": "Richiesta di riscatto di un pc aziendale",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10125",
+    "id": "10125",
+    "name": "[Richiesta : Supporto Fornitore]",
+    "description": "[Richiesta : Supporto Fornitore]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10048",
+    "id": "10048",
+    "name": "[Richiesta consulenza tecnica - Informazioni Generali]",
+    "description": "[Richiesta consulenza tecnica - Informazioni Generali]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10097",
+    "id": "10097",
+    "name": "[Richiesta Report]",
+    "description": "[Richiesta Report]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10121",
+    "id": "10121",
+    "name": "[Richiesta: Licenza fornitore]",
+    "description": "[Richiesta: Licenza fornitore]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10119",
+    "id": "10119",
+    "name": "[Richiesta: materiale fornitore]",
+    "description": "[Richiesta: materiale fornitore]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10075",
+    "id": "10075",
+    "name": "[Sale riunioni - allestimento - verifica dispositivi]",
+    "description": "[Sale riunioni - allestimento - verifica dispositivi]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10135",
+    "id": "10135",
+    "name": "[Servizio : Accesso]",
+    "description": "[Servizio : Accesso]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10163",
+    "id": "10163",
+    "name": "[Sistemi interni - Gestione]",
+    "description": "Database, Aggiornamenti, Back&Up dati",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10130",
+    "id": "10130",
+    "name": "[Siti: Gestione]",
+    "description": "[Siti: Gestione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10063",
+    "id": "10063",
+    "name": "[Software - Disinstallazione]",
+    "description": "[Software - Disinstallazione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10047",
+    "id": "10047",
+    "name": "[Software - Installazione]",
+    "description": "[Software - Installazione]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10086",
+    "id": "10086",
+    "name": "[Software - richiesta supporto modifica documenti]",
+    "description": "[Software - richiesta supporto modifica documenti]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10076",
+    "id": "10076",
+    "name": "[Teams - Assegnazione / Rimozione membro in / da un Team]",
+    "description": "[Teams - Assegnazione / Rimozione membro in / da un Team]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10160",
+    "id": "10160",
+    "name": "[Teams - Creazione / Modifica nuovo Team]",
+    "description": "[Teams - Creazione / Modifica nuovo Team]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10104",
+    "id": "10104",
+    "name": "[Teams - Supporto / Utilizzo]",
+    "description": "[Teams - Supporto / Utilizzo]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10072",
+    "id": "10072",
+    "name": "[Telefonia - configurazione / assegnazione e consegna]",
+    "description": "[Telefonia - configurazione / assegnazione e consegna]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10115",
+    "id": "10115",
+    "name": "[Telefonia - gestione sostitutione telefono assic casco]",
+    "description": "[Telefonia - gestione sostitutione telefono assic casco]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10073",
+    "id": "10073",
+    "name": "[Telefonia - richiesta attivazione nuova sim]",
+    "description": "[Telefonia - richiesta attivazione nuova sim]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10116",
+    "id": "10116",
+    "name": "[Telefonia - richiesta portabilita]",
+    "description": "[Telefonia - richiesta portabilita]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10159",
+    "id": "10159",
+    "name": "[Telefonia - ritiro/sostituzione cellulare aziendale]",
+    "description": "[Telefonia - ritiro/sostituzione cellulare aziendale]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10138",
+    "id": "10138",
+    "name": "[Telefonia - Sostituzione/Dismissione sim]",
+    "description": "[Telefonia - Sostituzione/Dismissione sim]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10078",
+    "id": "10078",
+    "name": "[telefonia - spedizione sim]",
+    "description": "[telefonia - spedizione sim]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10108",
+    "id": "10108",
+    "name": "[Telefonia - Webex - supporto]",
+    "description": "[Telefonia - Webex - supporto]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10196",
+    "id": "10196",
+    "name": "[vCard - Gestione ]",
+    "description": "[vCard - Gestione ]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10100",
+    "id": "10100",
+    "name": "[Vpn - configurazione nuova utenza]",
+    "description": "[Vpn - configurazione nuova/modifica utenza]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10102",
+    "id": "10102",
+    "name": "[Vpn - configurazione sso]",
+    "description": "[Vpn - configurazione sso]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10101",
+    "id": "10101",
+    "name": "[Vpn - disattivazione utenza]",
+    "description": "[Vpn - disattivazione utenza]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10082",
+    "id": "10082",
+    "name": "[Wifi - Richiesta creazione account Guest]",
+    "description": "[Wifi - Richiesta creazione account Guest]",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10000",
+    "id": "10000",
+    "name": "Active Directory",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10051",
+    "id": "10051",
+    "name": "Altri servizi di Posta",
+    "description": "Operazione su Altri servizi di posta ",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10001",
+    "id": "10001",
+    "name": "Analytics and Reporting Service",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10003",
+    "id": "10003",
+    "name": "Cloud Storage Services",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10068",
+    "id": "10068",
+    "name": "Compliance",
+    "description": "Compliance",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10034",
+    "id": "10034",
+    "name": "Configurazione Account",
+    "description": "Operazioni su account utente",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10042",
+    "id": "10042",
+    "name": "Configurazione Nuovo Hardware",
+    "description": "Operazione su Nuovi Dispositivi",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10004",
+    "id": "10004",
+    "name": "Data Center Services",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10005",
+    "id": "10005",
+    "name": "Email and Collaboration Services",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10032",
+    "id": "10032",
+    "name": "EXCHANGE",
+    "description": "Operazione su EXCHANGE",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10054",
+    "id": "10054",
+    "name": "EXCHANGE : Altri problemi",
+    "description": "Operazione su problemi di natura differente",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10006",
+    "id": "10006",
+    "name": "Financial Services",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10039",
+    "id": "10039",
+    "name": "Internet/WIFI/VPN",
+    "description": "Operazione su Rete HD",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10035",
+    "id": "10035",
+    "name": "Intervento Tecnico",
+    "description": "Operazione per criticità tecniche",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10046",
+    "id": "10046",
+    "name": "Intervento tecnico : Hardware Smartphone",
+    "description": "Criticità Hardware Smartphone",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10062",
+    "id": "10062",
+    "name": "Intervento Tecnico : Reset HW",
+    "description": "Operazione di reset Hardware",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10008",
+    "id": "10008",
+    "name": "Intranet",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10009",
+    "id": "10009",
+    "name": "Jira",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10040",
+    "id": "10040",
+    "name": "Nuove Funzionalità",
+    "description": "Nuovi Progetti, Nuove implementazioni, Nuove attività, Nuove Infrastrutture",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10011",
+    "id": "10011",
+    "name": "Payroll Services",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10041",
+    "id": "10041",
+    "name": "PEC",
+    "description": "Operazione su PEC",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10012",
+    "id": "10012",
+    "name": "Printers",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10010",
+    "id": "10010",
+    "name": "Rete aziendale",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10055",
+    "id": "10055",
+    "name": "Richiesta : Gestione Domini",
+    "description": "Operazione su domini",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10052",
+    "id": "10052",
+    "name": "Richiesta : update Software",
+    "description": "Operazione di aggiornamento Software",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10065",
+    "id": "10065",
+    "name": "Riunioni aziendali",
+    "description": "Riunioni ",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10014",
+    "id": "10014",
+    "name": "Server VPN",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10002",
+    "id": "10002",
+    "name": "Servizi di fatturazione",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10007",
+    "id": "10007",
+    "name": "Servizi di risorse umane",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10013",
+    "id": "10013",
+    "name": "Sito web pubblico",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10059",
+    "id": "10059",
+    "name": "Telefonia",
+    "description": "Richieste telefonia - sim - mobiles - webex",
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  },
+  {
+    "self": "https://hd-service.atlassian.net/rest/api/3/component/10015",
+    "id": "10015",
+    "name": "Webstore Purchasing Services",
+    "description": "Created by Jira Service Management",
+    "lead": {
+      "self": "https://hd-service.atlassian.net/rest/api/3/user?accountId=626bbe9fd364ae00680b4d49",
+      "accountId": "626bbe9fd364ae00680b4d49",
+      "accountType": "atlassian",
+      "avatarUrls": {
+        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/48",
+        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/24",
+        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/16",
+        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/626bbe9fd364ae00680b4d49/ef2f3804-cc9e-4549-94bb-05359d87db41/32"
+      },
+      "displayName": "CRISTIANO RIGON",
+      "active": true
+    },
+    "assigneeType": "PROJECT_DEFAULT",
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "isAssigneeTypeValid": false,
+    "project": "RT",
+    "projectId": 10001
+  }
+]
