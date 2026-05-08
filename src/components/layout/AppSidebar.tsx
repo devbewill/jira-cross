@@ -73,6 +73,13 @@ function IconTimesheet() {
     </svg>
   );
 }
+function IconChart() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M1.5 13.5h12m-10.5-3v-4m3.5 4v-7m3.5 7v-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    </svg>
+  );
+}
 function IconSync({ spinning }: { spinning: boolean }) {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
@@ -111,6 +118,12 @@ const NAV: NavItem[] = [
   },
   { href: "/sprint",    label: "Sprint",   icon: <IconSprint />   },
   { href: "/timesheet", label: "Timesheet",icon: <IconTimesheet />},
+  {
+    href: "/report",    label: "Report",    icon: <IconChart />,
+    sub: [
+      { href: "/report/cluster", label: "Cluster Analysis" },
+    ],
+  },
 ];
 
 interface AppSidebarProps {
