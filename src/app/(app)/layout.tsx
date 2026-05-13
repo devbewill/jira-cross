@@ -7,7 +7,7 @@ import { useRefresh } from "@/contexts/RefreshContext";
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
-  const { isRefreshing, triggerRefresh } = useRefresh();
+  useRefresh();
 
   return (
     <div className="h-screen flex bg-background font-sans text-foreground overflow-hidden selection:bg-primary/20 selection:text-primary">

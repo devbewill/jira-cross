@@ -4,45 +4,8 @@ import { useState, useMemo } from "react";
 import { RefreshCw } from "lucide-react";
 import { usePSP } from "@/hooks/usePSP";
 import { useRefresh } from "@/contexts/RefreshContext";
-import { PSPIssue, PSPSla } from "@/types";
+import { PSPIssue } from "@/types";
 
-const ISSUE_COLORS = {
-  done: {
-    dot: "#86EFAC",
-    text: "#16A34A",
-    tagBg: "rgba(134,239,172,0.18)",
-    border: "rgba(134,239,172,0.35)",
-    outline: "rgba(134,239,172,0.6)",
-  },
-  inProgress: {
-    dot: "#FCD34D",
-    text: "#D97706",
-    tagBg: "rgba(252,211,77,0.18)",
-    border: "rgba(252,211,77,0.35)",
-    outline: "rgba(252,211,77,0.6)",
-  },
-  todo: {
-    dot: "#D4D4D8",
-    text: "#71717A",
-    tagBg: "rgba(212,212,216,0.18)",
-    border: "rgba(212,212,216,0.35)",
-    outline: "rgba(212,212,216,0.6)",
-  },
-  open: {
-    dot: "#93C5FD",
-    text: "#2563EB",
-    tagBg: "rgba(147,197,253,0.18)",
-    border: "rgba(147,197,253,0.35)",
-    outline: "rgba(147,197,253,0.6)",
-  },
-  blocked: {
-    dot: "#FCA5A5",
-    text: "#DC2626",
-    tagBg: "rgba(252,165,165,0.18)",
-    border: "rgba(252,165,165,0.35)",
-    outline: "rgba(252,165,165,0.6)",
-  },
-} as const;
 
 const STATUS: Record<
   string,
@@ -142,51 +105,7 @@ function timeAgo(dateStr: string): string {
   return months < 12 ? `${months}m fa` : `${Math.floor(months / 12)}a fa`;
 }
 
-const EIGHT_H = 8 * 3600_000;
-const TWO_H = 2 * 3600_000;
 
-function SlaBadge({ sla }: { sla: PSPSla | null }) {
-  if (!sla) return <span className="text-[11px] text-[#767676]">—</span>;
-  if (sla.paused)
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[#F5F5F5] px-2 py-[2px] text-[10px] font-bold text-[#555555]">
-        Pausa
-      </span>
-    );
-  if (sla.breached) {
-    const ms = Date.now() - new Date(sla.breachTime).getTime();
-    const days = Math.floor(ms / 86400000),
-      hrs = Math.floor(ms / 3600000);
-    return (
-      <span
-        className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-bold"
-        style={{
-          backgroundColor: ISSUE_COLORS.blocked.tagBg,
-          color: ISSUE_COLORS.blocked.text,
-        }}
-        title={`Scaduto il ${new Date(sla.breachTime).toLocaleString("it-IT")}`}
-      >
-        +{days >= 1 ? `${days}g` : `${hrs}h`} fa
-      </span>
-    );
-  }
-  const { remainingMs: ms, remainingFriendly: rem, goalFriendly: goal } = sla;
-  const urgency =
-    ms <= TWO_H
-      ? ISSUE_COLORS.blocked
-      : ms <= EIGHT_H
-        ? ISSUE_COLORS.inProgress
-        : ISSUE_COLORS.done;
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-bold tabular-nums"
-      style={{ backgroundColor: urgency.tagBg, color: urgency.text }}
-      title={`Goal: ${goal} · Scade: ${new Date(sla.breachTime).toLocaleString("it-IT")}`}
-    >
-      {rem}
-    </span>
-  );
-}
 
 function StatusTag({ issue }: { issue: PSPIssue }) {
   const cfg = getStatusCfg(issue);
@@ -279,13 +198,6 @@ const PRIORITY_ORDER: Record<string, number> = {
   Medium: 2,
   Low: 3,
   Lowest: 4,
-};
-const PRIORITY_DOT: Record<string, string> = {
-  Highest: "#6D28D9",
-  High: "#8B5CF6",
-  Medium: "#C084FC",
-  Low: "#DDD6FE",
-  Lowest: "#EDE9FE",
 };
 
 const TABLE_HEADERS = [

@@ -433,7 +433,7 @@ export function ReleasesOverlay({
                   className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 border ${
                     active
                       ? cfg
-                        ? `${cfg.bg} ${cfg.text} ${cfg.border} shadow-sm`
+                        ? `${cfg.pillBg} ${cfg.pillText} ${cfg.pillBorder} shadow-sm`
                         : "bg-primary text-white border-primary"
                       : "bg-card text-muted-foreground border-border"
                   }`}

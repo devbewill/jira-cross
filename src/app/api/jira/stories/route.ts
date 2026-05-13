@@ -44,12 +44,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       "description",
     ]);
 
-    const stories: Story[] = issues.map((issue) => ({
+    const stories: Story[] = issues.map((issue) => {
+      const catKey = issue.fields?.status?.statusCategory?.key ?? 'new';
+      const statusCategory: Story['statusCategory'] =
+        catKey === 'done' ? 'done' : catKey === 'indeterminate' ? 'in-progress' : 'todo';
+      return {
       key: issue.key,
       epicKey,
       summary: issue.fields?.summary ?? "",
       status: issue.fields?.status?.name ?? "Unknown",
-      statusCategory: issue.fields?.status?.statusCategory?.key ?? "todo",
+      statusCategory,
       assignee: issue.fields?.assignee
         ? {
             displayName: issue.fields.assignee.displayName,
@@ -73,7 +77,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             }),
           )
         : [],
-    }));
+      };
+    });
 
     const result = { stories, fetchedAt: new Date().toISOString(), cacheHit: false };
     storiesCache.set(cacheKey, result);

@@ -50,14 +50,6 @@ function IconGrid() {
     </svg>
   );
 }
-function IconClock() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-      <circle cx="7.5" cy="7.5" r="5.75" stroke="currentColor" strokeWidth="1.3"/>
-      <path d="M7.5 4.5v3.25l2 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-    </svg>
-  );
-}
 function IconSprint() {
   return (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none">

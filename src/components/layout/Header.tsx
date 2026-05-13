@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 type ViewMode = "epics" | "releases" | "psp";
 
 export function Header({
@@ -17,8 +15,6 @@ export function Header({
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
 }) {
-  const [showReleases, setShowReleases] = useState(false);
-
   return (
     <>
       <header className="flex items-center justify-between px-6 py-4 bg-card flex-shrink-0 border-b border-border shadow-sm">

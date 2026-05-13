@@ -1,97 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { JiraClient } from '@/lib/jira/client';
-import { PSP_OPEN_JQL } from '@/lib/jira/queries';
+import { getJiraConfig, hasJiraCredentials } from '@/lib/jira/config';
+import { buildPspJql } from '@/lib/jira/queries';
 import { pspCache } from '@/lib/cache/memory-cache';
 import { PSPIssue, PSPSla, PSPApiResponse, PSPRequestType, PSPRequestTypeGroup } from '@/types';
 import { JiraIssueRaw } from '@/lib/jira/types';
 
 const PSP_CACHE_KEY = 'psp:sa-all-v4';
-const SERVICE_DESK_ID = '30';
 
 function mapSla(raw: any): PSPSla | null {
   const cycle = raw?.ongoingCycle;
   if (!cycle) return null;
   return {
-    breachTime: cycle.breachTime?.iso8601 ?? '',
-    breached: cycle.breached ?? false,
-    paused: cycle.paused ?? false,
-    remainingMs: cycle.remainingTime?.millis ?? 0,
+    breachTime:      cycle.breachTime?.iso8601 ?? '',
+    breached:        cycle.breached ?? false,
+    paused:          cycle.paused ?? false,
+    remainingMs:     cycle.remainingTime?.millis ?? 0,
     remainingFriendly: cycle.remainingTime?.friendly ?? '',
-    goalFriendly: cycle.goalDuration?.friendly ?? '',
+    goalFriendly:    cycle.goalDuration?.friendly ?? '',
   };
 }
 
-function mapRawToPSPIssue(raw: JiraIssueRaw, baseUrl: string): PSPIssue {
+function mapRawToPSPIssue(raw: JiraIssueRaw, cfg: { baseUrl: string; fields: { sla: string } }): PSPIssue {
   const f = raw.fields;
   const catKey: string = f?.status?.statusCategory?.key ?? 'todo';
   const statusCategory: PSPIssue['statusCategory'] =
-    catKey === 'done' ? 'done' : (catKey === 'indeterminate' || catKey === 'in-progress') ? 'in-progress' : 'todo';
+    catKey === 'done' ? 'done'
+      : catKey === 'indeterminate' || catKey === 'in-progress' ? 'in-progress'
+      : 'todo';
 
   return {
-    key: raw.key,
-    summary: f?.summary ?? '',
-    status: f?.status?.name ?? '',
+    key:      raw.key,
+    summary:  f?.summary ?? '',
+    status:   f?.status?.name ?? '',
     statusCategory,
-    issueType: f?.issuetype?.name ?? '',
+    issueType:   f?.issuetype?.name ?? '',
     requestType: (f?.customfield_10010 as any)?.requestType?.name ?? null,
-    priority: f?.priority?.name ?? 'Medium',
+    priority:    f?.priority?.name ?? 'Medium',
     assignee: f?.assignee
       ? { displayName: f.assignee.displayName, avatarUrl: f.assignee.avatarUrls?.['24x24'] ?? '' }
       : null,
     reporter: f?.reporter
       ? { displayName: f.reporter.displayName, avatarUrl: f.reporter.avatarUrls?.['24x24'] ?? '' }
       : null,
-    created: f?.created ?? '',
+    created:        f?.created ?? '',
     resolutionDate: f?.resolutiondate ?? (statusCategory === 'done' ? (f?.updated ?? null) : null),
-    sla: mapSla(f?.customfield_10060),
-    url: `${baseUrl}/browse/${raw.key}`,
+    sla: mapSla(f?.[cfg.fields.sla]),
+    url: `${cfg.baseUrl}/browse/${raw.key}`,
   };
-}
-
-async function fetchServiceDeskData(
-  baseUrl: string,
-  auth: string,
-): Promise<PSPRequestTypeGroup[]> {
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Basic ${auth}`,
-    'X-ExperimentalApi': 'opt-in',
-  };
-
-  const [groupsRes, typesRes] = await Promise.all([
-    fetch(`${baseUrl}/rest/servicedeskapi/servicedesk/${SERVICE_DESK_ID}/requesttypegroup`, { headers }),
-    fetch(`${baseUrl}/rest/servicedeskapi/servicedesk/${SERVICE_DESK_ID}/requesttype?limit=100`, { headers }),
-  ]);
-
-  if (!groupsRes.ok || !typesRes.ok) {
-    throw new Error('Failed to fetch service desk request types');
-  }
-
-  const groupsData = await groupsRes.json();
-  const typesData = await typesRes.json();
-
-  const allTypes: PSPRequestType[] = (typesData.values ?? []).map((t: any) => ({
-    id: t.id,
-    name: t.name,
-    groupId: t.groupIds?.[0] ?? '',
-  }));
-
-  return (groupsData.values ?? []).map((g: any): PSPRequestTypeGroup => ({
-    id: g.id,
-    name: g.name,
-    requestTypes: allTypes.filter((t) => t.groupId === g.id).sort((a, b) => a.name.localeCompare(b.name)),
-  }));
 }
 
 export async function GET(_request: NextRequest): Promise<NextResponse> {
-  const jiraBaseUrl = process.env.JIRA_BASE_URL;
-  const jiraEmail = process.env.JIRA_EMAIL;
-  const jiraApiToken = process.env.JIRA_API_TOKEN;
-
-  if (!jiraBaseUrl || !jiraEmail || !jiraApiToken) {
+  const cfg = getJiraConfig();
+  if (!hasJiraCredentials(cfg)) {
     return NextResponse.json(
       { error: 'Missing Jira credentials. Please configure environment variables.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -101,24 +65,39 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const auth = Buffer.from(`${jiraEmail}:${jiraApiToken}`).toString('base64');
-    const client = new JiraClient(jiraBaseUrl, jiraEmail, jiraApiToken);
+    const client = new JiraClient(cfg.baseUrl, cfg.email, cfg.apiToken);
 
-    const [rawIssues, groups] = await Promise.all([
-      client.searchIssues(PSP_OPEN_JQL, [
+    const [rawIssues, groupsData, typesData] = await Promise.all([
+      client.searchIssues(buildPspJql(), [
         'summary', 'status', 'issuetype', 'priority',
-        'assignee', 'reporter', 'created', 'updated', 'resolutiondate', 'customfield_10010', 'customfield_10060',
+        'assignee', 'reporter', 'created', 'updated', 'resolutiondate',
+        'customfield_10010', cfg.fields.sla,
       ]),
-      fetchServiceDeskData(jiraBaseUrl, auth),
+      client.getServiceDeskRequestTypeGroups(cfg.serviceDeskId),
+      client.getServiceDeskRequestTypes(cfg.serviceDeskId),
     ]);
 
-    const issues: PSPIssue[] = rawIssues.map((r) => mapRawToPSPIssue(r, jiraBaseUrl));
+    const allTypes: PSPRequestType[] = (typesData.values ?? []).map((t: any) => ({
+      id:      t.id,
+      name:    t.name,
+      groupId: t.groupIds?.[0] ?? '',
+    }));
+
+    const groups: PSPRequestTypeGroup[] = (groupsData.values ?? []).map((g: any) => ({
+      id:   g.id,
+      name: g.name,
+      requestTypes: allTypes
+        .filter((t) => t.groupId === g.id)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    }));
+
+    const issues: PSPIssue[] = rawIssues.map((r) => mapRawToPSPIssue(r, cfg));
 
     const response: PSPApiResponse = {
       issues,
       groups,
       fetchedAt: new Date().toISOString(),
-      cacheHit: false,
+      cacheHit:  false,
     };
 
     pspCache.set(PSP_CACHE_KEY, response);
@@ -127,7 +106,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     console.error('Error fetching PSP issues:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

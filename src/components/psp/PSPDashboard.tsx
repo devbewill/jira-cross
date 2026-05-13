@@ -584,7 +584,7 @@ function DonutChart({
               ))}
             </Pie>
             <Tooltip
-              formatter={(v: number, n: string) => [v, n]}
+              formatter={(v, n) => [v as number, n as string]}
               contentStyle={tip}
             />
           </PieChart>
@@ -1039,9 +1039,9 @@ function Trend({ issues }: { issues: PSPIssue[] }) {
                     strokeWidth: 1,
                     strokeDasharray: "3 3",
                   }}
-                  formatter={(v: number, n: string) => [
-                    v,
-                    n === "aperti" ? "Aperti" : "Risolti",
+                  formatter={(v, n) => [
+                    v as number,
+                    (n as string) === "aperti" ? "Aperti" : "Risolti",
                   ]}
                 />
                 <Legend
@@ -1133,9 +1133,9 @@ function Trend({ issues }: { issues: PSPIssue[] }) {
                       strokeWidth: 1,
                       strokeDasharray: "3 3",
                     }}
-                    formatter={(v: number | null) =>
-                      v !== null
-                        ? [`${v}g`, "Tempo medio"]
+                    formatter={(v) =>
+                      (v as number | null) !== null
+                        ? [`${v as number}g`, "Tempo medio"]
                         : ["\u2014", "Tempo medio"]
                     }
                   />
@@ -1349,7 +1349,7 @@ function PlatformTrend({ issues }: { issues: PSPIssue[] }) {
                           }}
                         />
                         <span style={{ flex: 1, color: C.text2, fontSize: 11 }}>
-                          {p.dataKey}
+                          {String(p.dataKey ?? '')}
                         </span>
                         <span
                           style={{
@@ -1427,7 +1427,7 @@ export function PSPDashboard() {
   const { data, loading, error, cacheHit, refetch } = usePSP();
   const { isRefreshing, triggerRefresh } = useRefresh();
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [selectedRT, setSelectedRT] = useState<string | null>(null);
+  const [selectedRT] = useState<string | null>(null);
 
   const handleRefresh = () => {
     refetch();
