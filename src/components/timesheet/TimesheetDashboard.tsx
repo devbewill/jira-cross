@@ -333,7 +333,7 @@ export function TimesheetDashboard() {
 
   const { isRefreshing, triggerRefresh } = useRefresh();
 
-  const { data, loading, error, cacheHit } = useTimesheet(start, end);
+  const { data, loading, error } = useTimesheet(start, end);
 
   const analystQuery = useGroup('hd-analist');
   const devQuery = useGroup('hd-developers');

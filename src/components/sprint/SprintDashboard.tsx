@@ -3,8 +3,6 @@
 import { useState, useMemo } from 'react';
 import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, ExternalLink, X } from 'lucide-react';
 import { useSprint } from '@/hooks/useSprint';
-import { useGroup } from '@/hooks/useGroup';
-import { useRefresh } from '@/contexts/RefreshContext';
 import { JiraSprint, SprintIssue } from '@/types';
 
 
@@ -598,7 +596,7 @@ export function SprintDashboard() {
   const boardGroups = useMemo((): BoardGroup[] => {
     if (!data) return []
 
-    const matched = sprintStatsList.filter(({ sprint, compliance, hasAnyRelease }) => {
+    const matched = sprintStatsList.filter(({ sprint, hasAnyRelease }) => {
       if (search) {
         const q = search.toLowerCase()
         if (

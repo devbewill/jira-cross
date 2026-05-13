@@ -1,72 +1,26 @@
 import { NextResponse } from 'next/server';
-import { JiraRelease, ProjectReleases } from '@/types';
+import { JiraClient, JiraVersion } from '@/lib/jira/client';
+import { getJiraConfig, hasJiraCredentials } from '@/lib/jira/config';
 import { releasesCache } from '@/lib/cache/memory-cache';
-
-interface JiraProject {
-  id: string;
-  key: string;
-  name: string;
-}
-
-interface JiraVersion {
-  id: string;
-  name: string;
-  description?: string;
-  startDate?: string;
-  releaseDate?: string;
-  userStartDate?: string;
-  userReleaseDate?: string;
-  released: boolean;
-  archived: boolean;
-  overdue?: boolean;
-  projectId: number;
-}
-
-async function jiraFetch<T>(url: string, auth: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Basic ${auth}`,
-    },
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error(`Jira API error: ${res.status} ${res.statusText}`);
-  return res.json();
-}
+import { JiraRelease, ProjectReleases } from '@/types';
 
 export async function GET(): Promise<NextResponse> {
-  const base      = process.env.JIRA_BASE_URL?.replace(/\/$/, '');
-  const email     = process.env.JIRA_EMAIL;
-  const apiToken  = process.env.JIRA_API_TOKEN;
-
-  if (!base || !email || !apiToken) {
+  const cfg = getJiraConfig();
+  if (!hasJiraCredentials(cfg)) {
     return NextResponse.json({ error: 'Missing Jira credentials' }, { status: 500 });
   }
 
-  const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
-
   const cacheKey = 'releases:all-projects';
-  const cached = releasesCache.get(cacheKey);
+  const cached   = releasesCache.get(cacheKey);
   if (cached) {
     return NextResponse.json({ ...cached, cacheHit: true }, { status: 200 });
   }
 
   try {
-    // Fetch ALL projects with pagination
-    const projects: JiraProject[] = [];
-    let startAt = 0;
-    let isLast  = false;
+    const client   = new JiraClient(cfg.baseUrl, cfg.email, cfg.apiToken);
+    const projects = await client.getAllProjects();
 
-    while (!isLast) {
-      const url = `${base}/rest/api/3/project/search?maxResults=100&startAt=${startAt}&orderBy=key`;
-      const res = await jiraFetch<{ values: JiraProject[]; isLast: boolean; total: number }>(url, auth);
-      projects.push(...(res.values ?? []));
-      isLast  = res.isLast ?? true;
-      startAt += res.values?.length ?? 0;
-    }
-
-    // Fetch versions for every project in parallel
-    const today = new Date();
+    const today  = new Date();
     today.setHours(0, 0, 0, 0);
     const CUTOFF = new Date('2025-01-01');
 
@@ -74,44 +28,10 @@ export async function GET(): Promise<NextResponse> {
       await Promise.all(
         projects.map(async (project): Promise<ProjectReleases | null> => {
           try {
-            const versionsUrl = `${base}/rest/api/3/project/${project.key}/versions`;
-            const versions    = await jiraFetch<JiraVersion[]>(versionsUrl, auth);
-
-            const releases: JiraRelease[] = versions
-              .filter((v) => !v.archived)
-              .filter((v) => {
-                const relDate   = v.releaseDate ?? v.userReleaseDate;
-                const startDate = v.startDate   ?? v.userStartDate;
-                if (!relDate && !startDate) return true;
-                const relD   = relDate   ? new Date(relDate)   : null;
-                const startD = startDate ? new Date(startDate) : null;
-                return (relD && relD >= CUTOFF) || (startD && startD >= CUTOFF);
-              })
-              .map((v) => {
-                const relDate = v.releaseDate ?? v.userReleaseDate ?? null;
-                const isOverdue = !v.released && !!relDate && new Date(relDate) < today;
-
-                return {
-                  id:          v.id,
-                  name:        v.name,
-                  description: v.description ?? '',
-                  startDate:   v.startDate ?? v.userStartDate ?? null,
-                  releaseDate: relDate,
-                  released:    v.released,
-                  archived:    v.archived,
-                  overdue:     v.overdue ?? isOverdue,
-                  projectKey:  project.key,
-                  projectName: project.name,
-                };
-              });
-
+            const versions = await client.getProjectVersions(project.key);
+            const releases: JiraRelease[] = mapVersionsToReleases(versions, project.key, project.name, CUTOFF, today);
             if (releases.length === 0) return null;
-
-            return {
-              projectKey:  project.key,
-              projectName: project.name,
-              releases,
-            };
+            return { projectKey: project.key, projectName: project.name, releases };
           } catch {
             return null;
           }
@@ -130,4 +50,39 @@ export async function GET(): Promise<NextResponse> {
       { status: 500 },
     );
   }
+}
+
+function mapVersionsToReleases(
+  versions: JiraVersion[],
+  projectKey: string,
+  projectName: string,
+  cutoff: Date,
+  today: Date,
+): JiraRelease[] {
+  return versions
+    .filter((v) => !v.archived)
+    .filter((v) => {
+      const relDate   = v.releaseDate ?? v.userReleaseDate;
+      const startDate = v.startDate   ?? v.userStartDate;
+      if (!relDate && !startDate) return true;
+      const relD   = relDate   ? new Date(relDate)   : null;
+      const startD = startDate ? new Date(startDate) : null;
+      return (relD && relD >= cutoff) || (startD && startD >= cutoff);
+    })
+    .map((v) => {
+      const relDate   = v.releaseDate ?? v.userReleaseDate ?? null;
+      const isOverdue = !v.released && !!relDate && new Date(relDate) < today;
+      return {
+        id:          v.id,
+        name:        v.name,
+        description: v.description ?? '',
+        startDate:   v.startDate ?? v.userStartDate ?? null,
+        releaseDate: relDate,
+        released:    v.released,
+        archived:    v.archived,
+        overdue:     v.overdue ?? isOverdue,
+        projectKey,
+        projectName,
+      };
+    });
 }

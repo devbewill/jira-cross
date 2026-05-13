@@ -34,7 +34,10 @@ export function mapJiraIssueToEpic(
     startDate,
     dueDate,
     status: fields.status?.name || 'Unknown',
-    statusCategory: fields.status?.statusCategory?.key || 'todo',
+    statusCategory: (() => {
+      const k = fields.status?.statusCategory?.key ?? 'new';
+      return k === 'done' ? 'done' : k === 'indeterminate' ? 'in-progress' : 'todo';
+    })() as Epic['statusCategory'],
     assignee: fields.assignee
       ? {
           displayName: fields.assignee.displayName,

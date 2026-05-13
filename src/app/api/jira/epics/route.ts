@@ -1,30 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { JiraClient } from '@/lib/jira/client';
-import { GLOBAL_EPIC_JQL } from '@/lib/jira/queries';
+import { getJiraConfig, hasJiraCredentials } from '@/lib/jira/config';
+import { buildEpicJql } from '@/lib/jira/queries';
 import { mapJiraIssueToEpic, groupEpicsByBoard } from '@/lib/jira/mapper';
 import { epicsCache } from '@/lib/cache/memory-cache';
 import { EpicsApiResponse } from '@/types';
 
 export async function GET(_request: NextRequest): Promise<NextResponse> {
-  const jiraBaseUrl = process.env.JIRA_BASE_URL;
-  const jiraEmail = process.env.JIRA_EMAIL;
-  const jiraApiToken = process.env.JIRA_API_TOKEN;
-
-  if (!jiraBaseUrl || !jiraEmail || !jiraApiToken) {
+  const cfg = getJiraConfig();
+  if (!hasJiraCredentials(cfg)) {
     return NextResponse.json(
       { error: 'Missing Jira credentials. Please configure environment variables.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
-  const cacheKey = `epics:global-p0`;
+  const cacheKey = `epics:global-${cfg.epicLabel}`;
   const cached = epicsCache.get(cacheKey);
   if (cached) {
     return NextResponse.json({ ...cached, cacheHit: true }, { status: 200 });
   }
 
   try {
-    const client = new JiraClient(jiraBaseUrl, jiraEmail, jiraApiToken);
+    const client = new JiraClient(cfg.baseUrl, cfg.email, cfg.apiToken);
 
     const fieldsList = [
       'summary',
@@ -32,20 +30,20 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       'assignee',
       'created',
       'updated',
-      'customfield_10015',
-      'customfield_10016',
+      cfg.fields.startDate,
+      cfg.fields.storyPoints,
       'duedate',
       'parent',
       'project',
     ];
 
-    const issues = await client.searchIssues(GLOBAL_EPIC_JQL, fieldsList);
+    const issues = await client.searchIssues(buildEpicJql(), fieldsList);
 
     const mapperConfig = {
-      startDateFieldId: 'customfield_10015',
-      storyPointsFieldId: 'customfield_10016',
-      dueDateFieldId: 'duedate',
-      baseUrl: jiraBaseUrl,
+      startDateFieldId:   cfg.fields.startDate,
+      storyPointsFieldId: cfg.fields.storyPoints,
+      dueDateFieldId:     'duedate',
+      baseUrl:            cfg.baseUrl,
     };
 
     const allEpics = issues.map((issue) => {
@@ -53,35 +51,30 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       return mapJiraIssueToEpic(issue, boardKey, mapperConfig);
     });
 
-    const epicKeys = allEpics.map((e) => e.key);
+    const epicKeys    = allEpics.map((e) => e.key);
     const epicDataMap = await client.getStoryStatsByEpic(epicKeys);
 
     const allEpicsWithStats = allEpics.map((epic) => {
       const data = epicDataMap.get(epic.key);
-      return {
-        ...epic,
-        storyStats: data?.stats,
-        releases:   data?.releases ?? [],
-      };
+      return { ...epic, storyStats: data?.stats, releases: data?.releases ?? [] };
     });
 
     const uniqueBoards = Array.from(new Set(allEpicsWithStats.map((e) => e.boardKey)));
-    const boardsData = groupEpicsByBoard(allEpicsWithStats, uniqueBoards);
+    const boardsData   = groupEpicsByBoard(allEpicsWithStats, uniqueBoards);
 
     const response: EpicsApiResponse = {
-      boards: boardsData,
+      boards:    boardsData,
       fetchedAt: new Date().toISOString(),
-      cacheHit: false,
+      cacheHit:  false,
     };
 
     epicsCache.set(cacheKey, response);
-
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error('Error fetching epics:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

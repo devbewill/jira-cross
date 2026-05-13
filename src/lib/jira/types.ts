@@ -12,7 +12,7 @@ export interface JiraIssueRaw {
     status: {
       name: string;
       statusCategory: {
-        key: 'todo' | 'in-progress' | 'done';
+        key: 'new' | 'indeterminate' | 'done' | string;
         name: string;
         colorName: string;
       };
