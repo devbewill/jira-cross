@@ -6,6 +6,9 @@ import {
   storiesCache,
   versionIssuesCache,
   pspCache,
+  sprintCache,
+  timesheetCache,
+  groupCache,
 } from '@/lib/cache/memory-cache';
 
 export async function POST(): Promise<NextResponse> {
@@ -16,6 +19,9 @@ export async function POST(): Promise<NextResponse> {
     storiesCache.clear();
     versionIssuesCache.clear();
     pspCache.clear();
+    sprintCache.clear();
+    timesheetCache.clear();
+    groupCache.clear();
     return NextResponse.json(
       { success: true, message: 'Cache cleared' },
       { status: 200 }
