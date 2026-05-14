@@ -91,6 +91,33 @@ export interface EpicsApiResponse {
   cacheHit: boolean;
 }
 
+// PC Project Epics (Projects section)
+
+export interface PCEpic {
+  key: string;
+  summary: string;
+  startDate: string | null;
+  dueDate: string | null;
+  status: string;
+  statusCategory: "todo" | "in-progress" | "done";
+  assignee: { displayName: string; avatarUrl: string } | null;
+  url: string;
+  initiative: { key: string; summary: string } | null;
+  storyStats?: StoryStats;
+}
+
+export interface InitiativeGroup {
+  initiativeKey: string | null;
+  initiativeSummary: string;
+  epics: PCEpic[];
+}
+
+export interface PCEpicsApiResponse {
+  groups: InitiativeGroup[];
+  fetchedAt: string;
+  cacheHit: boolean;
+}
+
 // PSP (Service Desk) Types
 
 export interface PSPSla {

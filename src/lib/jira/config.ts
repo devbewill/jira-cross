@@ -5,6 +5,8 @@ export interface JiraConfig {
   serviceDeskId: string;
   pspProject: string;
   epicLabel: string;
+  pcProject: string;
+  initiativeType: string;
   fields: {
     startDate: string;
     storyPoints: string;
@@ -15,12 +17,14 @@ export interface JiraConfig {
 
 export function getJiraConfig(): JiraConfig {
   return {
-    baseUrl:      (process.env.JIRA_BASE_URL ?? '').replace(/\/$/, ''),
-    email:        process.env.JIRA_EMAIL    ?? '',
-    apiToken:     process.env.JIRA_API_TOKEN ?? '',
-    serviceDeskId: process.env.JIRA_SERVICE_DESK_ID ?? '30',
-    pspProject:   process.env.JIRA_PSP_PROJECT ?? 'SA',
-    epicLabel:    process.env.JIRA_EPIC_LABEL  ?? 'P0',
+    baseUrl:        (process.env.JIRA_BASE_URL ?? '').replace(/\/$/, ''),
+    email:          process.env.JIRA_EMAIL    ?? '',
+    apiToken:       process.env.JIRA_API_TOKEN ?? '',
+    serviceDeskId:  process.env.JIRA_SERVICE_DESK_ID ?? '30',
+    pspProject:     process.env.JIRA_PSP_PROJECT ?? 'SA',
+    epicLabel:      process.env.JIRA_EPIC_LABEL  ?? 'P0',
+    pcProject:      process.env.JIRA_PC_PROJECT  ?? 'PC',
+    initiativeType: process.env.JIRA_INITIATIVE_TYPE ?? 'Initiative',
     fields: {
       startDate:   process.env.JIRA_FIELD_START_DATE   ?? 'customfield_10015',
       storyPoints: process.env.JIRA_FIELD_STORY_POINTS ?? 'customfield_10016',

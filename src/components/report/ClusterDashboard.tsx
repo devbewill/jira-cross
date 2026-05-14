@@ -7,7 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from "recharts";
 import { MACRO_CATEGORIES, TicketInfo } from "@/lib/data/cluster-data";
-import { ExternalLink, Info, AlertCircle, RefreshCw } from "lucide-react";
+import { ExternalLink, Info, AlertCircle } from "lucide-react";
 
 // ── Costanti di stile (allineate a PSPDashboard con font +2px) ──────────────────────────
 const C = {
@@ -179,9 +179,6 @@ export default function ClusterDashboard() {
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <button style={headerBtn} onClick={() => window.location.reload()}>
-            <RefreshCw size={14} />
-          </button>
           <a href="https://hd-group.atlassian.net/jira" target="_blank" rel="noreferrer" style={headerBtn}>
             <ExternalLink size={14} />
           </a>

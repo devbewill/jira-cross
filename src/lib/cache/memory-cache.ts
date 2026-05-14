@@ -56,6 +56,7 @@ const g = globalThis as typeof globalThis & {
   __sprintCache?: MemoryCache<any>;
   __timesheetCache?: MemoryCache<any>;
   __groupCache?: MemoryCache<any>;
+  __pcEpicsCache?: MemoryCache<any>;
 };
 
 const TTL = parseInt(process.env.JIRA_CACHE_TTL || '300', 10);
@@ -70,6 +71,7 @@ if (!g.__pspCache)           g.__pspCache           = new MemoryCache<any>(TTL);
 if (!g.__sprintCache)        g.__sprintCache        = new MemoryCache<any>(TTL);
 if (!g.__timesheetCache)     g.__timesheetCache     = new MemoryCache<any>(TTL);
 if (!g.__groupCache)         g.__groupCache         = new MemoryCache<any>(TTL);
+if (!g.__pcEpicsCache)       g.__pcEpicsCache       = new MemoryCache<any>(TTL);
 
 export const epicsCache         = g.__epicsCache;
 export const releasesCache      = g.__releasesCache;
@@ -80,3 +82,4 @@ export const pspCache           = g.__pspCache;
 export const sprintCache        = g.__sprintCache;
 export const timesheetCache     = g.__timesheetCache;
 export const groupCache         = g.__groupCache;
+export const pcEpicsCache       = g.__pcEpicsCache;

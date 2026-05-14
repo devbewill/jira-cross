@@ -99,7 +99,7 @@ type NavItem = {
 };
 
 const NAV: NavItem[] = [
-  { href: "/",          label: "Epics",    icon: <IconTimeline /> },
+  { href: "/",          label: "Projects",  icon: <IconTimeline /> },
   { href: "/releases",  label: "Releases", icon: <IconCalendar /> },
   {
     href: "/psp",       label: "PSP",      icon: <IconGrid />,

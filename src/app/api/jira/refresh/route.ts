@@ -9,6 +9,7 @@ import {
   sprintCache,
   timesheetCache,
   groupCache,
+  pcEpicsCache,
 } from '@/lib/cache/memory-cache';
 
 export async function POST(): Promise<NextResponse> {
@@ -22,6 +23,7 @@ export async function POST(): Promise<NextResponse> {
     sprintCache.clear();
     timesheetCache.clear();
     groupCache.clear();
+    pcEpicsCache.clear();
     return NextResponse.json(
       { success: true, message: 'Cache cleared' },
       { status: 200 }

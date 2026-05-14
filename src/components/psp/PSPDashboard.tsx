@@ -1429,10 +1429,6 @@ export function PSPDashboard() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedRT] = useState<string | null>(null);
 
-  const handleRefresh = () => {
-    refetch();
-  };
-
   const issuesByRT = useMemo(() => {
     if (!data) return {} as Record<string, PSPIssue[]>;
     return data.issues.reduce<Record<string, PSPIssue[]>>((acc, i) => {
@@ -1613,15 +1609,6 @@ export function PSPDashboard() {
           <Link href="/psp/tickets" style={headerBtn}>
             <TableIcon className="h-3 w-3" /> <span>Ticket</span>
           </Link>
-          <button
-            onClick={handleRefresh}
-            disabled={loading || isRefreshing}
-            style={headerBtn}
-          >
-            <RefreshCw
-              className={`h-3 w-3 ${loading || isRefreshing ? "animate-spin" : ""}`}
-            />
-          </button>
           <a
             href="https://hd-group.atlassian.net/jira/servicedesk/projects/SA/queues/custom/218"
             target="_blank"

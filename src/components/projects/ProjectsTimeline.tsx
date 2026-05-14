@@ -2,32 +2,28 @@
 
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { differenceInDays } from "date-fns";
-import { RefreshCw, GanttChartSquare, LayoutGrid } from "lucide-react";
-import { JiraRelease, ProjectReleases, TimeScale } from "@/types";
+import { RefreshCw, ChevronDown } from "lucide-react";
+import { PCEpic, InitiativeGroup, TimeScale } from "@/types";
+import { useRefresh } from "@/contexts/RefreshContext";
 import { useTimelineScale } from "@/hooks/useTimelineScale";
 import { getScrollBounds, generateTicks } from "@/lib/utils/date-utils";
+import { EPIC_STATUS_CONFIG } from "@/lib/utils/status-config";
+import { TimelineHeader } from "@/components/timeline/TimelineHeader";
+import { TodayMarker } from "@/components/timeline/TodayMarker";
 import {
-  releaseStatusOf,
-  RELEASE_STATUS_CONFIG,
-} from "@/lib/utils/status-config";
-import { TimelineHeader } from "./TimelineHeader";
-import { TodayMarker } from "./TodayMarker";
-import {
-  ReleaseBlock,
-  REL_BLOCK_HEIGHT,
-  REL_BLOCK_MARGIN,
-} from "./ReleaseBlock";
-import { ReleaseCardView } from "./ReleaseCardView";
-import { ReleasePanel } from "./ReleasePanel";
+  EpicTimelineBlock,
+  EPIC_BLOCK_HEIGHT,
+  EPIC_BLOCK_MARGIN,
+} from "./EpicTimelineBlock";
+import { EpicDetailPanel } from "./EpicDetailPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface ReleaseTimelineProps {
+interface ProjectsTimelineProps {
   isRefreshing?: boolean;
 }
 
-// 'active' = upcoming + overdue combined (default)
-type StatusFilter = "active" | "upcoming" | "overdue" | "all" | "released";
+type EpicStatusFilter = "all" | "todo" | "in-progress" | "done";
 
 const SCALES: { key: TimeScale; label: string }[] = [
   { key: "today", label: "Today" },
@@ -44,43 +40,44 @@ interface BlockPos {
   laneIndex: number;
 }
 
-function getBlockBounds(
-  release: JiraRelease,
+function getEpicBounds(
+  epic: PCEpic,
   dateToPosition: (d: string | null) => number | null,
-  pxPerDay: number
+  pxPerDay: number,
+  todayIso: string
 ): { left: number; endX: number } {
-  const endPos = dateToPosition(release.releaseDate);
+  // Use today as fallback when dates are missing so undated epics are visible
+  const effectiveDue = epic.dueDate ?? todayIso;
+  const endPos = dateToPosition(effectiveDue) ?? dateToPosition(todayIso) ?? 0;
   let leftPos: number;
-  if (release.startDate) {
-    leftPos =
-      dateToPosition(release.startDate) ??
-      (endPos !== null ? endPos - 14 * pxPerDay : 0);
+  if (epic.startDate) {
+    leftPos = dateToPosition(epic.startDate) ?? endPos - 14 * pxPerDay;
   } else {
-    leftPos = endPos !== null ? endPos - 14 * pxPerDay : 0;
+    leftPos = endPos - 14 * pxPerDay;
   }
   return {
     left: leftPos,
-    endX: Math.max(endPos ?? leftPos + 120, leftPos + 120),
+    endX: Math.max(endPos, leftPos + 140),
   };
 }
 
-function calculateReleasePositions(
-  releases: JiraRelease[],
+function calculateEpicPositions(
+  epics: PCEpic[],
   dateToPosition: (d: string | null) => number | null,
-  pxPerDay: number
+  pxPerDay: number,
+  todayIso: string
 ): Map<string, BlockPos> {
   const positions = new Map<string, BlockPos>();
   const lanes: Array<{ endX: number }> = [];
-  const withDate = releases.filter((r) => r.releaseDate || r.startDate);
-  const sorted = [...withDate].sort(
+  const sorted = [...epics].sort(
     (a, b) =>
-      getBlockBounds(a, dateToPosition, pxPerDay).left -
-      getBlockBounds(b, dateToPosition, pxPerDay).left
+      getEpicBounds(a, dateToPosition, pxPerDay, todayIso).left -
+      getEpicBounds(b, dateToPosition, pxPerDay, todayIso).left
   );
 
-  for (const release of sorted) {
-    const { left, endX } = getBlockBounds(release, dateToPosition, pxPerDay);
-    const width = Math.max(endX - left, 120);
+  for (const epic of sorted) {
+    const { left, endX } = getEpicBounds(epic, dateToPosition, pxPerDay, todayIso);
+    const width = Math.max(endX - left, 140);
     let assignedLane = 0;
     for (let i = 0; i < lanes.length; i++) {
       if (lanes[i].endX <= left - 12) {
@@ -91,54 +88,110 @@ function calculateReleasePositions(
     }
     while (lanes.length <= assignedLane) lanes.push({ endX: 0 });
     lanes[assignedLane].endX = left + width;
-    positions.set(release.id, { left, width, laneIndex: assignedLane });
+    positions.set(epic.key, { left, width, laneIndex: assignedLane });
   }
   return positions;
 }
 
-function computeReleaseLaneHeight(
-  releases: JiraRelease[],
+function computeGroupLaneHeight(
+  epics: PCEpic[],
   dateToPosition: (d: string | null) => number | null,
-  pxPerDay: number
+  pxPerDay: number,
+  todayIso: string
 ): number {
-  const positions = calculateReleasePositions(
-    releases,
-    dateToPosition,
-    pxPerDay
-  );
-  if (positions.size === 0) return REL_BLOCK_HEIGHT + 2 * REL_BLOCK_MARGIN;
+  const positions = calculateEpicPositions(epics, dateToPosition, pxPerDay, todayIso);
+  if (positions.size === 0) return EPIC_BLOCK_HEIGHT + 2 * EPIC_BLOCK_MARGIN;
   const maxLane = Math.max(
     0,
     ...Array.from(positions.values()).map((p) => p.laneIndex)
   );
+  return (maxLane + 1) * (EPIC_BLOCK_HEIGHT + EPIC_BLOCK_MARGIN) + EPIC_BLOCK_MARGIN;
+}
+
+// ─── Initiative Filter Dropdown ───────────────────────────────────────────────
+
+function InitiativeDropdown({
+  initiatives,
+  selected,
+  onChange,
+}: {
+  initiatives: Array<{ key: string | null; label: string }>;
+  selected: string | null;
+  onChange: (key: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const current = initiatives.find((i) => i.key === selected) ?? { label: "Tutti i Progetti" };
+
   return (
-    (maxLane + 1) * (REL_BLOCK_HEIGHT + REL_BLOCK_MARGIN) + REL_BLOCK_MARGIN
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 rounded-xs border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-muted"
+      >
+        {current.label}
+        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 min-w-[220px] max-w-[320px] rounded-xs border border-border bg-card shadow-lg overflow-hidden">
+          <button
+            className={`w-full px-3 py-2 text-left text-[11px] font-semibold transition-colors hover:bg-muted ${
+              selected === null ? "text-foreground bg-muted/60" : "text-muted-foreground"
+            }`}
+            onClick={() => { onChange(null); setOpen(false); }}
+          >
+            Tutti i Progetti
+          </button>
+          {initiatives.map((i) => (
+            <button
+              key={i.key ?? "__none__"}
+              className={`w-full px-3 py-2 text-left text-[11px] font-semibold transition-colors hover:bg-muted truncate ${
+                selected === i.key ? "text-foreground bg-muted/60" : "text-muted-foreground"
+              }`}
+              onClick={() => { onChange(i.key); setOpen(false); }}
+            >
+              {i.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) {
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
-  const [viewMode, setViewMode] = useState<"timeline" | "cards">("timeline");
+export function ProjectsTimeline({ isRefreshing: isRefreshingProp = false }: ProjectsTimelineProps) {
+  const { isRefreshing: isRefreshingCtx } = useRefresh();
+  const isRefreshing = isRefreshingProp || isRefreshingCtx;
+  const [statusFilter, setStatusFilter] = useState<EpicStatusFilter>("in-progress");
+  const [initiativeFilter, setInitiativeFilter] = useState<string | null>(null);
 
-  // Single data source — API returns all releases; filtering is client-side
-  const [projects, setProjects] = useState<ProjectReleases[]>([]);
+  const [groups, setGroups] = useState<InitiativeGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetchKey, setFetchKey] = useState(0);
 
   useEffect(() => {
-    setIsLoading(projects.length === 0);
+    setIsLoading(groups.length === 0);
     setIsFetching(true);
     setError(null);
-    fetch("/api/jira/releases")
+    fetch("/api/jira/pc-epics")
       .then((r) => {
         if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
         return r.json();
       })
-      .then((d) => setProjects(d.projects ?? []))
+      .then((d) => setGroups(d.groups ?? []))
       .catch((e) => setError(e.message))
       .finally(() => {
         setIsLoading(false);
@@ -147,7 +200,6 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchKey]);
 
-  // Re-fetch on external refresh signal
   const prevRefreshing = useRef(false);
   useEffect(() => {
     if (prevRefreshing.current && !isRefreshing) {
@@ -156,33 +208,28 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     prevRefreshing.current = isRefreshing;
   }, [isRefreshing]);
 
-  const handleRefresh = () => {
-    setFetchKey((k) => k + 1);
-  };
-
-  // Use projects for all filter states
-  const mergedProjects = projects;
-
   const [viewportWidth, setViewportWidth] = useState(1200);
   const [todayVisible, setTodayVisible] = useState(true);
-  const [selectedRelease, setSelectedRelease] = useState<JiraRelease | null>(
-    null
-  );
+  const [selectedEpic, setSelectedEpic] = useState<PCEpic | null>(null);
 
-  const handleSelectRelease = (release: JiraRelease) => {
-    setSelectedRelease((prev) => (prev?.id === release.id ? null : release));
+  const handleSelectEpic = (epic: PCEpic) => {
+    setSelectedEpic((prev) => (prev?.key === epic.key ? null : epic));
   };
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Callback ref: re-runs the observer every time the timeline div mounts or unmounts.
+  // A plain useRef + [isLoading] dep would let the observer fire with width=0 on unmount
+  // (empty-filter state) and never re-attach to the new element on remount.
+  const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    if (!containerEl) return;
     const ro = new ResizeObserver((entries) => {
-      for (const e of entries) setViewportWidth(e.contentRect.width);
+      for (const e of entries) {
+        if (e.contentRect.width > 0) setViewportWidth(e.contentRect.width);
+      }
     });
-    ro.observe(el);
+    ro.observe(containerEl);
     return () => ro.disconnect();
-  }, [isLoading]);
+  }, [containerEl]);
 
   const {
     scale,
@@ -192,9 +239,18 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     dateToPosition,
     changeScale,
     goToToday,
+    snapToToday,
     checkTodayVisible,
     today,
   } = useTimelineScale(viewportWidth);
+
+  // When the timeline div remounts after an empty-filter state, viewportWidth hasn't
+  // changed so the hook's snap effect is skipped. Force a snap here instead.
+  useEffect(() => {
+    if (!containerEl) return;
+    const id = requestAnimationFrame(() => snapToToday('instant'));
+    return () => cancelAnimationFrame(id);
+  }, [containerEl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const bounds = getScrollBounds(scale, today);
   const totalScrollDays = differenceInDays(bounds.max, bounds.min) + 1;
@@ -218,47 +274,51 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
       scrollContainerRef.current.scrollTop = l.scrollTop;
   }, [scrollContainerRef]);
 
-  const filteredProjects = useMemo(
+  // Build list of available initiatives for dropdown
+  const initiatives = useMemo(
     () =>
-      mergedProjects
-        .map((p) => ({
-          ...p,
-          releases: p.releases.filter((r) => {
-            if (!(r.releaseDate || r.startDate)) return false;
-            const s = releaseStatusOf(r);
-            if (statusFilter === "all") return true;
-            if (statusFilter === "active")
-              return s === "upcoming" || s === "overdue";
-            return s === statusFilter;
-          }),
-        }))
-        .filter((p) => p.releases.length > 0),
-    [mergedProjects, statusFilter]
+      groups.map((g) => ({
+        key: g.initiativeKey,
+        label: g.initiativeSummary,
+      })),
+    [groups]
   );
 
-  // Counts from all available data
+  const todayIso = today.toISOString().split("T")[0];
+
+  // Apply filters — no date constraint, all epics are shown (undated ones anchor to today)
+  const filteredGroups = useMemo(
+    () =>
+      groups
+        .filter((g) => initiativeFilter === null || g.initiativeKey === initiativeFilter)
+        .map((g) => ({
+          ...g,
+          epics: g.epics.filter((e) => {
+            if (statusFilter === "all") return true;
+            return e.statusCategory === statusFilter;
+          }),
+        }))
+        .filter((g) => g.epics.length > 0),
+    [groups, initiativeFilter, statusFilter]
+  );
+
+  // Counts per status across all epics (no date filter)
   const counts = useMemo(() => {
-    const flat = projects.flatMap((p) =>
-      p.releases.filter((r) => r.releaseDate || r.startDate)
-    );
-    const upcoming = flat.filter((r) => releaseStatusOf(r) === "upcoming").length;
-    const overdue = flat.filter((r) => releaseStatusOf(r) === "overdue").length;
-    const released = flat.filter((r) => releaseStatusOf(r) === "released").length;
+    const flat = groups.flatMap((g) => g.epics);
     return {
-      active: upcoming + overdue,
-      upcoming,
-      overdue,
-      released,
       all: flat.length,
+      todo: flat.filter((e) => e.statusCategory === "todo").length,
+      "in-progress": flat.filter((e) => e.statusCategory === "in-progress").length,
+      done: flat.filter((e) => e.statusCategory === "done").length,
     };
-  }, [projects]);
+  }, [groups]);
 
   const laneHeights = useMemo(
     () =>
-      filteredProjects.map((p) =>
-        computeReleaseLaneHeight(p.releases, dateToPosition, config.pxPerDay)
+      filteredGroups.map((g) =>
+        computeGroupLaneHeight(g.epics, dateToPosition, config.pxPerDay, todayIso)
       ),
-    [filteredProjects, dateToPosition, config.pxPerDay]
+    [filteredGroups, dateToPosition, config.pxPerDay, todayIso]
   );
 
   const gridTicks = useMemo(
@@ -267,13 +327,20 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
     [scale, scrollOrigin, config.pxPerDay, bounds.min, bounds.max]
   );
 
+  const statusOptions: { key: EpicStatusFilter; label: string }[] = [
+    { key: "all", label: `All (${counts.all})` },
+    { key: "todo", label: `To Do (${counts.todo})` },
+    { key: "in-progress", label: `In Progress (${counts["in-progress"]})` },
+    { key: "done", label: `Done (${counts.done})` },
+  ];
+
   return (
     <>
       <div className="flex flex-col h-full bg-background w-full">
         {/* ── Toolbar ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-5 py-3 bg-card flex-shrink-0 flex-wrap gap-3 border-b border-border">
-          {/* Left: scale + view-mode toggle */}
-          <div className="flex items-center gap-3">
+          {/* Left: scale + initiative filter */}
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Scale buttons */}
             <div className="flex gap-1 p-1 rounded-lg bg-muted">
               {SCALES.map((s) => {
@@ -294,64 +361,23 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
               })}
             </div>
 
-            {/* View-mode toggle */}
-            <div className="flex gap-0.5 p-1 rounded-lg bg-muted">
-              <button
-                onClick={() => setViewMode("timeline")}
-                title="Timeline view"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-150 ${
-                  viewMode === "timeline"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "bg-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <GanttChartSquare className="h-3.5 w-3.5" />
-                Timeline
-              </button>
-              <button
-                onClick={() => setViewMode("cards")}
-                title="Cards view"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-150 ${
-                  viewMode === "cards"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "bg-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-                Cards
-              </button>
-            </div>
+            {/* Initiative filter */}
+            <InitiativeDropdown
+              initiatives={initiatives}
+              selected={initiativeFilter}
+              onChange={setInitiativeFilter}
+            />
           </div>
 
           {/* Right: status filters + today + refresh */}
           <div className="flex items-center gap-2 flex-wrap">
-            {(
-              [
-                "active",
-                "upcoming",
-                "overdue",
-                "released",
-                "all",
-              ] as const
-            ).map((f) => {
-              const active = statusFilter === f;
-              const count = counts[f];
-              const cfg =
-                f !== "active" && f !== "all"
-                  ? RELEASE_STATUS_CONFIG[f]
-                  : null;
-
-              const label =
-                f === "active"
-                  ? `Active (${counts.active})`
-                  : f === "all"
-                  ? `All (${count === null ? "…" : count})`
-                  : `${RELEASE_STATUS_CONFIG[f].label} (${count === null ? "…" : count})`;
-
+            {statusOptions.map(({ key, label }) => {
+              const active = statusFilter === key;
+              const cfg = key !== "all" ? EPIC_STATUS_CONFIG[key] : null;
               return (
                 <button
-                  key={f}
-                  onClick={() => setStatusFilter(f)}
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
                   className="rounded-xs border px-3 py-1.5 text-[11px] font-semibold transition-all duration-150"
                   style={
                     active
@@ -400,7 +426,7 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
         {isLoading && (
           <div className="flex flex-1 items-center justify-center">
             <span className="text-muted-foreground animate-pulse text-xs tracking-widest uppercase">
-              Fetching releases&hellip;
+              Fetching epics&hellip;
             </span>
           </div>
         )}
@@ -413,28 +439,19 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
           </div>
         )}
 
-        {!isLoading && !error && filteredProjects.length === 0 && (
+        {!isLoading && !error && filteredGroups.length === 0 && (
           <div className="flex flex-1 items-center justify-center">
             <span className="text-muted-foreground text-xs tracking-widest uppercase">
-              No releases found
+              No epics found
             </span>
           </div>
         )}
 
-        {/* ── Card view ───────────────────────────────────────────────── */}
-        {!isLoading && !error && filteredProjects.length > 0 && viewMode === "cards" && (
-          <ReleaseCardView
-            projects={filteredProjects}
-            selectedRelease={selectedRelease}
-            onSelectRelease={handleSelectRelease}
-          />
-        )}
-
         {/* ── Timeline view ───────────────────────────────────────────── */}
-        {!isLoading && !error && filteredProjects.length > 0 && viewMode === "timeline" && (
+        {!isLoading && !error && filteredGroups.length > 0 && (
           <div className="flex flex-1 overflow-hidden">
             {/* Fixed label column */}
-            <div className="border-border flex w-32 flex-shrink-0 flex-col border-r">
+            <div className="border-border flex w-48 flex-shrink-0 flex-col border-r">
               <div className="border-border h-10 border-b" />
               <div
                 ref={labelsScrollRef}
@@ -442,18 +459,23 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
                 style={{ scrollbarWidth: "none" }}
                 onScroll={onLabelsScroll}
               >
-                {filteredProjects.map((project, i) => (
+                {filteredGroups.map((group, i) => (
                   <div
-                    key={project.projectKey}
+                    key={group.initiativeKey ?? "__none__"}
                     className="hover:bg-muted/50 flex cursor-default flex-col justify-center border-b border-border px-4 py-4 transition-colors"
                     style={{ minHeight: `${laneHeights[i]}px` }}
                   >
-                    <span className="text-foreground mb-0.5 break-words text-[12px]">
-                      {project.projectName || project.projectKey}
+                    <span className="text-foreground mb-0.5 break-words text-[12px] font-semibold leading-snug">
+                      {group.initiativeSummary}
                     </span>
-                    <span className="text-muted-foreground text-[11px] font-medium tabular-nums">
-                      {project.releases.length}{" "}
-                      {project.releases.length === 1 ? "release" : "releases"}
+                    {group.initiativeKey && (
+                      <span className="text-muted-foreground text-[10px] font-medium">
+                        {group.initiativeKey}
+                      </span>
+                    )}
+                    <span className="text-muted-foreground text-[11px] font-medium tabular-nums mt-0.5">
+                      {group.epics.length}{" "}
+                      {group.epics.length === 1 ? "epic" : "epics"}
                     </span>
                   </div>
                 ))}
@@ -463,7 +485,7 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
             {/* Timeline area */}
             <div
               className="flex flex-1 flex-col overflow-hidden"
-              ref={containerRef}
+              ref={setContainerEl}
             >
               <div className="bg-card border-border z-10 shrink-0 border-b">
                 <div
@@ -505,30 +527,31 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
                     today={today}
                   />
                   <div className="flex flex-col">
-                    {filteredProjects.map((project, i) => {
-                      const positions = calculateReleasePositions(
-                        project.releases,
+                    {filteredGroups.map((group, i) => {
+                      const positions = calculateEpicPositions(
+                        group.epics,
                         dateToPosition,
-                        config.pxPerDay
+                        config.pxPerDay,
+                        todayIso
                       );
                       return (
                         <div
-                          key={project.projectKey}
+                          key={group.initiativeKey ?? "__none__"}
                           className="relative border-b border-border"
                           style={{ minHeight: `${laneHeights[i]}px` }}
                         >
-                          {project.releases.map((release) => {
-                            const pos = positions.get(release.id);
+                          {group.epics.map((epic) => {
+                            const pos = positions.get(epic.key);
                             if (!pos) return null;
                             return (
-                              <ReleaseBlock
-                                key={release.id}
-                                release={release}
+                              <EpicTimelineBlock
+                                key={epic.key}
+                                epic={epic}
                                 left={pos.left}
                                 width={pos.width}
                                 laneIndex={pos.laneIndex}
-                                isSelected={selectedRelease?.id === release.id}
-                                onClick={handleSelectRelease}
+                                isSelected={selectedEpic?.key === epic.key}
+                                onClick={handleSelectEpic}
                               />
                             );
                           })}
@@ -543,10 +566,10 @@ export function ReleaseTimeline({ isRefreshing = false }: ReleaseTimelineProps) 
         )}
       </div>
 
-      {selectedRelease && (
-        <ReleasePanel
-          release={selectedRelease}
-          onClose={() => setSelectedRelease(null)}
+      {selectedEpic && (
+        <EpicDetailPanel
+          epic={selectedEpic}
+          onClose={() => setSelectedEpic(null)}
         />
       )}
     </>

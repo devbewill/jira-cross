@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import { RefreshCw, ChevronDown, Clock, Users, Briefcase, FileText, ExternalLink } from 'lucide-react';
 import { useTimesheet } from '@/hooks/useTimesheet';
 import { useGroup } from '@/hooks/useGroup';
-import { useRefresh } from '@/contexts/RefreshContext';
 import { UserTimesheet } from '@/types';
 
 const JIRA_BROWSE = `${process.env.NEXT_PUBLIC_JIRA_BASE_URL ?? ''}/browse`;
@@ -331,7 +330,6 @@ export function TimesheetDashboard() {
     [preset, customStart, customEnd]
   )
 
-  const { isRefreshing, triggerRefresh } = useRefresh();
 
   const { data, loading, error } = useTimesheet(start, end);
 
@@ -553,7 +551,6 @@ export function TimesheetDashboard() {
               })}
             </span>
           ) : null}
-          <button className='inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3' disabled={loading || isRefreshing} onClick={triggerRefresh}><RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? 'animate-spin' : ''}`} />JIRA</button>
         </div>
       </div>
 

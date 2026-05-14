@@ -446,16 +446,6 @@ export function PSPTickets() {
                 {" · ultimi 90g"}
               </span>
             )}
-            <button
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
-              disabled={loading || isRefreshing}
-              onClick={triggerRefresh}
-            >
-              <RefreshCw
-                className={`mr-2 h-3.5 w-3.5 ${loading || isRefreshing ? "animate-spin" : ""}`}
-              />
-              Ricarica
-            </button>
           </div>
         </div>
 

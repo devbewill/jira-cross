@@ -104,6 +104,7 @@ export function useTimelineScale(viewportWidth: number = 1200) {
     dateToPosition,
     changeScale,
     goToToday,
+    snapToToday,
     checkTodayVisible,
     today,
   };

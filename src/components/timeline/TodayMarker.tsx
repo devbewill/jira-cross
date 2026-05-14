@@ -19,7 +19,7 @@ export function TodayMarker({
 
   return (
     <div
-      className="absolute top-0 h-full pointer-events-none z-20 opacity-90 w-[2px] bg-linear-accent"
+      className="absolute top-0 h-full pointer-events-none z-20 opacity-90 w-px bg-linear-accent"
       style={{ left: `${left}px` }}
     >
       <div

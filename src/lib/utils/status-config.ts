@@ -51,6 +51,43 @@ export function fixVersionStatusOf(fv: { released: boolean; releaseDate: string 
   return 'upcoming'
 }
 
+// ─── Epic status config ───────────────────────────────────────────────────────
+
+export type EpicStatus = "todo" | "in-progress" | "done"
+
+export const EPIC_STATUS_CONFIG = {
+  todo: {
+    label: "To Do",
+    pillBg: ISSUE_COLORS.todo.tagBg,
+    pillText: ISSUE_COLORS.todo.text,
+    pillBorder: ISSUE_COLORS.todo.border,
+    solidBg: "rgba(74,74,106,0.15)",
+    solidText: ISSUE_COLORS.todo.text,
+    solidBorder: ISSUE_COLORS.todo.border,
+    solidOutline: ISSUE_COLORS.todo.outline,
+  },
+  "in-progress": {
+    label: "In Progress",
+    pillBg: ISSUE_COLORS.inProgress.tagBg,
+    pillText: ISSUE_COLORS.inProgress.text,
+    pillBorder: ISSUE_COLORS.inProgress.border,
+    solidBg: "rgba(245,158,11,0.28)",
+    solidText: ISSUE_COLORS.inProgress.text,
+    solidBorder: ISSUE_COLORS.inProgress.border,
+    solidOutline: ISSUE_COLORS.inProgress.outline,
+  },
+  done: {
+    label: "Done",
+    pillBg: ISSUE_COLORS.done.tagBg,
+    pillText: ISSUE_COLORS.done.text,
+    pillBorder: ISSUE_COLORS.done.border,
+    solidBg: "rgba(16,185,129,0.28)",
+    solidText: ISSUE_COLORS.done.text,
+    solidBorder: ISSUE_COLORS.done.border,
+    solidOutline: ISSUE_COLORS.done.outline,
+  },
+} as const
+
 export function statusDotClass(statusCategory: string): string {
   if (statusCategory === 'done') return ISSUE_COLORS.done.dot
   if (statusCategory === 'indeterminate' || statusCategory === 'in-progress')
